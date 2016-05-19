@@ -1,0 +1,46 @@
+package:
+  name: pydrobert-kaldi
+  version: "0.1"
+
+source:
+  path: ../..
+
+requirements:
+  build:
+    - libgcc 5.2.0 [linux]
+    - python
+    - setuptools
+    - numpy
+    - swig >=3.0
+    - kaldi-io-core
+    - pkgconfig
+  run:
+    - libgcc 5.2.0 [linux]
+    - python
+    - numpy
+    - future
+    - six
+    - enum34 [py2k]
+    - kaldi-io-core
+
+build:
+  detect_binary_files_with_prefix: True
+
+test:
+  files:
+    - ../../tests/test_vectors.py
+    - ../../tests/test_matrices.py
+    - ../../tests/test_tables.py
+  requires:
+    - nose
+  imports:
+    - pydrobert
+    - pydrobert.kaldi
+    - pydrobert.kaldi._internal
+    - pydrobert.kaldi.tables
+
+about:
+  home: https://github.com/sdrobert/pydrobert-kaldi
+  license: Apache
+  license_file: LICENSE
+  summary: "wrapped SWIG bindings for Kaldi"

@@ -1,0 +1,32 @@
+package:
+  name: kaldi-io-core
+  version: "0.1"
+
+source:
+  git_url: https://github.com/kaldi-asr/kaldi.git
+  git_rev: 3d16b2366c261f329a1820ee6efa9176e8f00aa7
+  patches:
+    - kaldi_io.patch
+
+requirements:
+  build:
+    - libgcc 5.2.0 [linux]
+    - python
+    - openblas
+  run:
+    - libgcc 5.2.0 [linux]
+    - openblas
+
+build:
+  detect_binary_files_with_prefix: True
+
+test:
+  commands:
+    - pkg-config --exists kaldi-base
+    - pkg-config --exists kaldi-thread
+    - pkg-config --exists kaldi-matrix
+    - pkg-config --exists kaldi-util
+
+about:
+  license_file: COPYING
+  summary: "Kaldi compilation of base, util, matrix, and thread with openBLAS"

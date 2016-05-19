@@ -1,0 +1,506 @@
+diff --git src/Makefile src/Makefile
+index 7589477..6fb7283 100644
+--- src/Makefile
++++ src/Makefile
+@@ -88,15 +88,15 @@ kaldi.mk:
+ ext: test_dependencies ext_depend $(SUBDIRS) $(EXT_SUBDIRS)
+ 	-echo Done
+ 
+-ifndef OPENFST_VER
+-$(error Please rerun configure: OPENFST_VER is not defined, likely kaldi.mk was produced by older configure script.)
+-endif
+-# Note: OPENFST_VER is determined by configure and added to kaldi.mk
+-OPENFST_VER_NUM := $(shell echo $(OPENFST_VER) | sed 's/\./ /g' | xargs printf "%d%02d%02d")
++# ifndef OPENFST_VER
++# $(error Please rerun configure: OPENFST_VER is not defined, likely kaldi.mk was produced by older configure script.)
++# endif
++# # Note: OPENFST_VER is determined by configure and added to kaldi.mk
++# OPENFST_VER_NUM := $(shell echo $(OPENFST_VER) | sed 's/\./ /g' | xargs printf "%d%02d%02d")
+ test_dependencies:
+-ifeq ("$(shell expr $(OPENFST_VER_NUM) \< 10302)","1")
+-	$(error OpenFst $(OPENFST_VER) is not supported. You now need OpenFst >= 1.3.2.)
+-endif
++# ifeq ("$(shell expr $(OPENFST_VER_NUM) \< 10302)","1")
++# 	$(error OpenFst $(OPENFST_VER) is not supported. You now need OpenFst >= 1.3.2.)
++# endif
+ 
+ check_portaudio:
+ 	@[ -d ../tools/portaudio ] || ( cd ../tools;  ./install_portaudio.sh )
+@@ -179,3 +179,12 @@ online: decoder gmm transform feat matrix util base lat hmm thread tree
+ online2: decoder gmm transform feat matrix util base lat hmm thread ivector cudamatrix nnet2 nnet3
+ kws: base util hmm tree matrix lat
+ 
++.PHONY: kaldi_cxxflags kaldi_ldlibs kaldi_ldflags
++kaldi_cxxflags:
++	echo $(CXXFLAGS) > $@
++
++kaldi_ldlibs:
++	echo $(LDLIBS) > $@
++
++kaldi_ldflags:
++	echo $(LDFLAGS) > $@
+diff --git src/base/kaldi-types.h src/base/kaldi-types.h
+index 7ebf4f8..f4a8866 100644
+--- src/base/kaldi-types.h
++++ src/base/kaldi-types.h
+@@ -41,22 +41,21 @@ typedef float   BaseFloat;
+ 
+ // for discussion on what to do if you need compile kaldi
+ // without OpenFST, see the bottom of this this file
+-#include <fst/types.h>
++// #include <fst/types.h>
+ 
+-namespace kaldi {
+-  using ::int16;
+-  using ::int32;
+-  using ::int64;
+-  using ::uint16;
+-  using ::uint32;
+-  using ::uint64;
+-  typedef float   float32;
+-  typedef double double64;
+-}  // end namespace kaldi
++// namespace kaldi {
++//   using ::int16;
++//   using ::int32;
++//   using ::int64;
++//   using ::uint16;
++//   using ::uint32;
++//   using ::uint64;
++//   typedef float   float32;
++//   typedef double double64;
++// }  // end namespace kaldi
+ 
+ // In a theoretical case you decide compile Kaldi without the OpenFST
+ // comment the previous namespace statement and uncomment the following
+-/*
+ namespace kaldi {
+   typedef int8_t   int8;
+   typedef int16_t  int16;
+@@ -70,6 +69,5 @@ namespace kaldi {
+   typedef float    float32;
+   typedef double   double64;
+ }  // end namespace kaldi
+-*/
+ 
+ #endif  // KALDI_BASE_KALDI_TYPES_H_
+diff --git src/configure src/configure
+index 6ee1f64..65160d3 100755
+--- src/configure
++++ src/configure
+@@ -60,7 +60,7 @@ fi
+ ## Default locations for FST and linear algebra libraries.
+ MATHLIB='ATLAS'
+ ATLASROOT=`rel2abs ../tools/ATLAS/`
+-FSTROOT=`rel2abs ../tools/openfst`
++# FSTROOT=`rel2abs ../tools/openfst`
+ 
+ # Avoid using any variables that are set in the shell.
+ unset MKLROOT
+@@ -79,7 +79,7 @@ threaded_atlas=false #  By default, use the un-threaded version of ATLAS.
+ threaded_math=${threaded_atlas}
+ static_math=false
+ static_fst=false
+-use_cuda=true
++use_cuda=false
+ dynamic_kaldi=false
+ mkl_threading=sequential
+ 
+@@ -799,18 +799,18 @@ if [ ! -f makefiles/common.mk ]; then
+ fi
+ 
+ 
+-echo "Checking OpenFST library in $FSTROOT ..."
+-if [ ! -f $FSTROOT/include/fst/fst.h  ]; then
+-    failure "Could not find file $FSTROOT/include/fst/fst.h:
+-    you may not have installed OpenFst.  See ../tools/INSTALL"
+-fi
+-echo Checking OpenFst library was patched.
+-if ! grep "multiple repeated" $FSTROOT/include/fst/minimize.h >/dev/null; then
+-    echo "**  ERROR  **"
+-    echo "** $FSTROOT/include/fst/minimize.h seems not to be patched:"
+-    echo "patch not applied?  FST tools will not work in our recipe."
+-    exit 1;
+-fi
++# echo "Checking OpenFST library in $FSTROOT ..."
++# if [ ! -f $FSTROOT/include/fst/fst.h  ]; then
++#     failure "Could not find file $FSTROOT/include/fst/fst.h:
++#     you may not have installed OpenFst.  See ../tools/INSTALL"
++# fi
++# echo Checking OpenFst library was patched.
++# if ! grep "multiple repeated" $FSTROOT/include/fst/minimize.h >/dev/null; then
++#     echo "**  ERROR  **"
++#     echo "** $FSTROOT/include/fst/minimize.h seems not to be patched:"
++#     echo "patch not applied?  FST tools will not work in our recipe."
++#     exit 1;
++# fi
+ 
+ # back up the old one in case we modified it
+ if [ -f kaldi.mk ]; then
+@@ -826,18 +826,18 @@ echo "KALDI_FLAVOR := dynamic" >> kaldi.mk
+ echo "KALDILIBDIR := $KALDILIBDIR" >> kaldi.mk
+ fi
+ echo "CONFIGURE_VERSION := $CONFIGURE_VERSION" >> kaldi.mk
+-echo "FSTROOT = $FSTROOT" >> kaldi.mk
++# echo "FSTROOT = $FSTROOT" >> kaldi.mk
+ 
+ # Check installed OpenFst version and add C++11 flags if OpenFst >= 1.4
+-OPENFST_VER="${OPENFST_VER:-`grep 'PACKAGE_VERSION' $FSTROOT/Makefile | sed -e 's:.*= ::'`}"
+-echo "OPENFST_VER = $OPENFST_VER" >> kaldi.mk
+-OPENFST_VER_NUM=`echo $OPENFST_VER | sed 's/\./ /g' | xargs printf "%d%02d%02d"`
+-if [ $OPENFST_VER_NUM -ge 10400 ]; then
+-  echo "OPENFST_GE_10400 = 1" >> kaldi.mk
+-  echo "EXTRA_CXXFLAGS += -DHAVE_OPENFST_GE_10400 -std=c++0x" >> kaldi.mk
+-else
+-  echo "OPENFST_GE_10400 = 0" >> kaldi.mk
+-fi
++# OPENFST_VER="${OPENFST_VER:-`grep 'PACKAGE_VERSION' $FSTROOT/Makefile | sed -e 's:.*= ::'`}"
++# echo "OPENFST_VER = $OPENFST_VER" >> kaldi.mk
++# OPENFST_VER_NUM=`echo $OPENFST_VER | sed 's/\./ /g' | xargs printf "%d%02d%02d"`
++# if [ $OPENFST_VER_NUM -ge 10400 ]; then
++  # echo "OPENFST_GE_10400 = 1" >> kaldi.mk
++  # echo "EXTRA_CXXFLAGS += -DHAVE_OPENFST_GE_10400 -std=c++0x" >> kaldi.mk
++# else
++  # echo "OPENFST_GE_10400 = 0" >> kaldi.mk
++# fi
+ 
+ # Most of the OS-specific steps below will append to kaldi.mk
+ echo "Doing OS specific configurations ..."
+@@ -851,9 +851,9 @@ if [ "`uname`" == "Darwin"  ]; then
+   if [ ! -e /System/Library/Frameworks/Accelerate.framework ]; then
+     failure "Need the Accelerate.framework to compile on Darwin."
+   fi
+-  if [ ! -f $FSTROOT/lib/libfst.a ]; then
+-    failure "Static OpenFST library not found:  See ../tools/INSTALL"
+-  fi
++  # if [ ! -f $FSTROOT/lib/libfst.a ]; then
++  #   failure "Static OpenFST library not found:  See ../tools/INSTALL"
++  # fi
+   # posix_memalign and gcc -rdynamic options not present on OS X 10.5.*
+   osx_ver=`sw_vers | grep ProductVersion | awk '{print $2}' | awk '{split($0,a,"\."); print a[1] "." a[2]; }'`
+   echo "Configuring for OS X version $osx_ver ..."
+@@ -899,19 +899,19 @@ if [ "`uname -o`" == "Cygwin"  ]; then
+ fi
+ 
+ if [ "`uname`" == "Linux" ]; then
+-  if  $static_fst ; then
+-      OPENFSTLIBS="$FSTROOT/lib/libfst.a"
+-      fst_type='a'
+-  else
+-      OPENFSTLIBS="-L${FSTROOT}/lib -lfst"
+-      OPENFSTLDFLAGS="-Wl,-rpath=${FSTROOT}/lib"
+-      fst_type='so'
+-  fi
+-  if [ ! -f "$FSTROOT/lib/libfst.${fst_type}" ]; then
+-    failure "Static=[$static_fst] OpenFST library not found:  See ../tools/INSTALL"
+-  fi
+-  echo OPENFSTLIBS = $OPENFSTLIBS >> kaldi.mk
+-  echo OPENFSTLDFLAGS = $OPENFSTLDFLAGS >> kaldi.mk
++  # if  $static_fst ; then
++  #     OPENFSTLIBS="$FSTROOT/lib/libfst.a"
++  #     fst_type='a'
++  # else
++  #     OPENFSTLIBS="-L${FSTROOT}/lib -lfst"
++  #     OPENFSTLDFLAGS="-Wl,-rpath=${FSTROOT}/lib"
++  #     fst_type='so'
++  # fi
++  # if [ ! -f "$FSTROOT/lib/libfst.${fst_type}" ]; then
++  #   failure "Static=[$static_fst] OpenFST library not found:  See ../tools/INSTALL"
++  # fi
++  # echo OPENFSTLIBS = $OPENFSTLIBS >> kaldi.mk
++  # echo OPENFSTLDFLAGS = $OPENFSTLDFLAGS >> kaldi.mk
+ 
+   echo "On Linux: Checking for linear algebra header files ..."
+   if [ "$MATHLIB" == "ATLAS" ]; then
+diff --git src/makefiles/darwin_10_10.mk src/makefiles/darwin_10_10.mk
+index 4314397..f13befa 100644
+--- src/makefiles/darwin_10_10.mk
++++ src/makefiles/darwin_10_10.mk
+@@ -1,8 +1,8 @@
+ # makefiles/darwin_10_10.mk contains Darwin-specific rules for OS X 10.10.*
+ 
+-ifndef FSTROOT
+-$(error FSTROOT not defined.)
+-endif
++#ifndef FSTROOT
++#$(error FSTROOT not defined.)
++#endif
+ 
+ DOUBLE_PRECISION = 0
+ CXXFLAGS += -msse -msse2 -Wall -I.. \
+@@ -11,7 +11,6 @@ CXXFLAGS += -msse -msse2 -Wall -I.. \
+       -Wno-sign-compare -Winit-self \
+       -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H \
+       -DHAVE_CLAPACK \
+-      -I$(FSTROOT)/include \
+       $(EXTRA_CXXFLAGS) \
+       -g # -O0 -DKALDI_PARANOID
+ 
+@@ -21,7 +20,7 @@ CXXFLAGS += -fPIC
+ endif
+ 
+ LDFLAGS = -g
+-LDLIBS = $(EXTRA_LDLIBS) $(FSTROOT)/lib/libfst.a -ldl -lm -lpthread -framework Accelerate
++LDLIBS = $(EXTRA_LDLIBS) -ldl -lm -lpthread -framework Accelerate
+ CXX = g++
+ CC = $(CXX)
+ RANLIB = ranlib
+@@ -33,10 +32,10 @@ COMPILER = $(shell $(CXX) -v 2>&1 )
+ ifeq ($(findstring clang,$(COMPILER)),clang)
+   CXXFLAGS += -Wno-mismatched-tags
+   # Link with libstdc++ if we are building against OpenFst < 1.4
+-  ifneq ("$(OPENFST_GE_10400)","1")
+-    CXXFLAGS += -stdlib=libstdc++
+-    LDFLAGS += -stdlib=libstdc++
+-  endif
++#  ifneq ("$(OPENFST_GE_10400)","1")
++#    CXXFLAGS += -stdlib=libstdc++
++#    LDFLAGS += -stdlib=libstdc++
++#  endif
+ endif
+ 
+ # We need to tell recent versions of g++ to allow vector conversions without
+diff --git src/makefiles/darwin_10_11.mk src/makefiles/darwin_10_11.mk
+index 407ced6..1dcec2d 100644
+--- src/makefiles/darwin_10_11.mk
++++ src/makefiles/darwin_10_11.mk
+@@ -1,8 +1,8 @@
+ # makefiles/darwin_10_11.mk contains Darwin-specific rules for OS X 10.11.*
+ 
+-ifndef FSTROOT
+-$(error FSTROOT not defined.)
+-endif
++#ifndef FSTROOT
++#$(error FSTROOT not defined.)
++#endif
+ 
+ DOUBLE_PRECISION = 0
+ CXXFLAGS += -msse -msse2 -Wall -I.. \
+@@ -11,7 +11,6 @@ CXXFLAGS += -msse -msse2 -Wall -I.. \
+       -Wno-sign-compare -Winit-self \
+       -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H \
+       -DHAVE_CLAPACK \
+-      -I$(FSTROOT)/include \
+       $(EXTRA_CXXFLAGS) -Wno-unused-local-typedef \
+       -g # -O0 -DKALDI_PARANOID
+ 
+@@ -21,7 +20,7 @@ CXXFLAGS += -fPIC
+ endif
+ 
+ LDFLAGS = -g
+-LDLIBS = $(EXTRA_LDLIBS) $(FSTROOT)/lib/libfst.a -ldl -lm -lpthread -framework Accelerate
++LDLIBS = $(EXTRA_LDLIBS) -ldl -lm -lpthread -framework Accelerate
+ CXX = g++
+ CC = $(CXX)
+ RANLIB = ranlib
+@@ -33,10 +32,6 @@ COMPILER = $(shell $(CXX) -v 2>&1 )
+ ifeq ($(findstring clang,$(COMPILER)),clang)
+   CXXFLAGS += -Wno-mismatched-tags
+   # Link with libstdc++ if we are building against OpenFst < 1.4
+-  ifneq ("$(OPENFST_GE_10400)","1")
+-    CXXFLAGS += -stdlib=libstdc++
+-    LDFLAGS += -stdlib=libstdc++
+-  endif
+ endif
+ 
+ # We need to tell recent versions of g++ to allow vector conversions without
+diff --git src/makefiles/darwin_10_5.mk src/makefiles/darwin_10_5.mk
+index 5a1353b..9c2456a 100644
+--- src/makefiles/darwin_10_5.mk
++++ src/makefiles/darwin_10_5.mk
+@@ -1,8 +1,8 @@
+ # makefiles/darwin_10_5.mk contains Darwin-specific rules for OS X 10.5.*
+ 
+-ifndef FSTROOT
+-$(error FSTROOT not defined.)
+-endif
++#ifndef FSTROOT
++#$(error FSTROOT not defined.)
++#endif
+ 
+ DOUBLE_PRECISION = 0
+ CXXFLAGS += -msse -msse2 -Wall -I.. \
+@@ -11,7 +11,6 @@ CXXFLAGS += -msse -msse2 -Wall -I.. \
+       -Wno-sign-compare -Winit-self \
+       -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H \
+       -DHAVE_CLAPACK \
+-      -I$(FSTROOT)/include \
+       $(EXTRA_CXXFLAGS) \
+       -gdwarf-2 # -O0 -DKALDI_PARANOID
+ 
+@@ -20,7 +19,7 @@ CXXFLAGS += -fPIC
+ endif
+ 
+ LDFLAGS = -gdwarf-2
+-LDLIBS = $(EXTRA_LDLIBS) $(FSTROOT)/lib/libfst.a -ldl -lm -lpthread -framework Accelerate
++LDLIBS = $(EXTRA_LDLIBS) -ldl -lm -lpthread -framework Accelerate
+ CXX = g++-4
+ CC = g++-4
+ RANLIB = ranlib
+diff --git src/makefiles/darwin_10_6.mk src/makefiles/darwin_10_6.mk
+index 1a39602..269fb5c 100644
+--- src/makefiles/darwin_10_6.mk
++++ src/makefiles/darwin_10_6.mk
+@@ -1,8 +1,8 @@
+ # makefiles/darwin_10_6.mk contains Darwin-specific rules for OS X 10.6.*
+ 
+-ifndef FSTROOT
+-$(error FSTROOT not defined.)
+-endif
++#ifndef FSTROOT
++#$(error FSTROOT not defined.)
++#endif
+ 
+ DOUBLE_PRECISION = 0
+ CXXFLAGS += -msse -msse2 -Wall -I.. \
+@@ -11,7 +11,6 @@ CXXFLAGS += -msse -msse2 -Wall -I.. \
+       -Wno-sign-compare -Winit-self \
+       -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H -rdynamic \
+       -DHAVE_CLAPACK \
+-      -I$(FSTROOT)/include \
+       $(EXTRA_CXXFLAGS) \
+       -g # -O0 -DKALDI_PARANOID
+ 
+@@ -20,7 +19,7 @@ CXXFLAGS += -fPIC
+ endif
+ 
+ LDFLAGS = -g -rdynamic
+-LDLIBS =  $(EXTRA_LDLIBS) $(FSTROOT)/lib/libfst.a -ldl -lm -lpthread -framework Accelerate
++LDLIBS =  $(EXTRA_LDLIBS) -ldl -lm -lpthread -framework Accelerate
+ CXX = g++
+ CC = g++
+ RANLIB = ranlib
+diff --git src/makefiles/darwin_10_7.mk src/makefiles/darwin_10_7.mk
+index 40804af..ec54373 100644
+--- src/makefiles/darwin_10_7.mk
++++ src/makefiles/darwin_10_7.mk
+@@ -1,8 +1,8 @@
+ # makefiles/darwin_10_6.mk contains Darwin-specific rules for OS X 10.7.*
+ 
+-ifndef FSTROOT
+-$(error FSTROOT not defined.)
+-endif
++#ifndef FSTROOT
++#$(error FSTROOT not defined.)
++#endif
+ 
+ DOUBLE_PRECISION = 0
+ CXXFLAGS += -msse -msse2 -Wall -I.. \
+@@ -11,7 +11,6 @@ CXXFLAGS += -msse -msse2 -Wall -I.. \
+       -Wno-sign-compare -Winit-self \
+       -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H -rdynamic \
+       -DHAVE_CLAPACK \
+-      -I$(FSTROOT)/include \
+       $(EXTRA_CXXFLAGS) \
+       -g # -O0 -DKALDI_PARANOID
+ 
+@@ -21,7 +20,7 @@ CXXFLAGS += -fPIC
+ endif
+ 
+ LDFLAGS = -g -rdynamic
+-LDLIBS = $(EXTRA_LDLIBS) $(FSTROOT)/lib/libfst.a -ldl -lm -lpthread -framework Accelerate
++LDLIBS = $(EXTRA_LDLIBS) -ldl -lm -lpthread -framework Accelerate
+ CXX = g++
+ CC = g++
+ RANLIB = ranlib
+diff --git src/makefiles/darwin_10_8.mk src/makefiles/darwin_10_8.mk
+index 7fd3bb0..1b7aac9 100644
+--- src/makefiles/darwin_10_8.mk
++++ src/makefiles/darwin_10_8.mk
+@@ -1,8 +1,8 @@
+ # makefiles/darwin_10_8.mk contains Darwin-specific rules for OS X 10.8.*
+ 
+-ifndef FSTROOT
+-$(error FSTROOT not defined.)
+-endif
++#ifndef FSTROOT
++#$(error FSTROOT not defined.)
++#endif
+ 
+ DOUBLE_PRECISION = 0
+ CXXFLAGS += -msse -msse2 -Wall -I.. \
+@@ -11,7 +11,6 @@ CXXFLAGS += -msse -msse2 -Wall -I.. \
+       -Wno-sign-compare -Winit-self \
+       -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H -rdynamic \
+       -DHAVE_CLAPACK \
+-      -I$(FSTROOT)/include \
+       $(EXTRA_CXXFLAGS) \
+       -g # -O0 -DKALDI_PARANOID
+ 
+@@ -21,7 +20,7 @@ CXXFLAGS += -fPIC
+ endif
+ 
+ LDFLAGS = -g -rdynamic
+-LDLIBS = $(EXTRA_LDLIBS) $(FSTROOT)/lib/libfst.a -ldl -lm -lpthread -framework Accelerate
++LDLIBS = $(EXTRA_LDLIBS) -ldl -lm -lpthread -framework Accelerate
+ CXX = g++
+ CC = g++
+ RANLIB = ranlib
+diff --git src/makefiles/darwin_10_9.mk src/makefiles/darwin_10_9.mk
+index 6477a60..dac13cb 100644
+--- src/makefiles/darwin_10_9.mk
++++ src/makefiles/darwin_10_9.mk
+@@ -1,8 +1,8 @@
+ # makefiles/darwin_10_9.mk contains Darwin-specific rules for OS X 10.9.*
+ 
+-ifndef FSTROOT
+-$(error FSTROOT not defined.)
+-endif
++#ifndef FSTROOT
++#$(error FSTROOT not defined.)
++#endif
+ 
+ DOUBLE_PRECISION = 0
+ CXXFLAGS += -msse -msse2 -Wall -I.. \
+@@ -11,7 +11,6 @@ CXXFLAGS += -msse -msse2 -Wall -I.. \
+       -Wno-sign-compare -Winit-self \
+       -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H \
+       -DHAVE_CLAPACK \
+-      -I$(FSTROOT)/include \
+       $(EXTRA_CXXFLAGS) \
+       -g # -O0 -DKALDI_PARANOID
+ 
+@@ -21,7 +20,7 @@ CXXFLAGS += -fPIC
+ endif
+ 
+ LDFLAGS = -g
+-LDLIBS = $(EXTRA_LDLIBS) $(FSTROOT)/lib/libfst.a -ldl -lm -lpthread -framework Accelerate
++LDLIBS = $(EXTRA_LDLIBS) -ldl -lm -lpthread -framework Accelerate
+ CXX = g++
+ CC = $(CXX)
+ RANLIB = ranlib
+diff --git src/makefiles/linux_openblas.mk src/makefiles/linux_openblas.mk
+index b910d82..6f7bc67 100644
+--- src/makefiles/linux_openblas.mk
++++ src/makefiles/linux_openblas.mk
+@@ -1,8 +1,8 @@
+ # You have to make sure FSTROOT,OPENBLASROOT,OPENBLASLIBS are set...
+ 
+-ifndef FSTROOT
+-$(error FSTROOT not defined.)
+-endif
++#ifndef FSTROOT
++#$(error FSTROOT not defined.)
++#endif
+ 
+ ifndef OPENBLASLIBS
+ $(error OPENBLASLIBS not defined.)
+@@ -20,7 +20,6 @@ CXXFLAGS = -msse -msse2 -Wall -I.. \
+       -Wno-sign-compare -Wno-unused-local-typedefs -Winit-self \
+       -DHAVE_EXECINFO_H=1 -rdynamic -DHAVE_CXXABI_H \
+       -DHAVE_OPENBLAS -I $(OPENBLASROOT)/include \
+-      -I $(FSTROOT)/include \
+       $(EXTRA_CXXFLAGS) \
+       -g # -O0 -DKALDI_PARANOID 
+ 
+@@ -28,8 +27,8 @@ ifeq ($(KALDI_FLAVOR), dynamic)
+ CXXFLAGS += -fPIC
+ endif
+ 
+-LDFLAGS = -rdynamic $(OPENFSTLDFLAGS)
+-LDLIBS = $(EXTRA_LDLIBS) $(OPENFSTLIBS) $(OPENBLASLIBS) -lm -lpthread -ldl 
++LDFLAGS = -rdynamic
++LDLIBS = $(EXTRA_LDLIBS) $(OPENBLASLIBS) -lm -lpthread -ldl 
+ CC = g++
+ CXX = g++
+ AR = ar
