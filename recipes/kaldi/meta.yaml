@@ -10,22 +10,21 @@ source:
 
 requirements:
   build:
-    - libgcc 5.2.0 [linux]
+    - gcc 4.8.5
+    - libgcc 4.8.5 [linux]
     - python
     - openblas
   run:
-    - libgcc 5.2.0 [linux]
+    - libgcc 4.8.5 [linux]
     - openblas
 
 build:
   detect_binary_files_with_prefix: True
 
 test:
-  commands:
-    - pkg-config --exists kaldi-base
-    - pkg-config --exists kaldi-thread
-    - pkg-config --exists kaldi-matrix
-    - pkg-config --exists kaldi-util
+  requires:
+    - gcc 4.8.5
+    - pkg-config [osx]
 
 about:
   license_file: COPYING
