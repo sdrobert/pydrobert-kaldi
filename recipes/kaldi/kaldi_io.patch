@@ -85,7 +85,7 @@ index 7ebf4f8..f4a8866 100644
  
  #endif  // KALDI_BASE_KALDI_TYPES_H_
 diff --git src/configure src/configure
-index 6ee1f64..65160d3 100755
+index 6ee1f64..bcb652b 100755
 --- src/configure
 +++ src/configure
 @@ -60,7 +60,7 @@ fi
@@ -137,7 +137,13 @@ index 6ee1f64..65160d3 100755
  
  # back up the old one in case we modified it
  if [ -f kaldi.mk ]; then
-@@ -826,18 +826,18 @@ echo "KALDI_FLAVOR := dynamic" >> kaldi.mk
+@@ -821,23 +821,23 @@ fi
+ printf "# This file was generated using the following command:\n# $cmd_line\n\n" > kaldi.mk
+ cat makefiles/common.mk >> kaldi.mk
+ if $dynamic_kaldi ; then
+-KALDILIBDIR=`pwd`/lib
++KALDILIBDIR=${PREFIX}/lib
+ echo "KALDI_FLAVOR := dynamic" >> kaldi.mk
  echo "KALDILIBDIR := $KALDILIBDIR" >> kaldi.mk
  fi
  echo "CONFIGURE_VERSION := $CONFIGURE_VERSION" >> kaldi.mk
@@ -469,6 +475,19 @@ index 6477a60..dac13cb 100644
  CXX = g++
  CC = $(CXX)
  RANLIB = ranlib
+diff --git src/makefiles/default_rules.mk src/makefiles/default_rules.mk
+index 3d3f963..286e9b2 100644
+--- src/makefiles/default_rules.mk
++++ src/makefiles/default_rules.mk
+@@ -37,7 +37,7 @@ $(LIBFILE): $(OBJFILES)
+ ifeq ($(KALDI_FLAVOR), dynamic)
+ ifeq ($(shell uname), Darwin)
+ 	$(CXX) -dynamiclib -o $@ -install_name @rpath/$@ -framework Accelerate $(LDFLAGS) $(XLDLIBS) $(OBJFILES) $(LDLIBS)
+-	rm -f $(KALDILIBDIR)/$@; ln -s $(shell pwd)/$@ $(KALDILIBDIR)/$@
++	rm -f $(KALDILIBDIR)/$@; cp $(shell pwd)/$@ $(KALDILIBDIR)/$@
+ else
+ ifeq ($(shell uname), Linux)
+ 	# Building shared library from static (static was compiled with -fPIC)
 diff --git src/makefiles/linux_openblas.mk src/makefiles/linux_openblas.mk
 index b910d82..6f7bc67 100644
 --- src/makefiles/linux_openblas.mk

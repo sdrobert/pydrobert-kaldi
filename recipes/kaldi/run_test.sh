@@ -6,7 +6,7 @@ pkg-config --exists kaldi-thread || exit 1
 pkg-config --exists kaldi-util || exit 1
 
 CFLAGS=$(pkg-config --cflags kaldi-base kaldi-matrix kaldi-thread kaldi-util)
-LDLIBS=$(pkg-config --libs kaldi-base kaldi-matrix kaldi-thread kaldi-util| xargs -n1 | sort -u | tr '\n' ' ')
+LDLIBS=$(pkg-config --libs kaldi-base kaldi-matrix kaldi-thread kaldi-util)
 
 cat > main.cpp <<- EOF
 #include <iostream>
@@ -22,6 +22,6 @@ int main() {
 EOF
 
 g++ main.cpp ${CFLAGS} \
-  -lkaldi-base -lkaldi-thread -lkaldi-util -lkaldi-matrix -o yo ${LDLIBS} \
+  -lkaldi-base -lkaldi-thread -lkaldi-util -lkaldi-matrix -o yo ${LDLIBS}\
   || exit 1
 ./yo || exit 1
