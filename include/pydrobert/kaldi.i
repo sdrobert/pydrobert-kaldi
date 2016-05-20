@@ -38,10 +38,12 @@
 %constant bool kDoubleIsBase = sizeof(kaldi::BaseFloat) == sizeof(double);
 
 // all SWIG needs to know about various parents
-%import "base/kaldi-common.h"
-%import "util/common-utils.h"
-%import "matrix/matrix-common.h"
+%nodefaultctor;
+%nodefaultdtor;
 namespace kaldi {
+  typedef int32 MatrixIndexT;
+  typedef int32 SignedMatrixIndexT;
+  typedef uitnt32 UnsignedMatrixIndexT;
   template <typename Real> class Vector {
     public:
       long Dim() const;
@@ -83,26 +85,28 @@ namespace kaldi {
       bool Close();
   };
 }
-
-// vectors
 %template(DoubleVector) kaldi::Vector<double>;
 %template(FloatVector) kaldi::Vector<float>;
+%template(DoubleMatrix) kaldi::Matrix<double>;
+%template(FloatMatrix) kaldi::Matrix<float>;
+%clearnodefaultctor;
+%clearnodefaultdtor;
 
+// vectors
 %include "pydrobert/kaldi/vector.hpp"
 
 %template(NumpyDoubleVector) NumpyVector<double>;
 %template(NumpyFloatVector) NumpyVector<float>;
 
 // matrices
-%template(DoubleMatrix) kaldi::Matrix<double>;
-%template(FloatMatrix) kaldi::Matrix<float>;
-
 %include "pydrobert/kaldi/matrix.hpp"
 
 %template(NumpyDoubleMatrix) NumpyMatrix<double>;
 %template(NumpyFloatMatrix) NumpyMatrix<float>;
 
 // tables (TODO: this is ugly. make into macros)
+%nodefaultctor;
+%nodefaultdtor;
 %template(NumpyDoubleVectorHolder) kaldi::KaldiObjectHolder<NumpyVector<double> >;
 %template(SequentialNumpyDoubleVectorReader) kaldi::SequentialTableReader<kaldi::KaldiObjectHolder<NumpyVector<double> > >;
 %template(RandomAccessNumpyDoubleVectorReader) kaldi::RandomAccessTableReader<kaldi::KaldiObjectHolder<NumpyVector<double> > >;
@@ -126,6 +130,8 @@ namespace kaldi {
 %template(RandomAccessNumpyFloatMatrixReader) kaldi::RandomAccessTableReader<kaldi::KaldiObjectHolder<NumpyMatrix<float> > >;
 %template(RandomAccessNumpyFloatMatrixReaderMapped) kaldi::RandomAccessTableReaderMapped<kaldi::KaldiObjectHolder<NumpyMatrix<float> > >;
 %template(NumpyFloatMatrixWriter) kaldi::TableWriter<kaldi::KaldiObjectHolder<NumpyMatrix<float> > >;
+%clearnodefaultctor;
+%clearnodefaultdtor;
 
 %include "pydrobert/kaldi/tables.hpp"
 

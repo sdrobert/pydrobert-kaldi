@@ -14,6 +14,7 @@ requirements:
     - swig >=3.0
     - kaldi-io-core
     - pkgconfig
+    - pkg-config [osx]
   run:
     - libgcc 5.2.0 [linux]
     - python

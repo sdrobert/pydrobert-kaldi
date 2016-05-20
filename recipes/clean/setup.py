@@ -30,6 +30,7 @@ kaldi_include_dirs = {include_dir, numpy.get_include()}
 # pkg-config returns in unicode, so we should cast in case of py2.7
 kaldi_compiler_args = shlex.split(
     pkgconfig.cflags('kaldi-util kaldi-matrix kaldi-base kaldi-thread'))
+define_symbols = [] # extract for swig
 idx = 0
 while idx < len(kaldi_compiler_args):
     if kaldi_compiler_args[idx][:2] == '-I':
@@ -39,6 +40,9 @@ while idx < len(kaldi_compiler_args):
         else:
             kaldi_include_dirs.add(kaldi_compiler_args[idx][2:])
         del kaldi_compiler_args[idx]
+    elif kaldi_compiler_args[idx][:2] == '-D':
+        define_symbols.append(kaldi_compiler_args[idx])
+        idx += 1
     else:
         idx += 1
 kaldi_linker_args = shlex.split(
@@ -58,6 +62,9 @@ while idx < len(kaldi_linker_args):
     else:
         idx += 1
 
+swig_opts = ['-c++', '-builtin', '-Wall'] + define_symbols + \
+        ['-I' + x for x in kaldi_include_dirs]
+
 kaldi_module = Extension(
     'pydrobert.kaldi._internal',
     sources=[
@@ -67,12 +74,12 @@ kaldi_module = Extension(
     ],
     library_dirs=list(kaldi_library_dirs),
     libraries=list(kaldi_libraries),
-    runtime_library_dirs=list(kaldi_library_dirs),
+    # runtime_library_dirs=list(kaldi_library_dirs),
     include_dirs=list(kaldi_include_dirs),
     language='c++',
     extra_compile_args=kaldi_compiler_args,
     extra_link_args=kaldi_linker_args,
-    swig_opts=['-c++', '-builtin', '-Wall'] + ['-I' + x for x in kaldi_include_dirs],
+    swig_opts=swig_opts,
 )
 
 setup(
@@ -82,5 +89,6 @@ setup(
     package_dir={'':python_dir},
     packages=['pydrobert', 'pydrobert.kaldi'],
     long_description=readme_text,
+    zip_safe=False,
     py_modules=['pydrobert.kaldi.tables'],
 )
