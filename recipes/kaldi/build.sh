@@ -22,7 +22,6 @@ fi
 for d in matrix util thread base; do
   mkdir -p ${PREFIX}/include/kaldi/$d || exit 1
   cp $d/*.h ${PREFIX}/include/kaldi/$d/ || exit 1
-  #cp $d/*.dylib ${PREFIX}/lib/ || cp $d/*.so ${PREFIX}/lib/ || exit 1
 done
 
 popd

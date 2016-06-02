@@ -10,7 +10,6 @@ requirements:
     - gcc 4.8.5 [linux]
     - libgcc >=4.8.4 [linux]
     - python
-    - setuptools
     - numpy
     - swig >=3.0
     - kaldi-io-core
@@ -27,7 +26,6 @@ requirements:
 
 build:
   detect_binary_files_with_prefix: True
-  preserve_egg_dir: True
 
 test:
   files:

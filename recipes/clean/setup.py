@@ -3,14 +3,15 @@
 from __future__ import print_function
 
 import os
+import platform
 import shlex
 import sys
 
 import numpy
 import pkgconfig
 
-from setuptools import Extension
-from setuptools import setup
+from distutils.core import Extension
+from distutils.core import setup
 
 assert pkgconfig.exists('kaldi-base')
 assert pkgconfig.exists('kaldi-matrix')
@@ -61,6 +62,10 @@ while idx < len(kaldi_linker_args):
         del kaldi_linker_args[idx]
     else:
         del kaldi_linker_args[idx]
+# distutils doesn't like to set rpath, so we do it manually on OSX
+if platform.system() == 'Darwin':
+    assert len(kaldi_library_dirs) == 1
+    kaldi_linker_args += ['-Wl,-rpath,' + kaldi_library_dirs.pop()]
 
 swig_opts = ['-c++', '-builtin', '-Wall'] + list(define_symbols) + \
         ['-I' + x for x in kaldi_include_dirs]
@@ -83,6 +88,5 @@ setup(
     package_dir={'':python_dir},
     packages=['pydrobert', 'pydrobert.kaldi'],
     long_description=readme_text,
-    zip_safe=False,
     py_modules=['pydrobert.kaldi.tables'],
 )
