@@ -24,7 +24,6 @@ user: sdrobert
 ## platform defaults to linux-64
 platform:
   - linux-64
-  - osx-64
 ## The engine are the inital conda packages you want to run with
 engine:
   - python=2
@@ -41,8 +40,8 @@ engine:
 #===============================================================================
 
 ## Run before the script
-before_script:
-  - echo "before_script!"
+# before_script:
+#   - echo "before_script!"
 ## Put your main computations here!
 script:
   - conda build .
@@ -51,11 +50,11 @@ script:
 after_script:
   - echo "The build was a $BINSTAR_BUILD_RESULT" | tee artifact1.txt
 ## This will be run only after a successful build
-after_success:
-  - echo "after_success!"
+# after_success:
+#   - echo "after_success!"
 ## This will be run only after a build failure
-after_failure:
-  - echo "after_failure!"
+# after_failure:
+#   - echo "after_failure!"
 
 #===============================================================================
 # Build Results
