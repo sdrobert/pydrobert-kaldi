@@ -22,9 +22,10 @@ user: sdrobert
 
 ## The platforms to build on.
 ## platform defaults to linux-64
-# platform:
+platform:
   - linux-64
-#  - linux-32
+  - linux-32
+  - osx
 ## The engine are the inital conda packages you want to run with
 # engine:
   - python=2
