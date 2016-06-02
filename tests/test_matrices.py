@@ -10,17 +10,17 @@ import pydrobert.kaldi._internal as internal
 __author__ = "sdrobert"
 
 def test_internal_set_data_valid():
-    matr = internal.NumpyDoubleMatrix()
+    matr = internal.DoubleMatrix()
     matr.SetData([[1, 2], [3, 4]])
     matr.SetData(numpy.empty((1000, 10), dtype=numpy.float32))
-    matr = internal.NumpyFloatMatrix()
+    matr = internal.FloatMatrix()
     matr.SetData(numpy.ones((1, 100), dtype=numpy.float32))
     # note that we must pass data in two dimensions or else numpy.i
     # will freak. We'll do these simple checks in the wrapper
     matr.SetData([[]])
 
 def test_internal_set_data_invalid():
-    matr = internal.NumpyFloatMatrix()
+    matr = internal.FloatMatrix()
     for vals in ['ab', 'cd'], [1], numpy.empty((10,10), dtype=numpy.float64):
         try:
             matr.SetData(vals)
@@ -31,7 +31,7 @@ def test_internal_set_data_invalid():
             pass
 
 def test_internal_read_data_valid():
-    matr = internal.NumpyFloatMatrix()
+    matr = internal.FloatMatrix()
     matr.SetData(numpy.ones((100, 1000), dtype=numpy.float32))
     np = numpy.zeros((100, 1000), dtype=numpy.float32)
     assert matr.ReadDataInto(np)
@@ -39,7 +39,7 @@ def test_internal_read_data_valid():
     assert numpy.allclose(np, 1)
 
 def test_internal_read_data_invalid():
-    matr = internal.NumpyDoubleMatrix()
+    matr = internal.DoubleMatrix()
     matr.SetData(numpy.empty((10, 10), dtype=numpy.float64))
     for vals in [['a'] * 10] * 10, [[1] * 9] * 10, [1] * 100:
         try:

@@ -1,8 +1,8 @@
 #include "pydrobert/kaldi/vector.hpp"
 
 template<typename Real>
-inline void NumpyVector<Real>::SetData(const Real* vec_in,
-                                               const long len) {
+void NumpyVector<Real>::SetData(const Real* vec_in,
+                                               const kaldi::MatrixIndexT len) {
   if (kaldi::Vector<Real>::Dim() != len) {
     kaldi::Vector<Real>::Resize(len, kaldi::kUndefined);
   }
@@ -10,7 +10,7 @@ inline void NumpyVector<Real>::SetData(const Real* vec_in,
 }
 
 template<typename Real>
-inline bool NumpyVector<Real>::ReadDataInto(const long len,
+bool NumpyVector<Real>::ReadDataInto(const kaldi::MatrixIndexT len,
                                                     Real* vec_inout) const {
   if (kaldi::Vector<Real>::Dim() != len) return false;
   if (!len) return true;  // empty; skip memcpy call

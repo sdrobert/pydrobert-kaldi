@@ -6,8 +6,8 @@
 template <typename Real>
 class NumpyMatrix : public kaldi::Matrix<Real> {
 public:
-  void SetData(const Real* matrix_in, const long dim_row, const long dim_col);
-  bool ReadDataInto(const long dim_row, const long dim_col,
+  void SetData(const Real* matrix_in, const kaldi::MatrixIndexT dim_row, const kaldi::MatrixIndexT dim_col);
+  bool ReadDataInto(const kaldi::MatrixIndexT dim_row, const kaldi::MatrixIndexT dim_col,
                     Real* matrix_inout) const;
 };
 

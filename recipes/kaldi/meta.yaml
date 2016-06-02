@@ -10,8 +10,8 @@ source:
 
 requirements:
   build:
-    - gcc 4.8.5 [linux]
-    - libgcc >=4.8.4 [linux]
+    # - gcc 4.8.5 [linux]
+    # - libgcc >=4.8.4 [linux]
     - python
     - openblas [linux]
   run:
@@ -23,7 +23,7 @@ build:
 
 test:
   requires:
-    - gcc 4.8.5 [linux]
+    # - gcc 4.8.5 [linux]
     - pkg-config [osx]
 
 about:

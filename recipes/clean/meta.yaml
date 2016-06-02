@@ -7,7 +7,8 @@ source:
 
 requirements:
   build:
-    - libgcc 5.2.0 [linux]
+    # - gcc 4.8.5 [linux]
+    # - libgcc >=4.8.4 [linux]
     - python
     - setuptools
     - numpy
@@ -16,7 +17,7 @@ requirements:
     - pkgconfig
     - pkg-config [osx]
   run:
-    - libgcc 5.2.0 [linux]
+    # - libgcc >=4.8.4 [linux]
     - python
     - numpy
     - future
@@ -26,6 +27,7 @@ requirements:
 
 build:
   detect_binary_files_with_prefix: True
+  preserve_egg_dir: True
 
 test:
   files:

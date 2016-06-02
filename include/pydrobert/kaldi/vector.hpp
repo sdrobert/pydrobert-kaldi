@@ -9,10 +9,10 @@ template<typename Real>
 class NumpyVector : public kaldi::Vector<Real> {
 public:
   // SetData copies data from Real array into internal memory
-  void SetData(const Real* vec_in, const long len);
+  void SetData(const Real* vec_in, const kaldi::MatrixIndexT len);
   // ReadDataInto reads the existing data pointer into memory assumed allocated
   // len better match Dim()
-  bool ReadDataInto(const long len, Real* vec_inout) const;
+  bool ReadDataInto(const kaldi::MatrixIndexT len, Real* vec_inout) const;
 };
 
 // template instantiation

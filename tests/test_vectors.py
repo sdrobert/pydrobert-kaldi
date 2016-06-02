@@ -10,15 +10,15 @@ import pydrobert.kaldi._internal as internal
 __author__ = "sdrobert"
 
 def test_internal_set_data_valid():
-    vec = internal.NumpyDoubleVector()
+    vec = internal.DoubleVector()
     vec.SetData([1, 2])
     vec.SetData(numpy.array([1., 2.], dtype=numpy.float32)) # upcast ok
-    vec = internal.NumpyFloatVector()
+    vec = internal.FloatVector()
     vec.SetData([1, 2])
     vec.SetData(numpy.array([1., 2.], dtype=numpy.float32))
 
 def test_internal_set_data_invalid():
-    vec = internal.NumpyFloatVector()
+    vec = internal.FloatVector()
     for vals in 'ab', [[1]], numpy.array([1., 2.], dtype=numpy.float64):
         try:
             vec.SetData(vals)
@@ -29,7 +29,7 @@ def test_internal_set_data_invalid():
             pass
 
 def test_internal_read_data_valid():
-    vec = internal.NumpyDoubleVector()
+    vec = internal.DoubleVector()
     vec.SetData([1] * 10)
     np = numpy.zeros(10, dtype=numpy.float64)
     assert vec.ReadDataInto(np)
@@ -37,7 +37,7 @@ def test_internal_read_data_valid():
     assert numpy.allclose(np, 1)
 
 def test_internal_read_data_invalid():
-    vec = internal.NumpyFloatVector()
+    vec = internal.FloatVector()
     vec.SetData([1] * 10)
     for vals in 'a', numpy.zeros(10, dtype=numpy.float64), \
             numpy.zeros(9, dtype=numpy.float32):

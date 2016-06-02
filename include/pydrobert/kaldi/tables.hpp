@@ -12,17 +12,17 @@
 
 //// Sequential Readers
 
-template<typename Real>
-class ExtSequentialNumpyVectorReader : public
-    kaldi::SequentialTableReader<kaldi::KaldiObjectHolder<NumpyVector<Real> > > {
- public:
-  inline const NumpyVector<Real> &Value() {
-    return kaldi::SequentialTableReader<kaldi::KaldiObjectHolder<NumpyVector<Real> > >::Value();
-  }
-};
+// template<typename Real>
+// class ExtSequentialNumpyVectorReader : public
+//     kaldi::SequentialTableReader<kaldi::KaldiObjectHolder<kaldi::Vector<Real> > > {
+//  public:
+//   inline const kaldi::Vector<Real> &Value() {
+//     return kaldi::SequentialTableReader<kaldi::KaldiObjectHolder<kaldi::Vector<Real> > >::Value();
+//   }
+// };
 
-template class ExtSequentialNumpyVectorReader<double>;
-template class ExtSequentialNumpyVectorReader<float>;
+// template class ExtSequentialNumpyVectorReader<double>;
+// template class ExtSequentialNumpyVectorReader<float>;
 
 template<typename Real>
 class ExtSequentialNumpyMatrixReader : public
@@ -39,17 +39,17 @@ template class ExtSequentialNumpyMatrixReader<float>;
 
 //// Random Access Readers
 
-template<typename Real>
-class ExtRandomAccessNumpyVectorReader : public
-    kaldi::RandomAccessTableReader<kaldi::KaldiObjectHolder<NumpyVector<Real> > > {
- public:
-  inline const NumpyVector<Real> &Value(const std::string &key) {
-    return kaldi::RandomAccessTableReader<kaldi::KaldiObjectHolder<NumpyVector<Real> > >::Value(key);
-  }
-};
+// template<typename Real>
+// class ExtRandomAccessNumpyVectorReader : public
+//     kaldi::RandomAccessTableReader<kaldi::KaldiObjectHolder<kaldi::Vector<Real> > > {
+//  public:
+//   inline const kaldi::Vector<Real> &Value(const std::string &key) {
+//     return kaldi::RandomAccessTableReader<kaldi::KaldiObjectHolder<kaldi::Vector<Real> > >::Value(key);
+//   }
+// };
 
-template class ExtRandomAccessNumpyVectorReader<double>;
-template class ExtRandomAccessNumpyVectorReader<float>;
+// template class ExtRandomAccessNumpyVectorReader<double>;
+// template class ExtRandomAccessNumpyVectorReader<float>;
 
 template<typename Real>
 class ExtRandomAccessNumpyMatrixReader : public
@@ -67,10 +67,10 @@ template class ExtRandomAccessNumpyMatrixReader<float>;
 //// Random Access Mapped Readers
 template <typename Real>
 class ExtRandomAccessNumpyVectorReaderMapped : public
-    kaldi::RandomAccessTableReaderMapped<kaldi::KaldiObjectHolder<NumpyVector<Real> > > {
+    kaldi::RandomAccessTableReaderMapped<kaldi::KaldiObjectHolder<kaldi::Vector<Real> > > {
  public:
-  inline const NumpyVector<Real> &Value(const std::string &key) {
-    return kaldi::RandomAccessTableReaderMapped<kaldi::KaldiObjectHolder<NumpyVector<Real> > >::Value(key);
+  inline const kaldi::Vector<Real> &Value(const std::string &key) {
+    return kaldi::RandomAccessTableReaderMapped<kaldi::KaldiObjectHolder<kaldi::Vector<Real> > >::Value(key);
   }
 };
 
@@ -93,19 +93,18 @@ template class ExtRandomAccessNumpyMatrixReaderMapped<float>;
 
 template<typename Real>
 class ExtNumpyVectorWriter : public
-    kaldi::TableWriter<kaldi::KaldiObjectHolder<NumpyVector<Real> > > {
+    kaldi::TableWriter<kaldi::KaldiObjectHolder<kaldi::Vector<Real> > > {
  public:
   // we do not include the 'Open' constructor because we want to avoid Kaldi
   // throwing whenever we can.
   inline void Write(const std::string &key,
-                    const NumpyVector<Real> &value) const {
-    kaldi::TableWriter<kaldi::KaldiObjectHolder<NumpyVector<Real> > >::Write(
+                    const kaldi::Vector<Real> &value) const {
+    kaldi::TableWriter<kaldi::KaldiObjectHolder<kaldi::Vector<Real> > >::Write(
       key, value);
   }
-  inline void WriteData(const std::string &key, const Real* vec_in,
-                        const long len) const {
-    NumpyVector<Real> vector;
-    vector.SetData(vec_in, len);
+  inline void WriteData(const std::string &key, const Real* vec_in, const kaldi::MatrixIndexT len) {
+    kaldi::Vector<Real> vector(len, kaldi::kUndefined);
+    std::memcpy(vector.Data(), vec_in, len * sizeof(Real));
     Write(key, vector);
   }
 };
@@ -123,7 +122,7 @@ class ExtNumpyMatrixWriter : public
       key, value);
   }
   inline void WriteData(const std::string &key, const Real* matrix_in,
-                        const long dim_row, const long dim_col) const {
+                        const kaldi::MatrixIndexT dim_row, const kaldi::MatrixIndexT dim_col) const {
     NumpyMatrix<Real> matrix;
     matrix.SetData(matrix_in, dim_row, dim_col);
     Write(key, matrix);

@@ -30,7 +30,7 @@ kaldi_include_dirs = {include_dir, numpy.get_include()}
 # pkg-config returns in unicode, so we should cast in case of py2.7
 kaldi_compiler_args = shlex.split(
     pkgconfig.cflags('kaldi-util kaldi-matrix kaldi-base kaldi-thread'))
-define_symbols = [] # extract for swig
+define_symbols = set() # extract for swig
 idx = 0
 while idx < len(kaldi_compiler_args):
     if kaldi_compiler_args[idx][:2] == '-I':
@@ -41,10 +41,10 @@ while idx < len(kaldi_compiler_args):
             kaldi_include_dirs.add(kaldi_compiler_args[idx][2:])
         del kaldi_compiler_args[idx]
     elif kaldi_compiler_args[idx][:2] == '-D':
-        define_symbols.append(kaldi_compiler_args[idx])
+        define_symbols.add(kaldi_compiler_args[idx])
         idx += 1
     else:
-        idx += 1
+        del kaldi_compiler_args[idx]
 kaldi_linker_args = shlex.split(
     pkgconfig.libs('kaldi-util kaldi-base kaldi-matrix kaldi-thread'))
 idx = 0
@@ -60,23 +60,17 @@ while idx < len(kaldi_linker_args):
         kaldi_libraries.add(kaldi_linker_args[idx][2:])
         del kaldi_linker_args[idx]
     else:
-        idx += 1
+        del kaldi_linker_args[idx]
 
-swig_opts = ['-c++', '-builtin', '-Wall'] + define_symbols + \
+swig_opts = ['-c++', '-builtin', '-Wall'] + list(define_symbols) + \
         ['-I' + x for x in kaldi_include_dirs]
 
 kaldi_module = Extension(
     'pydrobert.kaldi._internal',
-    sources=[
-        os.path.join(include_dir, 'pydrobert', 'kaldi.i'),
-        os.path.join(src_dir, 'pydrobert', 'kaldi', 'vector.cpp'),
-        os.path.join(src_dir, 'pydrobert', 'kaldi', 'matrix.cpp'),
-    ],
-    library_dirs=list(kaldi_library_dirs),
+    sources=[os.path.join(include_dir, 'pydrobert', 'kaldi.i')],
     libraries=list(kaldi_libraries),
-    # runtime_library_dirs=list(kaldi_library_dirs),
+    runtime_library_dirs=list(kaldi_library_dirs),
     include_dirs=list(kaldi_include_dirs),
-    language='c++',
     extra_compile_args=kaldi_compiler_args,
     extra_link_args=kaldi_linker_args,
     swig_opts=swig_opts,

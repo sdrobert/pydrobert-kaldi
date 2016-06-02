@@ -16,22 +16,22 @@ from six import with_metaclass
 
 # we rename with an underscore so tab-completion isn't polluted with
 # these
-from ._internal import ExtNumpyDoubleMatrixWriter as _ExtNumpyDoubleMatrixWriter
-from ._internal import ExtNumpyDoubleVectorWriter as _ExtNumpyDoubleVectorWriter
-from ._internal import ExtNumpyFloatMatrixWriter as _ExtNumpyFloatMatrixWriter
-from ._internal import ExtNumpyFloatVectorWriter as _ExtNumpyFloatVectorWriter
-from ._internal import ExtRandomAccessNumpyDoubleMatrixReader as _ExtRandomAccessNumpyDoubleMatrixReader
-from ._internal import ExtRandomAccessNumpyDoubleMatrixReaderMapped as _ExtRandomAccessNumpyDoubleMatrixReaderMapped
-from ._internal import ExtRandomAccessNumpyDoubleVectorReader as _ExtRandomAccessNumpyDoubleVectorReader
-from ._internal import ExtRandomAccessNumpyDoubleVectorReaderMapped as _ExtRandomAccessNumpyDoubleVectorReaderMapped
-from ._internal import ExtRandomAccessNumpyFloatMatrixReader as _ExtRandomAccessNumpyFloatMatrixReader
-from ._internal import ExtRandomAccessNumpyFloatMatrixReaderMapped as _ExtRandomAccessNumpyFloatMatrixReaderMapped
-from ._internal import ExtRandomAccessNumpyFloatVectorReader as _ExtRandomAccessNumpyFloatVectorReader
-from ._internal import ExtRandomAccessNumpyFloatVectorReaderMapped as _ExtRandomAccessNumpyFloatVectorReaderMapped
-from ._internal import ExtSequentialNumpyDoubleMatrixReader as _ExtSequentialNumpyDoubleMatrixReader
-from ._internal import ExtSequentialNumpyDoubleVectorReader as _ExtSequentialNumpyDoubleVectorReader
-from ._internal import ExtSequentialNumpyFloatMatrixReader as _ExtSequentialNumpyFloatMatrixReader
-from ._internal import ExtSequentialNumpyFloatVectorReader as _ExtSequentialNumpyFloatVectorReader
+from ._internal import DoubleMatrixWriter as _DoubleMatrixWriter
+from ._internal import DoubleVectorWriter as _DoubleVectorWriter
+from ._internal import FloatMatrixWriter as _FloatMatrixWriter
+from ._internal import FloatVectorWriter as _FloatVectorWriter
+from ._internal import RandomAccessDoubleMatrixReader as _RandomAccessDoubleMatrixReader
+from ._internal import RandomAccessDoubleMatrixReaderMapped as _RandomAccessDoubleMatrixReaderMapped
+from ._internal import RandomAccessDoubleVectorReader as _RandomAccessDoubleVectorReader
+from ._internal import RandomAccessDoubleVectorReaderMapped as _RandomAccessDoubleVectorReaderMapped
+from ._internal import RandomAccessFloatMatrixReader as _RandomAccessFloatMatrixReader
+from ._internal import RandomAccessFloatMatrixReaderMapped as _RandomAccessFloatMatrixReaderMapped
+from ._internal import RandomAccessFloatVectorReader as _RandomAccessFloatVectorReader
+from ._internal import RandomAccessFloatVectorReaderMapped as _RandomAccessFloatVectorReaderMapped
+from ._internal import SequentialDoubleMatrixReader as _SequentialDoubleMatrixReader
+from ._internal import SequentialDoubleVectorReader as _SequentialDoubleVectorReader
+from ._internal import SequentialFloatMatrixReader as _SequentialFloatMatrixReader
+from ._internal import SequentialFloatVectorReader as _SequentialFloatVectorReader
 from ._internal import kDoubleIsBase as _kDoubleIsBase
 
 __author__ = "sdrobert"
@@ -110,13 +110,13 @@ class KaldiSequentialTableReader(KaldiIO):
     def _open(self, xfilename, kaldi_dtype, **kwargs):
         cls = None
         if kaldi_dtype == KaldiDataType.DoubleVector:
-            cls = _ExtSequentialNumpyDoubleVectorReader
+            cls = _SequentialDoubleVectorReader
         elif kaldi_dtype == KaldiDataType.FloatVector:
-            cls = _ExtSequentialNumpyFloatVectorReader
+            cls = _SequentialFloatVectorReader
         elif kaldi_dtype == KaldiDataType.DoubleMatrix:
-            cls = _ExtSequentialNumpyDoubleMatrixReader
+            cls = _SequentialDoubleMatrixReader
         elif kaldi_dtype == KaldiDataType.FloatMatrix:
-            cls = _ExtSequentialNumpyFloatMatrixReader
+            cls = _SequentialFloatMatrixReader
         assert cls
         instance = cls()
         if not instance.Open(xfilename):
@@ -174,24 +174,24 @@ class KaldiRandomAccessTableReader(KaldiIO):
         cls = None
         if kaldi_dtype == KaldiDataType.DoubleVector:
             if utt2spk:
-                cls = _ExtRandomAccessNumpyDoubleVectorReaderMapped
+                cls = _RandomAccessDoubleVectorReaderMapped
             else:
-                cls = _ExtRandomAccessNumpyDoubleVectorReader
+                cls = _RandomAccessDoubleVectorReader
         elif kaldi_dtype == KaldiDataType.FloatVector:
             if utt2spk:
-                cls = _ExtRandomAccessNumpyFloatVectorReaderMapped
+                cls = _RandomAccessFloatVectorReaderMapped
             else:
-                cls = _ExtRandomAccessNumpyFloatVectorReader
+                cls = _RandomAccessFloatVectorReader
         elif kaldi_dtype == KaldiDataType.DoubleMatrix:
             if utt2spk:
-                cls = _ExtRandomAccessNumpyDoubleMatrixReaderMapped
+                cls = _RandomAccessDoubleMatrixReaderMapped
             else:
-                cls = _ExtRandomAccessNumpyDoubleMatrixReader
+                cls = _RandomAccessDoubleMatrixReader
         elif kaldi_dtype == KaldiDataType.FloatMatrix:
             if utt2spk:
-                cls = _ExtRandomAccessNumpyFloatMatrixReaderMapped
+                cls = _RandomAccessFloatMatrixReaderMapped
             else:
-                cls = _ExtRandomAccessNumpyFloatMatrixReader
+                cls = _RandomAccessFloatMatrixReader
         assert cls
         instance = cls()
         res = None
@@ -252,13 +252,13 @@ class KaldiTableWriter(KaldiIO):
         # no keyword arguments for table writer
         cls = None
         if kaldi_dtype == KaldiDataType.DoubleVector:
-            cls = _ExtNumpyDoubleVectorWriter
+            cls = _DoubleVectorWriter
         elif kaldi_dtype == KaldiDataType.FloatVector:
-            cls = _ExtNumpyFloatVectorWriter
+            cls = _FloatVectorWriter
         elif kaldi_dtype == KaldiDataType.DoubleMatrix:
-            cls = _ExtNumpyDoubleMatrixWriter
+            cls = _DoubleMatrixWriter
         elif kaldi_dtype == KaldiDataType.FloatMatrix:
-            cls = _ExtNumpyFloatMatrixWriter
+            cls = _FloatMatrixWriter
         assert cls
         instance = cls()
         if not instance.Open(xfilename):

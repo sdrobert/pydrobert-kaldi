@@ -476,18 +476,24 @@ index 6477a60..dac13cb 100644
  CC = $(CXX)
  RANLIB = ranlib
 diff --git src/makefiles/default_rules.mk src/makefiles/default_rules.mk
-index 3d3f963..286e9b2 100644
+index 3d3f963..6f43915 100644
 --- src/makefiles/default_rules.mk
 +++ src/makefiles/default_rules.mk
-@@ -37,7 +37,7 @@ $(LIBFILE): $(OBJFILES)
+@@ -37,12 +37,12 @@ $(LIBFILE): $(OBJFILES)
  ifeq ($(KALDI_FLAVOR), dynamic)
  ifeq ($(shell uname), Darwin)
  	$(CXX) -dynamiclib -o $@ -install_name @rpath/$@ -framework Accelerate $(LDFLAGS) $(XLDLIBS) $(OBJFILES) $(LDLIBS)
 -	rm -f $(KALDILIBDIR)/$@; ln -s $(shell pwd)/$@ $(KALDILIBDIR)/$@
-+	rm -f $(KALDILIBDIR)/$@; cp $(shell pwd)/$@ $(KALDILIBDIR)/$@
++	rm -f $(KALDILIBDIR)/$@; cp -f $(shell pwd)/$@ $(KALDILIBDIR)/$@
  else
  ifeq ($(shell uname), Linux)
  	# Building shared library from static (static was compiled with -fPIC)
+ 	$(CXX) -shared -o $@ -Wl,--no-undefined -Wl,--as-needed  -Wl,-soname=$@,--whole-archive $(LIBNAME).a -Wl,--no-whole-archive  $(LDFLAGS) $(XDEPENDS) $(LDLIBS)
+-	rm -f $(KALDILIBDIR)/$@; ln -s $(shell pwd)/$@ $(KALDILIBDIR)/$@
++	rm -f $(KALDILIBDIR)/$@; cp -f $(shell pwd)/$@ $(KALDILIBDIR)/$@
+ 	#cp $@ $(KALDILIBDIR)
+ else  # Platform not supported
+ 	$(error Dynamic libraries not supported on this platform. Run configure with --static flag. )
 diff --git src/makefiles/linux_openblas.mk src/makefiles/linux_openblas.mk
 index b910d82..6f7bc67 100644
 --- src/makefiles/linux_openblas.mk

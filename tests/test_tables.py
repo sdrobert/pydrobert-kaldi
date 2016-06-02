@@ -72,9 +72,9 @@ class TestTables:
                     reader.open('ark:{}'.format(self._temp_name_1), dtype)
                 once = True
                 for read_value in iter(reader):
-                    assert once, "Multiple values" + dbg_text
+                    assert once, "Multiple values"
                     assert numpy.allclose(read_value, value), \
-                            "Values not equal" + dbg_text
+                        "Values not equal"
                     once = False
             except Exception as exc:
                 exc.args = tuple([exc.args[0] + dbg_text] + list(exc.args[1:]))
@@ -92,8 +92,8 @@ class TestTables:
                 numpy.arange(1000, dtype=numpy.float32)),
         )
         writer.open('ark:{}'.format(self._temp_name_1), 'fm')
-        for value in values:
-            writer.write('foo', value)
+        for key, value in enumerate(values):
+            writer.write(str(key), value)
         # shouldn't need to close: writer should flush after each
         # we confound "once" and "background" testing here, but I assume
         # these are working in Kaldi and shouldn't be visible here
