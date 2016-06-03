@@ -1,5 +1,3 @@
-.. image:: https://anaconda.org/sdrobert/kaldi-io-core/badges/installer/conda.svg   :target: https://conda.anaconda.org/sdrobert
-
 ===============
 pydrobert-kaldi
 ===============
