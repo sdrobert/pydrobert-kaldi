@@ -45,6 +45,3 @@ about:
   license: Apache
   license_file: LICENSE
   summary: "wrapped SWIG bindings for Kaldi"
-  extra:
-    maintainers:
-      - Sean Robertson
