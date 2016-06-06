@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import os
+import platform
 import shlex
 import sys
 
@@ -69,20 +70,21 @@ kaldi_runtime_dirs = {
     os.path.join(kaldi_src, 'util'),
     os.path.join(kaldi_src, 'matrix'),
 }
-idx = 0
-while idx < len(kaldi_ldflags):
-    if kaldi_ldflags[idx] == '-Wl,': # removing rpath stripped options
-        del kaldi_ldflags[idx]
-    elif '-rpath=' in kaldi_ldflags[idx]:
-        start = kaldi_ldflags[idx].find('-rpath=')
-        end = kaldi_ldflags[idx].find(',', start + 7)
-        if end == -1:
-            end = len(kaldi_ldflags[idx])
-        kaldi_runtime_dirs.add(kaldi_ldflags[idx][(start + 7):end])
-        kaldi_ldflags[idx] = kaldi_ldflags[idx][:start] + \
-                kaldi_ldflags[idx][(end+1):]
-    else:
-        idx += 1
+if platform.system() != 'Darwin':
+    idx = 0
+    while idx < len(kaldi_ldflags):
+        if kaldi_ldflags[idx] == '-Wl,': # removing rpath stripped options
+            del kaldi_ldflags[idx]
+        elif '-rpath=' in kaldi_ldflags[idx]:
+            start = kaldi_ldflags[idx].find('-rpath=')
+            end = kaldi_ldflags[idx].find(',', start + 7)
+            if end == -1:
+                end = len(kaldi_ldflags[idx])
+            kaldi_runtime_dirs.add(kaldi_ldflags[idx][(start + 7):end])
+            kaldi_ldflags[idx] = kaldi_ldflags[idx][:start] + \
+                    kaldi_ldflags[idx][(end+1):]
+        else:
+            idx += 1
 
 with open('kaldi_ldlibs') as file_obj:
     text = file_obj.read()
@@ -98,7 +100,8 @@ idx = 0
 while idx < len(kaldi_ldlibs):
     if kaldi_ldlibs[idx] == '-Wl,':
         del kaldi_ldlibs[idx]
-    elif '-rpath=' in kaldi_ldlibs[idx]:
+    elif '-rpath=' in kaldi_ldlibs[idx] and \
+            platform.system() != 'Darwin':
         start = kaldi_ldlibs[idx].find('-rpath=')
         end = kaldi_ldlibs[idx].find(',', start + 7)
         if end == -1:
@@ -119,8 +122,6 @@ kaldi_module = Extension(
     'pydrobert.kaldi._internal',
     sources=[
         os.path.join(include_dir, 'pydrobert', 'kaldi.i'),
-        os.path.join(src_dir, 'pydrobert', 'kaldi', 'vector.cpp'),
-        os.path.join(src_dir, 'pydrobert', 'kaldi', 'matrix.cpp'),
     ],
     library_dirs=list(kaldi_library_dirs),
     libraries=[
