@@ -25,8 +25,13 @@ user: sdrobert
 platform:
   - linux-64
 ## The engine are the inital conda packages you want to run with
-env:
-  - CXX=g++
+engine:
+  - python=2.7
+  - python=3
+## The envvars param is an environment variable list
+# envvars:
+#  - MY_ENV=A CC=gcc
+#  - MY_ENV=B
 
 #===============================================================================
 # Script options
