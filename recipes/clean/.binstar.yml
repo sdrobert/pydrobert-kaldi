@@ -29,9 +29,8 @@ engine:
   - python=2.7
   - python=3
 ## The envvars param is an environment variable list
-# envvars:
-#  - MY_ENV=A CC=gcc
-#  - MY_ENV=B
+env:
+  - CXX=g++
 
 #===============================================================================
 # Script options
