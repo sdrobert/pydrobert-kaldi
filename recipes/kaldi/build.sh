@@ -1,5 +1,9 @@
 #! /usr/bin/env bash
 
+if [ "`uname`" != "Darwin" ]; then
+  export CC=${PREFIX}/bin/gcc
+  export CXX=${PREFIX}/bin/g++
+fi
 
 pushd src || exit 1
 ./configure --shared --mathlib=OPENBLAS --openblas-root=${PREFIX} || exit 1

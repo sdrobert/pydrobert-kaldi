@@ -29,8 +29,6 @@ engine:
   - python=2.7
   - python=3
 ## The envvars param is an environment variable list
-env:
-  - CXX=g++
 
 #===============================================================================
 # Script options

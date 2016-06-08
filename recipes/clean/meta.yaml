@@ -7,8 +7,7 @@ source:
 
 requirements:
   build:
-    - gcc 4.8.5 [linux]
-    - libgcc >=4.8.4 [linux]
+    - gcc >=4.8.5 [linux]
     - python
     - numpy
     - swig >=3.0
@@ -16,7 +15,7 @@ requirements:
     - pkgconfig
     - pkg-config [osx]
   run:
-    - libgcc >=4.8.4 [linux]
+    - gcc >=4.8.5 [linux]
     - python
     - numpy
     - future

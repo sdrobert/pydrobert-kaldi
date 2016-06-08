@@ -18,10 +18,10 @@ arrays. It builds for Python 2.7 and above. You can do stuff like
        f.write('bar', [[1]])
 
    # read back in numpy arrays sequentially or with random access
-   with tables.open('scp:b.scp', 'bm', mode='s') as f:
+   with tables.open('scp:b.scp', 'bm', mode='r') as f:
        for n_array in f:
            print(n_array)
-   with tables.open('scp:b.scp', 'bm', mode='r') as f:
+   with tables.open('scp:b.scp', 'bm', mode='r+') as f:
        print(f['bar'])
    
 
@@ -33,9 +33,8 @@ command::
 
    conda install -c sdrobert pydrobert-kaldi
 
-And everything will work automagically. As of writing, I have to manually upload
-builds, but I hope to fix that up in the future. If that's not working for you,
-you can try::
+And everything will work automagically. If that's not working for you, you can
+try::
 
    # if you don't have a copy of kaldi somewhere
    conda build recipes/kaldi
@@ -51,6 +50,10 @@ The latter is also useful if you have Kaldi already installed somewhere.
 Possible Problems
 -----------------
 
+ - The OSX build uses the "Accelerate Framework" and expects it to be in a
+   specific absolute path. If you're getting ``symbol not found`` errors, try
+   manually editing the path with ``install_name_tool`` or, better yet, build
+   from source.
  - Be careful when using extended file name options such as "o" (once) or
    "s" (sorted). They are valid, but this package caches nothing and does very
    little error checking!
