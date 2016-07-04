@@ -12,8 +12,7 @@ from tempfile import NamedTemporaryFile
 import numpy
 
 from nose.plugins.skip import SkipTest
-
-import pydrobert.kaldi.tables as tables
+from pydrobert.kaldi import tables
 
 class TestTables:
 
@@ -159,3 +158,21 @@ class TestTables:
             assert isinstance(kaldi_io, tables.KaldiSequentialTableReader)
         with tables.open(xfilename, 'bm', mode='r+') as kaldi_io:
             assert isinstance(kaldi_io, tables.KaldiRandomAccessTableReader)
+
+    def test_filehandle_open(self):
+        xfilename = 'ark:{}'.format(self._temp_name_1)
+        kaldi_io = tables.open(xfilename, 'bm', mode='w')
+        assert isinstance(kaldi_io, tables.KaldiIO)
+        assert isinstance(kaldi_io, tables.KaldiTableWriter)
+        kaldi_io = tables.open(xfilename, 'bm')
+        assert isinstance(kaldi_io, tables.KaldiSequentialTableReader)
+        kaldi_io = tables.open(xfilename, 'bm', mode='r')
+        assert isinstance(kaldi_io, tables.KaldiSequentialTableReader)
+        kaldi_io = tables.open(xfilename, 'bm', mode='r+')
+        assert isinstance(kaldi_io, tables.KaldiRandomAccessTableReader)
+
+    def test_no_exception_on_double_close(self):
+        xfilename = 'ark:{}'.format(self._temp_name_1)
+        kaldi_io = tables.open(xfilename, 'bm', mode='w')
+        kaldi_io.close()
+        kaldi_io.close()

@@ -21,9 +21,9 @@ arrays. It builds for Python 2.7 and above. You can do stuff like
    with tables.open('scp:b.scp', 'bm', mode='r') as f:
        for n_array in f:
            print(n_array)
-   with tables.open('scp:b.scp', 'bm', mode='r+') as f:
-       print(f['bar'])
-   
+   f = tables.open('scp:b.scp', 'bm', mode='r+')
+   print(f['bar'])
+   f.close()
 
 Installation
 ------------

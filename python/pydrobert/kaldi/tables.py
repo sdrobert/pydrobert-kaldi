@@ -11,7 +11,6 @@ from __future__ import print_function
 
 import abc
 
-from contextlib import contextmanager
 from enum import Enum # need enum34 for python 2.7
 
 import numpy
@@ -100,9 +99,19 @@ class KaldiIO(with_metaclass(abc.ABCMeta)):
     `Kaldi I/O Mechanisms`_ describes how Kaldi uses extended file names
     and tables and such.
 
-    Note:
-        Subclasses can be initialized without arguments or with the same
-        arguments as `open` to open a file immediately.
+    Args:
+        xfilename(str,optional): read or write extended filename. If
+            both this and `kaldi_dtype` are specified, `open` will be
+            called immediately with these and any additional keyword
+            arguments.
+        kaldi_dtype(:class:`KaldiDataType`,optional): read or write
+            extended filename. If both this and `xfilename` are
+            specified, `open` will be called immediately with these
+            and any additional keyword arguments.
+
+    Raises:
+        TypeError: if only one of `xfilename` or `kaldi_dtype` are
+            specified.
 
     Warning:
         It is possible to raise one of Kaldi's runtime errors when using
@@ -115,12 +124,26 @@ class KaldiIO(with_metaclass(abc.ABCMeta)):
         http://kaldi-asr.org/doc2/io.html
     """
 
+    def __init__(self, **kwargs):
+        if 'xfilename' in kwargs and 'kaldi_dtype' in kwargs:
+            self.open(**kwargs)
+        elif 'xfilename' in kwargs:
+            raise TypeError('"xfilename" was specified but not "kaldi_dtype"')
+        elif 'kaldi_dtype' in kwargs:
+            raise TypeError('"kaldi_dtype" was specified but not "xfilename"')
+
     if _kDoubleIsBase:
         _BaseVector = KaldiDataType.DoubleVector
         _BaseMatrix = KaldiDataType.DoubleMatrix
     else:
         _BaseVector = KaldiDataType.FloatVector
         _BaseMatrix = KaldiDataType.FloatMatrix
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exception_type, exception_val, trace):
+        self.close()
 
     def __del__(self):
         self.close()
@@ -145,7 +168,7 @@ class KaldiIO(with_metaclass(abc.ABCMeta)):
                 not cause a :class:`RuntimeError`.
 
         ..seealso:: :class:`KaldiDataType`
-        .. _mapped form:
+        .. _`RandomAccessTableReaderMapped`:
             http://kaldi-asr.org/doc2/classkaldi_1_1RandomAccessTableReaderMapped.html
         """
         kaldi_dtype = KaldiDataType(kaldi_dtype)
@@ -159,6 +182,7 @@ class KaldiIO(with_metaclass(abc.ABCMeta)):
     def _open(self, xfilename, dtype, **kwargs):
         pass
 
+    @abc.abstractmethod
     def close(self):
         """Closes the `KaldiIO` object, or does nothing if not opened
 
@@ -174,9 +198,7 @@ class KaldiSequentialTableReader(KaldiIO):
         self._is_matrix = None
         self._numpy_dtype = None
         self._internal = None
-        keys = list(kwargs)
-        if 'xfilename' in keys and 'kaldi_dtype' in keys:
-            self.open(kwargs['xfilename'], kwargs['kaldi_dtype'], **kwargs)
+        super(KaldiSequentialTableReader, self).__init__(**kwargs)
 
     def close(self):
         if self._internal:
@@ -236,9 +258,7 @@ class KaldiRandomAccessTableReader(KaldiIO):
         self._is_matrix = None
         self._numpy_dtype = None
         self._internal = None
-        keys = list(kwargs)
-        if 'xfilename' in keys and 'kaldi_dtype' in keys:
-            self.open(kwargs['xfilename'], kwargs['kaldi_dtype'], **kwargs)
+        super(KaldiRandomAccessTableReader, self).__init__(**kwargs)
 
     def close(self):
         if self._internal:
@@ -337,9 +357,7 @@ class KaldiTableWriter(KaldiIO):
         self._is_matrix = None
         self._numpy_dtype = None
         self._internal = None
-        keys = list(kwargs)
-        if 'xfilename' in keys and 'kaldi_dtype' in keys:
-            self.open(kwargs['xfilename'], kwargs['kaldi_dtype'], **kwargs)
+        super(KaldiTableWriter, self).__init__(**kwargs)
 
     def close(self):
         if self._internal:
@@ -411,7 +429,6 @@ class KaldiTableWriter(KaldiIO):
                     raise ValueError('Expected 2D array-like')
         self._internal.WriteData(key, value)
 
-@contextmanager
 def open(xfilename, kaldi_dtype, **kwargs):
     """:class:`KaldiIO` subclass generator for use with ``with`` statements
 
@@ -435,19 +452,16 @@ def open(xfilename, kaldi_dtype, **kwargs):
     mode = kwargs.get('mode')
     if mode is None:
         mode = 'r'
-    io_obj = None
+    kwargs['xfilename'] = xfilename
+    kwargs['kaldi_dtype'] = kaldi_dtype
     if mode == 'r':
-        io_obj = KaldiSequentialTableReader()
+        io_obj = KaldiSequentialTableReader(**kwargs)
     elif mode == 'r+':
-        io_obj = KaldiRandomAccessTableReader()
+        io_obj = KaldiRandomAccessTableReader(**kwargs)
     elif mode in ('w', 'w+'):
-        io_obj = KaldiTableWriter()
+        io_obj = KaldiTableWriter( **kwargs)
     else:
         raise ValueError(
             'Invalid Kaldi I/O mode "{}" (should be one of "r","r+","w")'
             ''.format(mode))
-    io_obj.open(xfilename, kaldi_dtype, **kwargs)
-    try:
-        yield io_obj
-    finally:
-        io_obj.close()
+    return io_obj
