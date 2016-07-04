@@ -1,8 +1,8 @@
 """Interface for Kaldi's readers and writers
 
-The README file has a good example of standard usage; using the `open`
-generator should be enough for most. However, :class:`KaldiIO`
-subclasses can be initialized directly for greater granularity.
+The README file has a good example of standard usage; using `open`
+should be enough for most. However, :class:`KaldiIO` subclasses can be
+initialized directly for greater granularity.
 """
 
 from __future__ import absolute_import
@@ -430,7 +430,7 @@ class KaldiTableWriter(KaldiIO):
         self._internal.WriteData(key, value)
 
 def open(xfilename, kaldi_dtype, **kwargs):
-    """:class:`KaldiIO` subclass generator for use with ``with`` statements
+    """:class:`KaldiIO` factory method for initializing/opening tables
 
     Args:
         xfilename(str):
