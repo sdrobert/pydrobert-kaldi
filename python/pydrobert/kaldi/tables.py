@@ -210,8 +210,12 @@ class KaldiSequentialTableReader(KaldiIO):
             self._internal.Close()
             self._internal = None
 
-    def _open(self, xfilename, kaldi_dtype, **kwargs):
-        self._with_keys = bool(kwargs.get('with_keys', False))
+    def _open(self, xfilename, kaldi_dtype, with_keys=False, **kwargs):
+        if len(kwargs):
+            raise TypeError(
+                "'{}' is an invalid argument for this function".format(
+                    next(iter(kwargs))))
+        self._with_keys = with_keys
         cls = None
         if kaldi_dtype == KaldiDataType.DoubleVector:
             cls = _SequentialDoubleVectorReader
@@ -273,8 +277,11 @@ class KaldiRandomAccessTableReader(KaldiIO):
             self._internal.Close()
             self._internal = None
 
-    def _open(self, xfilename, kaldi_dtype, **kwargs):
-        utt2spk = kwargs.get('utt2spk')
+    def _open(self, xfilename, kaldi_dtype, utt2spk=None, **kwargs):
+        if len(kwargs):
+            raise TypeError(
+                "'{}' is an invalid argument for this function".format(
+                    next(iter(kwargs))))
         cls = None
         if kaldi_dtype == KaldiDataType.DoubleVector:
             if utt2spk:
@@ -318,7 +325,7 @@ class KaldiRandomAccessTableReader(KaldiIO):
 
         Args:
             key(str): Key which data is mapped to in archive
-            will_raise(Optional[bool]): Whether to raise a
+            will_raise(bool optional): Whether to raise a
                 :class:`KeyError`. If the key is not found. Defaults to
                 ``False``.
 
@@ -373,7 +380,10 @@ class KaldiTableWriter(KaldiIO):
             self._internal = None
 
     def _open(self, xfilename, kaldi_dtype, **kwargs):
-        # no keyword arguments for table writer
+        if len(kwargs):
+            raise TypeError(
+                "'{}' is an invalid argument for this function".format(
+                    next(iter(kwargs))))
         cls = None
         if kaldi_dtype == KaldiDataType.DoubleVector:
             cls = _DoubleVectorWriter
@@ -437,37 +447,37 @@ class KaldiTableWriter(KaldiIO):
                     raise ValueError('Expected 2D array-like')
         self._internal.WriteData(key, value)
 
-def open(xfilename, kaldi_dtype, **kwargs):
+def open(
+        xfilename, kaldi_dtype,
+        mode='r', utt2spk=None, with_keys=False):
     """:class:`KaldiIO` factory method for initializing/opening tables
 
     Args:
         xfilename(str):
         kaldi_dtype(KaldiDataType):
-        utt2spk(Optional[str]):
-        mode(Optional[str]): One of "r", "r+", and "w", which generate
+        utt2spk(str, optional):
+        with_keys(bool, optional)
+        mode(str, optional): One of "r", "r+", and "w", which generate
             a :class:`KaldiSequentialTableReader`,
             a :class:`KaldiRandomAccessTableReader`, and a
             :class:`KaldiTableWriter` respectively.
 
-    Yields:
-        A :class:`KaldiIO` subclass
+    Returns:
+        A :class:`KaldiIO` subclass, opened
 
     Raises:
         IOError:
 
     ..seealso:: :class:`KaldiIO`
     """
-    mode = kwargs.get('mode')
-    if mode is None:
-        mode = 'r'
-    kwargs['xfilename'] = xfilename
-    kwargs['kaldi_dtype'] = kaldi_dtype
     if mode == 'r':
-        io_obj = KaldiSequentialTableReader(**kwargs)
+        io_obj = KaldiSequentialTableReader(
+            xfilename=xfilename, kaldi_dtype=kaldi_dtype, with_keys=with_keys)
     elif mode == 'r+':
-        io_obj = KaldiRandomAccessTableReader(**kwargs)
+        io_obj = KaldiRandomAccessTableReader(
+            xfilename=xfilename, kaldi_dtype=kaldi_dtype, utt2spk=utt2spk)
     elif mode in ('w', 'w+'):
-        io_obj = KaldiTableWriter( **kwargs)
+        io_obj = KaldiTableWriter(xfilename=xfilename, kaldi_dtype=kaldi_dtype)
     else:
         raise ValueError(
             'Invalid Kaldi I/O mode "{}" (should be one of "r","r+","w")'
