@@ -99,6 +99,12 @@ class TestTables:
         reader.open('ark,bg:{}'.format(self._temp_name_1), 'fm')
         for act_value, reader_value in zip(values, iter(reader)):
             assert numpy.allclose(act_value, reader_value)
+        # check that the keys are all savvy
+        reader.close()
+        reader.open('ark:' + self._temp_name_1, 'fm', with_keys=True)
+        for idx, tup in enumerate(iter(reader)):
+            key, value = tup
+            assert str(idx) == key
 
     def test_read_random(self):
         writer = tables.KaldiTableWriter()

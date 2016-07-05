@@ -158,10 +158,14 @@ class KaldiIO(with_metaclass(abc.ABCMeta)):
             kaldi_dtype(KaldiDataType): What kaldi data type is/will be
                 stored. All array-likes written or read are expected to
                 be of this type.
-            utt2spk(Optional[str]): Applicable to
+            utt2spk(str, optional): Applicable to
                 :class:`KaldiRandomAccessTableReader`, setting this
                 opens a `RandomAccessTableReaderMapped`_ and with
                 `utt2spk_rxfilename` set to this.
+            with_keys(bool, optional): Applicable to
+                :class:`KaldiSequentialTableReader`, setting this to
+                true returns pairs of (key, val) when iterating instead
+                of just the value
 
         Raises:
             IOError: If the arhive or script cannot be opened, but does
@@ -198,6 +202,7 @@ class KaldiSequentialTableReader(KaldiIO):
         self._is_matrix = None
         self._numpy_dtype = None
         self._internal = None
+        self._with_keys = False
         super(KaldiSequentialTableReader, self).__init__(**kwargs)
 
     def close(self):
@@ -206,6 +211,7 @@ class KaldiSequentialTableReader(KaldiIO):
             self._internal = None
 
     def _open(self, xfilename, kaldi_dtype, **kwargs):
+        self._with_keys = bool(kwargs.get('with_keys', False))
         cls = None
         if kaldi_dtype == KaldiDataType.DoubleVector:
             cls = _SequentialDoubleVectorReader
@@ -248,6 +254,8 @@ class KaldiSequentialTableReader(KaldiIO):
         else:
             ret = numpy.empty(data_obj.Dim(), dtype=self._numpy_dtype)
             data_obj.ReadDataInto(ret)
+        if self._with_keys:
+            ret = self._internal.Key(), ret
         self._internal.Next()
         return ret
 
