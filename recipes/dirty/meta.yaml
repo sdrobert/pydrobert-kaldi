@@ -23,10 +23,8 @@ build:
   binary_relocation: False
 
 test:
-  files:
-    - ../../tests/test_vectors.py
-    - ../../tests/test_matrices.py
-    - ../../tests/test_tables.py
+  source_files:
+    - tests
   requires:
     - nose
   imports:
