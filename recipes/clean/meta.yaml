@@ -27,10 +27,8 @@ build:
   detect_binary_files_with_prefix: True
 
 test:
-  files:
-    - ../../tests/test_vectors.py
-    - ../../tests/test_matrices.py
-    - ../../tests/test_tables.py
+  source_files:
+    - tests
   requires:
     - nose
   imports:
