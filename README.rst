@@ -36,6 +36,8 @@ command::
 And everything will work automagically. If that's not working for you, you can
 try::
 
+   # use 'conda-build'
+   conda install conda-build
    # if you don't have a copy of kaldi somewhere
    conda build recipes/kaldi
    conda build recipes/clean
