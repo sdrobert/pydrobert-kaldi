@@ -5,6 +5,7 @@ include $(KALDI_ROOT)/src/kaldi.mk
 
 kaldi_cxxflags:
 	echo $(CXXFLAGS) > $@
+	python -c "import numpy; print('-I' + numpy.get_include())" >> $@
 
 kaldi_ldlibs:
 	echo $(LDLIBS) > $@
