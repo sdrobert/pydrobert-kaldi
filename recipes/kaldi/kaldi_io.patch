@@ -85,7 +85,7 @@ index 7ebf4f8..f4a8866 100644
  
  #endif  // KALDI_BASE_KALDI_TYPES_H_
 diff --git src/configure src/configure
-index 6ee1f64..f551c44 100755
+index 6ee1f64..bc7202e 100755
 --- src/configure
 +++ src/configure
 @@ -57,11 +57,6 @@ if ! [ -x "$PWD/configure" ]; then
@@ -736,7 +736,7 @@ index 6ee1f64..f551c44 100755
  
  # Most of the OS-specific steps below will append to kaldi.mk
  echo "Doing OS specific configurations ..."
-@@ -851,9 +293,6 @@ if [ "`uname`" == "Darwin"  ]; then
+@@ -851,12 +293,14 @@ if [ "`uname`" == "Darwin"  ]; then
    if [ ! -e /System/Library/Frameworks/Accelerate.framework ]; then
      failure "Need the Accelerate.framework to compile on Darwin."
    fi
@@ -746,7 +746,32 @@ index 6ee1f64..f551c44 100755
    # posix_memalign and gcc -rdynamic options not present on OS X 10.5.*
    osx_ver=`sw_vers | grep ProductVersion | awk '{print $2}' | awk '{split($0,a,"\."); print a[1] "." a[2]; }'`
    echo "Configuring for OS X version $osx_ver ..."
-@@ -899,141 +338,9 @@ if [ "`uname -o`" == "Cygwin"  ]; then
++  osx_ver_major="${osx_ver%.*}"
++  osx_ver_minor="${osx_ver#*.}"
++  if [ $osx_ver_major -lt 10 ] || [ $osx_ver_minor -lt 5 ]; then
++    failure "OS X version '$osx_ver' not supported"
++  fi
+   if [ "$osx_ver" == "10.5" ]; then
+     check_exists makefiles/darwin_10_5.mk
+     cat makefiles/darwin_10_5.mk >> kaldi.mk
+@@ -875,11 +319,13 @@ if [ "`uname`" == "Darwin"  ]; then
+   elif [ "$osx_ver" == "10.10" ]; then
+     check_exists makefiles/darwin_10_10.mk
+     cat makefiles/darwin_10_10.mk >> kaldi.mk
+-  elif [ "$osx_ver" == "10.11" ]; then
++  else
++    echo \
++"Configured all OS X releases >= 10.11 to use the same Makefile.\n"\
++" If this stops working at some point in the future, please post an\n"\
++" issue on my GitHub repo (sdrobert)"
+     check_exists makefiles/darwin_10_11.mk
+     cat makefiles/darwin_10_11.mk >> kaldi.mk
+-  else
+-    failure "OS X version '$osx_ver' not supported"
+   fi
+   echo "Configuration succeeded for platform Darwin."
+   exit_success;
+@@ -899,141 +345,9 @@ if [ "`uname -o`" == "Cygwin"  ]; then
  fi
  
  if [ "`uname`" == "Linux" ]; then
@@ -889,7 +914,7 @@ index 6ee1f64..f551c44 100755
      OPENBLASROOT=`rel2abs "$OPENBLASROOT"`
      if [ -z "$OPENBLASROOT" ]; then
        failure "Must specify the location of OPENBLAS with --openblas-root option (and it must exist)"
-@@ -1053,8 +360,6 @@ if [ "`uname`" == "Linux" ]; then
+@@ -1053,8 +367,6 @@ if [ "`uname`" == "Linux" ]; then
      echo "OPENBLASROOT = $OPENBLASROOT" >> kaldi.mk
      cat makefiles/linux_openblas.mk >> kaldi.mk
      fix_cxx_flag
