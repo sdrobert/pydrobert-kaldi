@@ -93,27 +93,25 @@ while idx < len(kaldi_cxxflags):
     else:
         idx += 1
 
-kaldi_ldflags = []
-# with open('kaldi_ldflags') as file_obj:
-#     text = file_obj.read()
-#     kaldi_ldflags = resolve_relative(shlex.split(text))
-# idx = 0
-# while idx < len(kaldi_ldflags):
-#     if kaldi_ldflags[idx] == '-Wl,': # removing rpath stripped options
-#         del kaldi_ldflags[idx]
-#     elif '-rpath=' in kaldi_ldflags[idx]:
-#         del kaldi_ldflags[idx]
-#         start = kaldi_ldflags[idx].find('-rpath=')
-#         end = kaldi_ldflags[idx].find(',', start + 7)
-#         if end == -1:
-#             end = len(kaldi_ldflags[idx])
-#         dymlib_path = kaldi_ldflags[idx][(start + 7):end]
-#         if 'openfst' not in dymlib_path:
-#             kaldi_runtime_dirs.add(dymlib_path)
-#         kaldi_ldflags[idx] = kaldi_ldflags[idx][:start] + \
-#                 kaldi_ldflags[idx][(end+1):]
-#     else:
-#         idx += 1
+with open('kaldi_ldflags') as file_obj:
+    text = file_obj.read()
+    kaldi_ldflags = resolve_relative(shlex.split(text))
+idx = 0
+while idx < len(kaldi_ldflags):
+    if kaldi_ldflags[idx] == '-Wl,': # removing rpath stripped options
+        del kaldi_ldflags[idx]
+    elif '-rpath=' in kaldi_ldflags[idx]:
+        start = kaldi_ldflags[idx].find('-rpath=')
+        end = kaldi_ldflags[idx].find(',', start + 7)
+        if end == -1:
+            end = len(kaldi_ldflags[idx])
+        dymlib_path = kaldi_ldflags[idx][(start + 7):end]
+        if 'openfst' not in dymlib_path:
+            kaldi_runtime_dirs.add(dymlib_path)
+        kaldi_ldflags[idx] = kaldi_ldflags[idx][:start] + \
+                kaldi_ldflags[idx][(end+1):]
+    else:
+        idx += 1
 # if we're on OS X, runtime libary dirs are not added as "rpath" options
 # to the linker (they're just -L flags)
 if platform.system() == 'Darwin' and kaldi_runtime_dirs:
@@ -124,19 +122,19 @@ if platform.system() == 'Darwin' and kaldi_runtime_dirs:
     kaldi_ldflags.append(new_flag)
 
 kaldi_ldlibs = []
-# with open('kaldi_ldlibs') as file_obj:
-#     text = file_obj.read()
-#     kaldi_ldlibs = resolve_relative(shlex.split(text))
-# idx = 0
-# while idx < len(kaldi_ldlibs):
-#     if kaldi_ldlibs[idx] == '-L':
-#         del kaldi_ldlibs[idx]
-#         del kaldi_ldlibs[idx]
-#     elif kaldi_ldlibs[idx] == '-lfst' or \
-#             kaldi_ldlibs[idx].find('libfst') != -1:
-#         del kaldi_ldlibs[idx]
-#     else:
-#         idx += 1
+with open('kaldi_ldlibs') as file_obj:
+    text = file_obj.read()
+    kaldi_ldlibs = resolve_relative(shlex.split(text))
+idx = 0
+while idx < len(kaldi_ldlibs):
+    if kaldi_ldlibs[idx] == '-L':
+        del kaldi_ldlibs[idx]
+        del kaldi_ldlibs[idx]
+    elif kaldi_ldlibs[idx] == '-lfst' or \
+            kaldi_ldlibs[idx].find('libfst') != -1:
+        del kaldi_ldlibs[idx]
+    else:
+        idx += 1
 
 kaldi_module = Extension(
     'pydrobert.kaldi._internal',
@@ -147,7 +145,9 @@ kaldi_module = Extension(
     include_dirs=[numpy.get_include()] + list(kaldi_include_dirs),
     language='c++',
     extra_compile_args=kaldi_cxxflags,
-    library_dirs=list(kaldi_library_dirs),
+    # it appears as though gcc needs both rpaths and -L flags for its
+    # libraries. Ehhhh
+    library_dirs=list(kaldi_library_dirs) + list(kaldi_runtime_dirs),
     runtime_library_dirs=list(kaldi_runtime_dirs),
     extra_link_args=kaldi_ldlibs + kaldi_ldflags,
     swig_opts=[
