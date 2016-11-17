@@ -12,8 +12,8 @@ if [ ! -d "${KALDI_ROOT}/src" ]; then
 fi
 
 # we "make" to get the compile flags that kaldi used and put them into files
-make || exit 1
+make -f $RECIPE_DIR/Makefile || exit 1
 
 $PYTHON $RECIPE_DIR/setup.py install || exit 1
 
-make clean || exit 1
+make -f $RECIPE_DIR/Makefile clean || exit 1
