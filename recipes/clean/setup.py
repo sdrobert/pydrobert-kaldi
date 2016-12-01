@@ -19,14 +19,14 @@ assert pkgconfig.exists('kaldi-thread')
 assert pkgconfig.exists('kaldi-util')
 python_dir = os.path.abspath('python')
 src_dir = os.path.abspath('src')
-include_dir = os.path.abspath('include')
+swig_include_dir = os.path.abspath('swig')
 
 with open('README.rst') as f:
     readme_text = f.read()
 
 kaldi_libraries = {'kaldi-base', 'kaldi-thread', 'kaldi-util', 'kaldi-matrix'}
 kaldi_library_dirs = set()
-kaldi_include_dirs = {include_dir, numpy.get_include()}
+kaldi_include_dirs = {numpy.get_include()}
 
 # pkg-config returns in unicode, so we should cast in case of py2.7
 kaldi_compiler_args = shlex.split(
@@ -72,7 +72,7 @@ swig_opts = ['-c++', '-builtin', '-Wall'] + list(define_symbols) + \
 
 kaldi_module = Extension(
     'pydrobert.kaldi._internal',
-    sources=[os.path.join(include_dir, 'pydrobert', 'kaldi.i')],
+    sources=[os.path.join(swig_include_dir, 'pydrobert', 'kaldi.i')],
     libraries=list(kaldi_libraries),
     runtime_library_dirs=list(kaldi_library_dirs),
     include_dirs=list(kaldi_include_dirs),

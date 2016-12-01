@@ -1,0 +1,84 @@
+/* -*- C++ -*- */
+%module(package="pydrobert.kaldi") internal
+
+%{
+  #define SWIG_FILE_WITH_INIT
+  #include "util/kaldi-holder.h"
+  #include "util/kaldi-table.h"
+%}
+%include "numpy/numpy.i"
+%include "std_string.i"
+%include "exception.i"
+
+%exception {
+  try {
+    $action
+  } catch (const std::exception& e) {
+    SWIG_exception(SWIG_RuntimeError, e.what());
+  }
+}
+
+%init %{
+  import_array();
+%}
+
+// general table types
+namespace kaldi {
+  
+  template <class KaldiType> class KaldiObjectHolder {
+    public:
+      typedef KaldiType T;
+  };
+  template <class Holder> class SequentialTableReader {
+    public:
+      typedef typename Holder::T T;
+      bool Open(const std::string &rspecifier);
+      bool Done();
+      std::string Key();
+      void Next();
+      bool IsOpen() const;
+      bool Close();
+      const T &Value();
+  };
+  template <class Holder> class RandomAccessTableReader {
+    public:
+      typedef typename Holder::T T;
+      bool Open(const std::string &rspecifier);
+      bool IsOpen() const;
+      bool Close();
+      bool HasKey(const std::string &key);
+      const T &Value(const std::string &key);
+  };
+  template <class Holder> class RandomAccessTableReaderMapped {
+    public:
+      typedef typename Holder::T T;
+      bool Open(const std::string &table_rxfilename,
+                const std::string &utt2spk_rxfilename);
+      bool IsOpen() const;
+      bool Close();
+      bool HasKey(const std::string &key);
+      const T &Value(const std::string &key);
+  };
+  template <class Holder> class TableWriter {
+    public:
+      typedef typename Holder::T T;
+      bool Open(const std::string &wspecifier);
+      bool IsOpen() const;
+      bool Close();
+      void Write(const std::string &key, const T &value) const;
+  };
+}
+
+// to determine BaseFloat in python wrapper
+%constant bool kDoubleIsBase = sizeof(kaldi::BaseFloat) == sizeof(double);
+
+%define TEMPLATE_WITH_KOBJECT_NAME_AND_TYPE(Name, Type)
+%template(Name) Type;
+%template(Name ## Holder) kaldi::KaldiObjectHolder<Type >;
+%template(Sequential ## Name ## Reader) kaldi::SequentialTableReader<kaldi::KaldiObjectHolder<Type > >;
+%template(RandomAccess ## Name ## Reader) kaldi::RandomAccessTableReader<kaldi::KaldiObjectHolder<Type > >;
+%template(RandomAccess ## Name ## ReaderMapped) kaldi::RandomAccessTableReaderMapped<kaldi::KaldiObjectHolder<Type > >;
+%template(Name ## Writer) kaldi::TableWriter<kaldi::KaldiObjectHolder<Type > >;
+%enddef
+
+%include "pydrobert/mv_tables.i"

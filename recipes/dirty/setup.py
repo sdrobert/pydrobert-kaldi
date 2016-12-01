@@ -49,7 +49,7 @@ kaldi_include_dirs = [kaldi_src]
 
 python_dir = os.path.abspath('python')
 src_dir = os.path.abspath('src')
-swig_include_dir = os.path.abspath('include')
+swig_include_dir = os.path.abspath('swig')
 cur_path = os.path.abspath('.')
 
 def resolve_relative(lst):
