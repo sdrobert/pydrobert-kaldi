@@ -1,3 +1,4 @@
+# pylint: disable=C0103
 """Setup for pydrobert.kaldi"""
 
 from __future__ import print_function
@@ -68,7 +69,8 @@ if platform.system() == 'Darwin':
     kaldi_linker_args += ['-Wl,-rpath,' + kaldi_library_dirs.pop()]
 
 swig_opts = ['-c++', '-builtin', '-Wall'] + list(define_symbols) + \
-        ['-I' + x for x in kaldi_include_dirs]
+        ['-I' + swig_include_dir]
+kaldi_compiler_args.append('-Wno-unused-variable') # kaldi-table-inl.h:501
 
 kaldi_module = Extension(
     'pydrobert.kaldi._internal',

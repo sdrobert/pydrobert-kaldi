@@ -1,3 +1,5 @@
+# pylint: disable=C0103
+
 """Setup for pydrobert.kaldi... dirty"""
 
 from __future__ import print_function
@@ -135,6 +137,8 @@ while idx < len(kaldi_ldlibs):
         del kaldi_ldlibs[idx]
     else:
         idx += 1
+
+kaldi_cxxflags.append('-Wno-unused-variable')
 
 kaldi_module = Extension(
     'pydrobert.kaldi._internal',

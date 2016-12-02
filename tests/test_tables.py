@@ -49,16 +49,17 @@ class TestTables:
             ('bv', [numpy.infty]),
             ('bv', [1] * 100),
             ('bm', [[1, 2], [3, 4]]),
-            ('dv', numpy.arange(1000, dtype=numpy.float64)),
+            ('fv', [-1, -1, 0, .1]),
+            ('fm', numpy.random.random((10, 10)).astype(numpy.float32)),
+            ('dv', numpy.arange(1000, dtype=numpy.float64) - 10),
             ('dm', numpy.outer(
-                numpy.arange(100, dtype=numpy.float64),
-                numpy.arange(111, dtype=numpy.float64))),
+                numpy.arange(100, dtype=numpy.float32),
+                numpy.arange(111, dtype=numpy.float32))), # upcast ok
         )
         for is_text, valid_pair in product((True, False), valid_pairs):
-            dbg_text = ' (Text={}, Pair={})'.format(
-                is_text, valid_pair)
+            dbg_text = ' (Text={}, Pair={})'.format(is_text, valid_pair)
+            dtype, value = valid_pair
             try:
-                dtype, value = valid_pair
                 if is_text:
                     writer.open('ark,t:{}'.format(self._temp_name_1), dtype)
                 else:
@@ -73,8 +74,35 @@ class TestTables:
                 for read_value in iter(reader):
                     assert once, "Multiple values"
                     assert numpy.allclose(read_value, value), \
-                        "Values not equal"
+                        "Values not equal: {} {}".format(read_value, value)
                     once = False
+            except Exception as exc:
+                exc.args = tuple([exc.args[0] + dbg_text] + list(exc.args[1:]))
+                raise
+
+    def test_write_invalid(self):
+        writer = tables.KaldiTableWriter()
+        invalid_pairs = (
+            ('bv', ['a', 2, 3]),
+            ('bv', 'abc'),
+            ('bv', [[1, 2]]),
+            ('fv', numpy.arange(3, dtype=numpy.float64)), # downcast not ok
+            ('bm', [['1', 2]]),
+            ('bm', [0]),
+            ('fm', numpy.random.random((10, 1)).astype(numpy.float64)),
+        )
+        for is_text, invalid_pair in product((True, False), invalid_pairs):
+            dtype, value = invalid_pair
+            dbg_text = ' (Text={}, Pair={})'.format(is_text, invalid_pair)
+            try:
+                if is_text:
+                    writer.open('ark,t:{}'.format(self._temp_name_1), dtype)
+                else:
+                    writer.open('ark:{}'.format(self._temp_name_1), dtype)
+                try:
+                    writer.write('a', value)
+                except (TypeError, ValueError):
+                    pass
             except Exception as exc:
                 exc.args = tuple([exc.args[0] + dbg_text] + list(exc.args[1:]))
                 raise

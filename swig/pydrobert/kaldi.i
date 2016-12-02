@@ -38,7 +38,7 @@ namespace kaldi {
       void Next();
       bool IsOpen() const;
       bool Close();
-      const T &Value();
+      // const T &Value();
   };
   template <class Holder> class RandomAccessTableReader {
     public:
@@ -47,7 +47,7 @@ namespace kaldi {
       bool IsOpen() const;
       bool Close();
       bool HasKey(const std::string &key);
-      const T &Value(const std::string &key);
+      // const T &Value(const std::string &key);
   };
   template <class Holder> class RandomAccessTableReaderMapped {
     public:
@@ -57,7 +57,7 @@ namespace kaldi {
       bool IsOpen() const;
       bool Close();
       bool HasKey(const std::string &key);
-      const T &Value(const std::string &key);
+      // const T &Value(const std::string &key);
   };
   template <class Holder> class TableWriter {
     public:
@@ -65,7 +65,7 @@ namespace kaldi {
       bool Open(const std::string &wspecifier);
       bool IsOpen() const;
       bool Close();
-      void Write(const std::string &key, const T &value) const;
+      // void Write(const std::string &key, const T &value) const;
   };
 }
 

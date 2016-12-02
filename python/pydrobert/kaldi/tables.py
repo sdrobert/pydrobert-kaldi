@@ -88,7 +88,7 @@ class KaldiDataType(Enum):
         else:
             return 'd' in val
 
-class KaldiIO(with_metaclass(abc.ABCMeta)):
+class KaldiIO(with_metaclass(abc.ABCMeta), object):
     """Base class for interacting with Kaldi scripts/archives
 
     :class:`KaldiIO` subclasses all contain `open` and `close` methods.
@@ -248,16 +248,7 @@ class KaldiSequentialTableReader(KaldiIO):
             raise ValueError('I/O operation on a closed file')
         if self._internal.Done():
             raise StopIteration
-        data_obj = self._internal.Value()
-        ret = None
-        if self._is_matrix:
-            ret = numpy.empty(
-                (data_obj.NumRows(), data_obj.NumCols()),
-                dtype=self._numpy_dtype)
-            data_obj.ReadDataInto(ret)
-        else:
-            ret = numpy.empty(data_obj.Dim(), dtype=self._numpy_dtype)
-            data_obj.ReadDataInto(ret)
+        ret = self._internal.Value()
         if self._with_keys:
             ret = self._internal.Key(), ret
         self._internal.Next()
@@ -350,17 +341,7 @@ class KaldiRandomAccessTableReader(KaldiIO):
             if will_raise:
                 raise KeyError(key)
             return None
-        data_obj = self._internal.Value(key)
-        ret = None
-        if self._is_matrix:
-            ret = numpy.empty(
-                (data_obj.NumRows(), data_obj.NumCols()),
-                dtype=self._numpy_dtype)
-            data_obj.ReadDataInto(ret)
-        else:
-            ret = numpy.empty(data_obj.Dim(), dtype=self._numpy_dtype)
-            data_obj.ReadDataInto(ret)
-        return ret
+        return self._internal.Value(key)
 
     def __getitem__(self, key):
         return self.get(key, will_raise=True)
@@ -445,7 +426,7 @@ class KaldiTableWriter(KaldiIO):
                         value = numpy.empty((0, 0), dtype=self._numpy_dtype)
                 except TypeError:
                     raise ValueError('Expected 2D array-like')
-        self._internal.WriteData(key, value)
+        self._internal.Write(key, value)
 
 def open(
         xfilename, kaldi_dtype,
