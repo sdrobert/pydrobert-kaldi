@@ -25,7 +25,6 @@ build:
 test:
   files:
     - table_profiler.py
-    - valgrind-python.supp
   source_files:
     - tests
   requires:
