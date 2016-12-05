@@ -13,9 +13,10 @@ from pydrobert.kaldi import tables
 @profile
 def main():
     temp = NamedTemporaryFile()
+    n_keys = 1000
     
     writer = tables.open('ark:{}'.format(temp.name), 'fv', mode='w')
-    for key in range(1000):
+    for key in range(n_keys):
         val = numpy.random.random(
             numpy.random.randint(1, 10000)
         ).astype(numpy.float32)
@@ -27,17 +28,17 @@ def main():
     num = 0
     for val in iter(reader):
         num += 1
-    assert num == 1000
+    assert num == n_keys
     del reader
 
     reader = tables.open('ark:{}'.format(temp.name), 'fv', mode='r+')
     for _ in range(50):
-        key = str(numpy.random.randint(999))
+        key = str(numpy.random.randint(n_keys))
         val = reader[key]
         del val
     del reader
 
-    del temp
+    del temp, n_keys
 
 if __name__ == '__main__':
     main()
