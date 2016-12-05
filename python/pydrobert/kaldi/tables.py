@@ -18,31 +18,7 @@ import numpy
 from future.utils import implements_iterator
 from six import with_metaclass
 
-# we rename with an underscore so tab-completion isn't polluted with
-# these
-from ._internal import DoubleMatrixWriter as _DoubleMatrixWriter
-from ._internal import DoubleVectorWriter as _DoubleVectorWriter
-from ._internal import FloatMatrixWriter as _FloatMatrixWriter
-from ._internal import FloatVectorWriter as _FloatVectorWriter
-from ._internal import RandomAccessDoubleMatrixReader as _RandomAccessDoubleMatrixReader
-from ._internal import RandomAccessDoubleMatrixReaderMapped as _RandomAccessDoubleMatrixReaderMapped
-from ._internal import RandomAccessDoubleVectorReader as _RandomAccessDoubleVectorReader
-from ._internal import RandomAccessDoubleVectorReaderMapped as _RandomAccessDoubleVectorReaderMapped
-from ._internal import RandomAccessFloatMatrixReader as _RandomAccessFloatMatrixReader
-from ._internal import RandomAccessFloatMatrixReaderMapped as _RandomAccessFloatMatrixReaderMapped
-from ._internal import RandomAccessFloatVectorReader as _RandomAccessFloatVectorReader
-from ._internal import RandomAccessFloatVectorReaderMapped as _RandomAccessFloatVectorReaderMapped
-from ._internal import RandomAccessTokenReader as _RandomAccessTokenReader
-from ._internal import RandomAccessTokenVectorReader as _RandomAccessTokenVectorReader
-from ._internal import SequentialDoubleMatrixReader as _SequentialDoubleMatrixReader
-from ._internal import SequentialDoubleVectorReader as _SequentialDoubleVectorReader
-from ._internal import SequentialFloatMatrixReader as _SequentialFloatMatrixReader
-from ._internal import SequentialFloatVectorReader as _SequentialFloatVectorReader
-from ._internal import SequentialTokenReader as _SequentialTokenReader
-from ._internal import SequentialTokenVectorReader as _SequentialTokenVectorReader
-from ._internal import TokenVectorWriter as _TokenVectorWriter
-from ._internal import TokenWriter as _TokenWriter
-from ._internal import kDoubleIsBase as _kDoubleIsBase
+from . import _internal as _i
 
 __author__ = "Sean Robertson"
 __email__ = "sdrobert@cs.toronto.edu"
@@ -98,7 +74,7 @@ class KaldiDataType(Enum):
     def is_double(self):
         '''bool: whether this data type is double precision (64-bit)'''
         if str(self.value) in ('bv', 'bm'):
-            return _kDoubleIsBase
+            return _i.kDoubleIsBase
         elif str(self.value) in ('dv', 'dm'):
             return True
         else:
@@ -147,7 +123,7 @@ class KaldiIO(with_metaclass(abc.ABCMeta), object):
         elif 'kaldi_dtype' in kwargs:
             raise TypeError('"kaldi_dtype" was specified but not "xfilename"')
 
-    if _kDoubleIsBase:
+    if _i.kDoubleIsBase:
         _BaseVector = KaldiDataType.DoubleVector
         _BaseMatrix = KaldiDataType.DoubleMatrix
     else:
@@ -237,17 +213,17 @@ class KaldiSequentialTableReader(KaldiIO):
         self._with_keys = with_keys
         cls = None
         if kaldi_dtype == KaldiDataType.DoubleVector:
-            cls = _SequentialDoubleVectorReader
+            cls = _i.SequentialDoubleVectorReader
         elif kaldi_dtype == KaldiDataType.FloatVector:
-            cls = _SequentialFloatVectorReader
+            cls = _i.SequentialFloatVectorReader
         elif kaldi_dtype == KaldiDataType.DoubleMatrix:
-            cls = _SequentialDoubleMatrixReader
+            cls = _i.SequentialDoubleMatrixReader
         elif kaldi_dtype == KaldiDataType.FloatMatrix:
-            cls = _SequentialFloatMatrixReader
+            cls = _i.SequentialFloatMatrixReader
         elif kaldi_dtype == KaldiDataType.Token:
-            cls = _SequentialTokenReader
+            cls = _i.SequentialTokenReader
         elif kaldi_dtype == KaldiDataType.TokenVector:
-            cls = _SequentialTokenVectorReader
+            cls = _i.SequentialTokenVectorReader
         assert cls
         instance = cls()
         if not instance.Open(xfilename):
@@ -292,28 +268,28 @@ class KaldiRandomAccessTableReader(KaldiIO):
         cls = None
         if kaldi_dtype == KaldiDataType.DoubleVector:
             if utt2spk:
-                cls = _RandomAccessDoubleVectorReaderMapped
+                cls = _i.RandomAccessDoubleVectorReaderMapped
             else:
-                cls = _RandomAccessDoubleVectorReader
+                cls = _i.RandomAccessDoubleVectorReader
         elif kaldi_dtype == KaldiDataType.FloatVector:
             if utt2spk:
-                cls = _RandomAccessFloatVectorReaderMapped
+                cls = _i.RandomAccessFloatVectorReaderMapped
             else:
-                cls = _RandomAccessFloatVectorReader
+                cls = _i.RandomAccessFloatVectorReader
         elif kaldi_dtype == KaldiDataType.DoubleMatrix:
             if utt2spk:
-                cls = _RandomAccessDoubleMatrixReaderMapped
+                cls = _i.RandomAccessDoubleMatrixReaderMapped
             else:
-                cls = _RandomAccessDoubleMatrixReader
+                cls = _i.RandomAccessDoubleMatrixReader
         elif kaldi_dtype == KaldiDataType.FloatMatrix:
             if utt2spk:
-                cls = _RandomAccessFloatMatrixReaderMapped
+                cls = _i.RandomAccessFloatMatrixReaderMapped
             else:
-                cls = _RandomAccessFloatMatrixReader
+                cls = _i.RandomAccessFloatMatrixReader
         elif kaldi_dtype == KaldiDataType.Token:
-            cls = _RandomAccessTokenReader
+            cls = _i.RandomAccessTokenReader
         elif kaldi_dtype == KaldiDataType.TokenVector:
-            cls = _RandomAccessTokenVectorReader
+            cls = _i.RandomAccessTokenVectorReader
         assert cls
         instance = cls()
         res = None
@@ -382,17 +358,17 @@ class KaldiTableWriter(KaldiIO):
         cls = None
         self._error_on_str = False
         if kaldi_dtype == KaldiDataType.DoubleVector:
-            cls = _DoubleVectorWriter
+            cls = _i.DoubleVectorWriter
         elif kaldi_dtype == KaldiDataType.FloatVector:
-            cls = _FloatVectorWriter
+            cls = _i.FloatVectorWriter
         elif kaldi_dtype == KaldiDataType.DoubleMatrix:
-            cls = _DoubleMatrixWriter
+            cls = _i.DoubleMatrixWriter
         elif kaldi_dtype == KaldiDataType.FloatMatrix:
-            cls = _FloatMatrixWriter
+            cls = _i.FloatMatrixWriter
         elif kaldi_dtype == KaldiDataType.Token:
-            cls = _TokenWriter
+            cls = _i.TokenWriter
         elif kaldi_dtype == KaldiDataType.TokenVector:
-            cls = _TokenVectorWriter
+            cls = _i.TokenVectorWriter
             self._error_on_str = tv_error_on_str
         assert cls
         instance = cls()

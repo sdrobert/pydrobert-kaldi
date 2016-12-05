@@ -23,10 +23,14 @@ build:
   binary_relocation: False
 
 test:
+  files:
+    - table_profiler.py
+    - valgrind-python.supp
   source_files:
     - tests
   requires:
     - nose
+    - memory_profiler
   imports:
     - pydrobert
     - pydrobert.kaldi
