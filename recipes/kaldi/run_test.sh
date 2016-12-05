@@ -12,6 +12,7 @@ cat > main.cpp <<- EOF
 #include <iostream>
 #include "matrix/matrix-common.h"
 #include "util/kaldi-holder.h"
+#include "feat/feature-fbank.h"
 
 int main() {
   kaldi::Vector<float> vector(10, kaldi::kSetZero);

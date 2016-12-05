@@ -23,9 +23,11 @@ fi
 
 # kaldi builds in place. Move those foos into the build location.
 # Conda should handle rpath 
-for d in matrix util thread base; do
+for d in matrix util thread base feat; do
   mkdir -p ${PREFIX}/include/kaldi/$d || exit 1
   cp $d/*.h ${PREFIX}/include/kaldi/$d/ || exit 1
 done
+mkdir -p ${PREFIX}/include/kaldi/itf
+cp itf/options-itf.h ${PREFIX}/include/kaldi/itf/options-itf.h
 
 popd

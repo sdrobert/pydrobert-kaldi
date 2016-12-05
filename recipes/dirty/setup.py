@@ -24,10 +24,12 @@ kaldi_base = os.path.join(kaldi_src, 'base')
 kaldi_thread = os.path.join(kaldi_src, 'thread')
 kaldi_matrix = os.path.join(kaldi_src, 'matrix')
 kaldi_util = os.path.join(kaldi_src, 'util')
+kaldi_feat = os.path.join(kaldi_src, 'feat')
 kaldi_library_dirs = set()
 kaldi_runtime_dirs = set()
 kaldi_libraries = set()
-for kaldi_dir in (kaldi_base, kaldi_thread, kaldi_matrix, kaldi_util):
+for kaldi_dir in \
+        (kaldi_base, kaldi_thread, kaldi_matrix, kaldi_util, kaldi_feat):
     dym_dir_libs = set(
         fn for fn in os.listdir(kaldi_dir)
         if fn.endswith('.so') or fn.endswith('.dylib')
