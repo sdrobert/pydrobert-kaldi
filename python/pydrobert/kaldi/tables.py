@@ -32,10 +32,16 @@ from ._internal import RandomAccessFloatMatrixReader as _RandomAccessFloatMatrix
 from ._internal import RandomAccessFloatMatrixReaderMapped as _RandomAccessFloatMatrixReaderMapped
 from ._internal import RandomAccessFloatVectorReader as _RandomAccessFloatVectorReader
 from ._internal import RandomAccessFloatVectorReaderMapped as _RandomAccessFloatVectorReaderMapped
+from ._internal import RandomAccessTokenReader as _RandomAccessTokenReader
+from ._internal import RandomAccessTokenVectorReader as _RandomAccessTokenVectorReader
 from ._internal import SequentialDoubleMatrixReader as _SequentialDoubleMatrixReader
 from ._internal import SequentialDoubleVectorReader as _SequentialDoubleVectorReader
 from ._internal import SequentialFloatMatrixReader as _SequentialFloatMatrixReader
 from ._internal import SequentialFloatVectorReader as _SequentialFloatVectorReader
+from ._internal import SequentialTokenReader as _SequentialTokenReader
+from ._internal import SequentialTokenVectorReader as _SequentialTokenVectorReader
+from ._internal import TokenVectorWriter as _TokenVectorWriter
+from ._internal import TokenWriter as _TokenWriter
 from ._internal import kDoubleIsBase as _kDoubleIsBase
 
 __author__ = "Sean Robertson"
@@ -52,7 +58,7 @@ class KaldiDataType(Enum):
 
     Attributes:
         +----------------+------------+-------------+-----------------+
-        | Attribute Name | String Rep | Numpy shape | Float precision |
+        | Attribute Name | String Rep | Numpy shape | Precision       |
         +================+============+=============+=================+
         | `BaseVector`   | ``'bv'``   | (X,)        | Kaldi default   |
         +----------------+------------+-------------+-----------------+
@@ -66,6 +72,10 @@ class KaldiDataType(Enum):
         +----------------+------------+-------------+-----------------+
         | `FloatMatrix`  | ``'fm'``   | (X,X)       | 32-bit          |
         +----------------+------------+-------------+-----------------+
+        | `Token`        | ``'t'``    | N/A         | N/A             |
+        +----------------+------------+-------------+-----------------+
+        | `TokenVector`  | ``'tv'``   | N/A         | N/A             |
+        +----------------+------------+-------------+-----------------+
     """
     BaseVector = 'bv'
     DoubleVector = 'dv'
@@ -73,20 +83,26 @@ class KaldiDataType(Enum):
     BaseMatrix = 'bm'
     DoubleMatrix = 'dm'
     FloatMatrix = 'fm'
+    Token = 't'
+    TokenVector = 'tv'
 
     @property
     def is_matrix(self):
-        # str(.) is to keep pylint from complaining
-        return 'm' in str(self.value)
+        return str(self.value) in ('bm', 'dm', 'fm')
+
+    @property
+    def is_floating_point(self):
+        return str(self.value) in ('bv', 'fv', 'dv', 'bm', 'fm', 'dm')
 
     @property
     def is_double(self):
-        """bool: Returns ``True`` if 64-bit floating point"""
-        val = str(self.value)
-        if 'b' in val:
+        '''bool: whether this data type is double precision (64-bit)'''
+        if str(self.value) in ('bv', 'bm'):
             return _kDoubleIsBase
+        elif str(self.value) in ('dv', 'dm'):
+            return True
         else:
-            return 'd' in val
+            return False
 
 class KaldiIO(with_metaclass(abc.ABCMeta), object):
     """Base class for interacting with Kaldi scripts/archives
@@ -94,10 +110,9 @@ class KaldiIO(with_metaclass(abc.ABCMeta), object):
     :class:`KaldiIO` subclasses all contain `open` and `close` methods.
     Additional methods depend on the subclass, but in general have
     either read- or write-like methods, depending on whether they are
-    reading or writing the archives. These methods accept or return
-    :class:`numpy.ndarray` objects with floating-point entries.
-    `Kaldi I/O Mechanisms`_ describes how Kaldi uses extended file names
-    and tables and such.
+    reading or writing the archives. The return type is determined by
+    `kaldi_dtype`. `Kaldi I/O Mechanisms`_ describes how Kaldi uses
+    extended file names, tables, and such.
 
     Args:
         xfilename(str,optional): read or write extended filename. If
@@ -166,6 +181,12 @@ class KaldiIO(with_metaclass(abc.ABCMeta), object):
                 :class:`KaldiSequentialTableReader`, setting this to
                 true returns pairs of (key, val) when iterating instead
                 of just the value
+            tv_error_on_str(bool, optional): Applicable to
+                :class:`KaldiTableWriter` when `kaldi_dtype` is
+                `TokenVector`. If True, this raises a `ValueError` when
+                the user tries to write a string to file. If False, the
+                string will be interpreted as a list of character
+                tokens. Defaults to True.
 
         Raises:
             IOError: If the arhive or script cannot be opened, but does
@@ -199,8 +220,6 @@ class KaldiSequentialTableReader(KaldiIO):
     """Read a Kaldi script/archive as an iterable"""
 
     def __init__(self, **kwargs):
-        self._is_matrix = None
-        self._numpy_dtype = None
         self._internal = None
         self._with_keys = False
         super(KaldiSequentialTableReader, self).__init__(**kwargs)
@@ -225,6 +244,10 @@ class KaldiSequentialTableReader(KaldiIO):
             cls = _SequentialDoubleMatrixReader
         elif kaldi_dtype == KaldiDataType.FloatMatrix:
             cls = _SequentialFloatMatrixReader
+        elif kaldi_dtype == KaldiDataType.Token:
+            cls = _SequentialTokenReader
+        elif kaldi_dtype == KaldiDataType.TokenVector:
+            cls = _SequentialTokenVectorReader
         assert cls
         instance = cls()
         if not instance.Open(xfilename):
@@ -232,11 +255,6 @@ class KaldiSequentialTableReader(KaldiIO):
                 'Unable to open file "{}" for sequential '
                 'read.'.format(xfilename))
         self._internal = instance
-        self._is_matrix = kaldi_dtype.is_matrix
-        if kaldi_dtype.is_double:
-            self._numpy_dtype = numpy.dtype(numpy.float64)
-        else:
-            self._numpy_dtype = numpy.dtype(numpy.float32)
 
     def __iter__(self):
         if not self._internal:
@@ -258,8 +276,6 @@ class KaldiRandomAccessTableReader(KaldiIO):
     """Read a Kaldi archive/script like a dictionary with string keys"""
 
     def __init__(self, **kwargs):
-        self._is_matrix = None
-        self._numpy_dtype = None
         self._internal = None
         super(KaldiRandomAccessTableReader, self).__init__(**kwargs)
 
@@ -294,6 +310,10 @@ class KaldiRandomAccessTableReader(KaldiIO):
                 cls = _RandomAccessFloatMatrixReaderMapped
             else:
                 cls = _RandomAccessFloatMatrixReader
+        elif kaldi_dtype == KaldiDataType.Token:
+            cls = _RandomAccessTokenReader
+        elif kaldi_dtype == KaldiDataType.TokenVector:
+            cls = _RandomAccessTokenVectorReader
         assert cls
         instance = cls()
         res = None
@@ -305,11 +325,6 @@ class KaldiRandomAccessTableReader(KaldiIO):
             raise IOError(
                 'Unable to open file "{}" for writing.'.format(xfilename))
         self._internal = instance
-        self._is_matrix = kaldi_dtype.is_matrix
-        if kaldi_dtype.is_double:
-            self._numpy_dtype = numpy.dtype(numpy.float64)
-        else:
-            self._numpy_dtype = numpy.dtype(numpy.float32)
 
     def get(self, key, will_raise=False):
         """Get data indexed by key
@@ -350,8 +365,7 @@ class KaldiTableWriter(KaldiIO):
     """Write to key/data combinations sequentially to a Kaldi script/archive"""
 
     def __init__(self, **kwargs):
-        self._is_matrix = None
-        self._numpy_dtype = None
+        self._error_on_str = False
         self._internal = None
         super(KaldiTableWriter, self).__init__(**kwargs)
 
@@ -360,12 +374,13 @@ class KaldiTableWriter(KaldiIO):
             self._internal.Close()
             self._internal = None
 
-    def _open(self, xfilename, kaldi_dtype, **kwargs):
+    def _open(self, xfilename, kaldi_dtype, tv_error_on_str=True, **kwargs):
         if len(kwargs):
             raise TypeError(
                 "'{}' is an invalid argument for this function".format(
                     next(iter(kwargs))))
         cls = None
+        self._error_on_str = False
         if kaldi_dtype == KaldiDataType.DoubleVector:
             cls = _DoubleVectorWriter
         elif kaldi_dtype == KaldiDataType.FloatVector:
@@ -374,17 +389,17 @@ class KaldiTableWriter(KaldiIO):
             cls = _DoubleMatrixWriter
         elif kaldi_dtype == KaldiDataType.FloatMatrix:
             cls = _FloatMatrixWriter
+        elif kaldi_dtype == KaldiDataType.Token:
+            cls = _TokenWriter
+        elif kaldi_dtype == KaldiDataType.TokenVector:
+            cls = _TokenVectorWriter
+            self._error_on_str = tv_error_on_str
         assert cls
         instance = cls()
         if not instance.Open(xfilename):
             raise IOError(
                 'Unable to open file "{}" for writing.'.format(xfilename))
         self._internal = instance
-        self._is_matrix = kaldi_dtype.is_matrix
-        if kaldi_dtype.is_double:
-            self._numpy_dtype = numpy.dtype(numpy.float64)
-        else:
-            self._numpy_dtype = numpy.dtype(numpy.float32)
 
     def write(self, key, value):
         """Write key/value pair to script/archive
@@ -401,42 +416,28 @@ class KaldiTableWriter(KaldiIO):
                 :class:`numpy.ndarray` to the `kaldi_dtype`
 
         Warning:
-            There are two situations where the array-like written may
-            not match whatever will be read from the script/archive in
-            the future. First, in the case of a matrix `kaldi_dtype`,
-            Kaldi does not accept arrays of shape (0,X) or (X,0), where
-            X > 0, nor does it accept the shape (0,). This method
+            In the case of a matrix `kaldi_dtype`, Kaldi does not accept
+            arrays of shape (0,X) or (X,0), where X > 0. This method
             automatically converts all such input to a matrix of shape
-            (0,0). Second, any array-like which is not a
-            :class:`numpy.ndarray` will be cast to one in the numpy
-            style. This does not guard against overflow, underflow, or
-            loss of precision.
+            (0,0).
         """
         if not self._internal:
             raise ValueError('I/O operation on a closed file')
-        if self._is_matrix:
-            # check for perverse shapes of empty arrays
-            if isinstance(value, numpy.ndarray):
-                if len(value.shape) <= 2 and not numpy.all(value.shape):
-                    value = numpy.empty((0, 0), dtype=value.dtype)
-            else:
-                try:
-                    if value is None or not len(value) or \
-                            (len(value[0]) == 1 and not len(value[0])):
-                        value = numpy.empty((0, 0), dtype=self._numpy_dtype)
-                except TypeError:
-                    raise ValueError('Expected 2D array-like')
+        if self._error_on_str and isinstance(value, str):
+            raise TypeError(
+                'Writing strings as vectors was disallowed. If desired, '
+                'set tv_error_on_str to False on open.'
+            )
         self._internal.Write(key, value)
 
-def open(
-        xfilename, kaldi_dtype,
-        mode='r', utt2spk=None, with_keys=False):
+def open(xfilename, kaldi_dtype, mode='r', **kwargs):
     """:class:`KaldiIO` factory method for initializing/opening tables
 
     Args:
         xfilename(str):
         kaldi_dtype(KaldiDataType):
         utt2spk(str, optional):
+        tv_error_on_str(bool, optional):
         with_keys(bool, optional)
         mode(str, optional): One of "r", "r+", and "w", which generate
             a :class:`KaldiSequentialTableReader`,
@@ -453,12 +454,13 @@ def open(
     """
     if mode == 'r':
         io_obj = KaldiSequentialTableReader(
-            xfilename=xfilename, kaldi_dtype=kaldi_dtype, with_keys=with_keys)
+            xfilename=xfilename, kaldi_dtype=kaldi_dtype, **kwargs)
     elif mode == 'r+':
         io_obj = KaldiRandomAccessTableReader(
-            xfilename=xfilename, kaldi_dtype=kaldi_dtype, utt2spk=utt2spk)
+            xfilename=xfilename, kaldi_dtype=kaldi_dtype, **kwargs)
     elif mode in ('w', 'w+'):
-        io_obj = KaldiTableWriter(xfilename=xfilename, kaldi_dtype=kaldi_dtype)
+        io_obj = KaldiTableWriter(
+            xfilename=xfilename, kaldi_dtype=kaldi_dtype, **kwargs)
     else:
         raise ValueError(
             'Invalid Kaldi I/O mode "{}" (should be one of "r","r+","w")'

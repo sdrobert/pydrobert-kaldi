@@ -3,16 +3,21 @@
 
 %{
   #define SWIG_FILE_WITH_INIT
+  #define SWIG_PYTHON_2_UNICODE
   #include "util/kaldi-holder.h"
   #include "util/kaldi-table.h"
 %}
 %include "numpy/numpy.i"
 %include "std_string.i"
+%include "std_vector.i"
 %include "exception.i"
 
 %exception {
+  // treat std::exception (kaldi) as a SytemError. If *I* set an error,
+  // return NULL like a good python function.
   try {
     $action
+    if (PyErr_Occurred()) return 0;
   } catch (const std::exception& e) {
     SWIG_exception(SWIG_RuntimeError, e.what());
   }
@@ -21,6 +26,8 @@
 %init %{
   import_array();
 %}
+
+%template(StringVector) std::vector<std::string >;
 
 // general table types
 namespace kaldi {
@@ -82,3 +89,4 @@ namespace kaldi {
 %enddef
 
 %include "pydrobert/mv_tables.i"
+%include "pydrobert/token_tables.i"

@@ -18,14 +18,6 @@ class TestTables:
 
     @classmethod
     def setup_class(cls):
-        cls._wrapped_map = {
-            'bm': lambda: arrays.KaldiMatrix(),
-            'bv': lambda: arrays.KaldiVector(),
-            'dm': lambda: arrays.KaldiMatrix(dtype=numpy.float64),
-            'dv': lambda: arrays.KaldiVector(dtype=numpy.float64),
-            'fm': lambda: arrays.KaldiMatrix(dtype=numpy.float32),
-            'fv': lambda: arrays.KaldiVector(dtype=numpy.float32),
-        }
         cls._windows = platform.system() == 'Windows'
 
     def setup(self):
@@ -45,7 +37,7 @@ class TestTables:
         reader = tables.KaldiSequentialTableReader()
         valid_pairs = (
             ('bv', []),
-            ('bm', []),
+            ('bm', [[]]),
             ('bv', [numpy.infty]),
             ('bv', [1] * 100),
             ('bm', [[1, 2], [3, 4]]),
@@ -55,6 +47,16 @@ class TestTables:
             ('dm', numpy.outer(
                 numpy.arange(100, dtype=numpy.float32),
                 numpy.arange(111, dtype=numpy.float32))), # upcast ok
+            ('t', 'able'),
+            # our methods can accept unicode, but always return strings,
+            # so we don't enforce that these be unicode type.
+            ('t', '\u00D6a'),
+            ('t', 'n\u00F9'),
+            # lists can be written, but tuples are read
+            ('tv', tuple()),
+            ('tv', ('foo', 'bar')),
+            ('tv', ('skryyyyy',)),
+            ('tv', ('\u00D6a', 'n\u00F9')),
         )
         for is_text, valid_pair in product((True, False), valid_pairs):
             dbg_text = ' (Text={}, Pair={})'.format(is_text, valid_pair)
@@ -73,8 +75,12 @@ class TestTables:
                 once = True
                 for read_value in iter(reader):
                     assert once, "Multiple values"
-                    assert numpy.allclose(read_value, value), \
-                        "Values not equal: {} {}".format(read_value, value)
+                    if dtype in ('bv', 'bm', 'fv', 'fm', 'dv', 'dm'):
+                        assert numpy.allclose(read_value, value), \
+                            "Values not equal: {} {}".format(read_value, value)
+                    else:
+                        assert read_value == value, \
+                            "Values not equal: {} {}".format(read_value, value)
                     once = False
             except Exception as exc:
                 exc.args = tuple([exc.args[0] + dbg_text] + list(exc.args[1:]))
@@ -87,9 +93,15 @@ class TestTables:
             ('bv', 'abc'),
             ('bv', [[1, 2]]),
             ('fv', numpy.arange(3, dtype=numpy.float64)), # downcast not ok
-            ('bm', [['1', 2]]),
+            ('bm', [['a', 2]]),
             ('bm', [0]),
             ('fm', numpy.random.random((10, 1)).astype(numpy.float64)),
+            ('t', 1),
+            ('t', []),
+            ('t', 'was I'),
+            ('tv', ['a', 1]),
+            ('tv', ("it's", 'me DIO')),
+            ('tv', 'foobar'),
         )
         for is_text, invalid_pair in product((True, False), invalid_pairs):
             dtype, value = invalid_pair
@@ -101,6 +113,13 @@ class TestTables:
                     writer.open('ark:{}'.format(self._temp_name_1), dtype)
                 try:
                     writer.write('a', value)
+                    # will not get here if all is well
+                    writer.close()
+                    print('Invalid archive contents:')
+                    with open(self._temp_name_1) as fobj:
+                        for line in fobj:
+                            print(line)
+                    raise AssertionError('Could write value')
                 except (TypeError, ValueError):
                     pass
             except Exception as exc:
@@ -113,7 +132,7 @@ class TestTables:
         values = (
             [[1, 2] * 10] * 10,
             numpy.eye(1000, dtype=numpy.float32),
-            [],
+            [[]],
             numpy.outer(
                 numpy.arange(1000, dtype=numpy.float32),
                 numpy.arange(1000, dtype=numpy.float32)),
