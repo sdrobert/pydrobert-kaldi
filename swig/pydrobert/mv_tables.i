@@ -8,7 +8,6 @@
   #include "matrix/kaldi-vector.h"
 %}
 
-// matrix and vector defs
 namespace kaldi {
   typedef enum {
     kSetZero,

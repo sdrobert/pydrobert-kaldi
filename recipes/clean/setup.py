@@ -18,6 +18,7 @@ assert pkgconfig.exists('kaldi-base')
 assert pkgconfig.exists('kaldi-matrix')
 assert pkgconfig.exists('kaldi-thread')
 assert pkgconfig.exists('kaldi-util')
+assert pkgconfig.exists('kaldi-feat')
 python_dir = os.path.abspath('python')
 src_dir = os.path.abspath('src')
 swig_include_dir = os.path.abspath('swig')
@@ -25,13 +26,14 @@ swig_include_dir = os.path.abspath('swig')
 with open('README.rst') as f:
     readme_text = f.read()
 
-kaldi_libraries = {'kaldi-base', 'kaldi-thread', 'kaldi-util', 'kaldi-matrix'}
+kaldi_libraries = {
+    'kaldi-base', 'kaldi-thread', 'kaldi-util', 'kaldi-matrix', 'kaldi-feat'}
 kaldi_library_dirs = set()
 kaldi_include_dirs = {numpy.get_include()}
 
 # pkg-config returns in unicode, so we should cast in case of py2.7
-kaldi_compiler_args = shlex.split(
-    pkgconfig.cflags('kaldi-util kaldi-matrix kaldi-base kaldi-thread'))
+kaldi_compiler_args = shlex.split(pkgconfig.cflags(
+    'kaldi-util kaldi-matrix kaldi-base kaldi-thread kaldi-feat'))
 define_symbols = set() # extract for swig
 idx = 0
 while idx < len(kaldi_compiler_args):
@@ -47,8 +49,8 @@ while idx < len(kaldi_compiler_args):
         idx += 1
     else:
         del kaldi_compiler_args[idx]
-kaldi_linker_args = shlex.split(
-    pkgconfig.libs('kaldi-util kaldi-base kaldi-matrix kaldi-thread'))
+kaldi_linker_args = shlex.split(pkgconfig.libs(
+    'kaldi-util kaldi-base kaldi-matrix kaldi-thread kaldi-feat'))
 idx = 0
 while idx < len(kaldi_linker_args):
     if kaldi_linker_args[idx][:2] == '-L':

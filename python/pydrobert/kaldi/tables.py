@@ -48,6 +48,8 @@ class KaldiDataType(Enum):
         +----------------+------------+-------------+-----------------+
         | `FloatMatrix`  | ``'fm'``   | (X,X)       | 32-bit          |
         +----------------+------------+-------------+-----------------+
+        | `WaveMatrix`   | ``'wm'``   | (X,X)       | Kaldi default   |
+        +----------------+------------+-------------+-----------------+
         | `Token`        | ``'t'``    | N/A         | N/A             |
         +----------------+------------+-------------+-----------------+
         | `TokenVector`  | ``'tv'``   | N/A         | N/A             |
@@ -59,21 +61,22 @@ class KaldiDataType(Enum):
     BaseMatrix = 'bm'
     DoubleMatrix = 'dm'
     FloatMatrix = 'fm'
+    WaveMatrix = 'wm'
     Token = 't'
     TokenVector = 'tv'
 
     @property
     def is_matrix(self):
-        return str(self.value) in ('bm', 'dm', 'fm')
+        return str(self.value) in ('bm', 'dm', 'fm', 'wm')
 
     @property
     def is_floating_point(self):
-        return str(self.value) in ('bv', 'fv', 'dv', 'bm', 'fm', 'dm')
+        return str(self.value) in ('bv', 'fv', 'dv', 'bm', 'fm', 'dm', 'wm')
 
     @property
     def is_double(self):
         '''bool: whether this data type is double precision (64-bit)'''
-        if str(self.value) in ('bv', 'bm'):
+        if str(self.value) in ('bv', 'bm', 'wm'):
             return _i.kDoubleIsBase
         elif str(self.value) in ('dv', 'dm'):
             return True
@@ -157,6 +160,10 @@ class KaldiIO(with_metaclass(abc.ABCMeta), object):
                 :class:`KaldiSequentialTableReader`, setting this to
                 true returns pairs of (key, val) when iterating instead
                 of just the value
+            wav_with_info(bool, optional): Applicable to readers of
+                `kaldi_dtype = WaveMatrix`. If `True`, `WaveInfoMatrix`
+                output will be appended to values, making tuples of
+                `(val, n_channels, duration_in_secs, sample_rate)`.
             tv_error_on_str(bool, optional): Applicable to
                 :class:`KaldiTableWriter` when `kaldi_dtype` is
                 `TokenVector`. If True, this raises a `ValueError` when
@@ -220,6 +227,8 @@ class KaldiSequentialTableReader(KaldiIO):
             cls = _i.SequentialDoubleMatrixReader
         elif kaldi_dtype == KaldiDataType.FloatMatrix:
             cls = _i.SequentialFloatMatrixReader
+        elif kaldi_dtype == KaldiDataType.WaveMatrix:
+            cls = _i.SequentialWaveReader
         elif kaldi_dtype == KaldiDataType.Token:
             cls = _i.SequentialTokenReader
         elif kaldi_dtype == KaldiDataType.TokenVector:
@@ -286,6 +295,8 @@ class KaldiRandomAccessTableReader(KaldiIO):
                 cls = _i.RandomAccessFloatMatrixReaderMapped
             else:
                 cls = _i.RandomAccessFloatMatrixReader
+        elif kaldi_dtype == KaldiDataType.WaveMatrix:
+            cls = _i.RandomAccessWaveReader
         elif kaldi_dtype == KaldiDataType.Token:
             cls = _i.RandomAccessTokenReader
         elif kaldi_dtype == KaldiDataType.TokenVector:
@@ -294,9 +305,9 @@ class KaldiRandomAccessTableReader(KaldiIO):
         instance = cls()
         res = None
         if utt2spk:
-            res = instance.Open(xfilename, utt2spk)
+            res = instance.Open(xfilename, utt2spk, **kwargs)
         else:
-            res = instance.Open(xfilename)
+            res = instance.Open(xfilename, **kwargs)
         if not res:
             raise IOError(
                 'Unable to open file "{}" for writing.'.format(xfilename))
@@ -365,6 +376,8 @@ class KaldiTableWriter(KaldiIO):
             cls = _i.DoubleMatrixWriter
         elif kaldi_dtype == KaldiDataType.FloatMatrix:
             cls = _i.FloatMatrixWriter
+        elif kaldi_dtype == KaldiDataType.WaveMatrix:
+            cls = _i.WaveWriter
         elif kaldi_dtype == KaldiDataType.Token:
             cls = _i.TokenWriter
         elif kaldi_dtype == KaldiDataType.TokenVector:
@@ -372,7 +385,7 @@ class KaldiTableWriter(KaldiIO):
             self._error_on_str = tv_error_on_str
         assert cls
         instance = cls()
-        if not instance.Open(xfilename):
+        if not instance.Open(xfilename, **kwargs):
             raise IOError(
                 'Unable to open file "{}" for writing.'.format(xfilename))
         self._internal = instance

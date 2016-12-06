@@ -77,7 +77,11 @@ namespace kaldi {
 }
 
 // to determine BaseFloat in python wrapper
-%constant bool kDoubleIsBase = sizeof(kaldi::BaseFloat) == sizeof(double);
+#if KALDI_DOUBLEPRECISION
+%constant bool kDoubleIsBase = true;
+#else
+%constant bool kDoubleIsBase = false;
+#endif
 
 %define TEMPLATE_WITH_KOBJECT_NAME_AND_TYPE(Name, Type)
 %template(Name) Type;
@@ -89,4 +93,5 @@ namespace kaldi {
 %enddef
 
 %include "pydrobert/mv_tables.i"
+%include "pydrobert/wave_tables.i"
 %include "pydrobert/token_tables.i"

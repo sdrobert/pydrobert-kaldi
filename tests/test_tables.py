@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import os
 import platform
+import wave
 
 from itertools import product
 from tempfile import NamedTemporaryFile
@@ -229,3 +230,26 @@ class TestTables:
         kaldi_io = tables.open(xfilename, 'bm', mode='w')
         kaldi_io.close()
         kaldi_io.close()
+
+    def test_wave_read_write_valid(self):
+        xfilename = 'ark:{}'.format(self._temp_name_1)
+        writer = tables.KaldiTableWriter(
+            xfilename=xfilename, kaldi_dtype='wm')
+        n_waves = 10
+        keys = [str(i) for i in range(n_waves)]
+        n_samples = [numpy.random.randint(1, 100000) for _ in keys]
+        n_channels = [numpy.random.randint(1, 3) for _ in keys]
+        # always written as pcm 16
+        bufs = [
+            (numpy.random.random((y, x))  * 30000 - 15000).astype(numpy.int16)
+            for x, y in zip(n_samples, n_channels)
+        ]
+        for key, buf in zip(keys, bufs):
+            writer.write(key, buf)
+        writer.close()
+        reader = tables.KaldiSequentialTableReader(
+            xfilename=xfilename, kaldi_dtype='wm')
+        for actual_buf, expected_buf in zip(reader, bufs):
+            assert numpy.allclose(actual_buf, expected_buf)
+            n_waves -= 1
+        assert not n_waves, "Incorrect number of reads!"
