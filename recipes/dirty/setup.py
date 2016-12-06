@@ -88,7 +88,10 @@ with open('kaldi_cxxflags') as file_obj:
     text = file_obj.read()
     kaldi_cxxflags = resolve_relative(shlex.split(text))
 idx = 0
+kaldi_doubleprecision_flag = None
 while idx < len(kaldi_cxxflags):
+    if kaldi_cxxflags[idx].startswith('-DKALDI_DOUBLEPRECISION'):
+        kaldi_doubleprecision_flag = kaldi_cxxflags[idx]
     if kaldi_cxxflags[idx] == '-I':
         del kaldi_cxxflags[idx]
         if not kaldi_cxxflags[idx].startswith('..'):
@@ -96,6 +99,7 @@ while idx < len(kaldi_cxxflags):
         del kaldi_cxxflags[idx]
     else:
         idx += 1
+assert kaldi_doubleprecision_flag, "Do not know type of base float!"
 
 with open('kaldi_ldflags') as file_obj:
     text = file_obj.read()
@@ -157,7 +161,7 @@ kaldi_module = Extension(
     runtime_library_dirs=list(kaldi_runtime_dirs),
     extra_link_args=kaldi_ldlibs + kaldi_ldflags,
     swig_opts=[
-        '-c++', '-builtin',
+        '-c++', '-builtin', kaldi_doubleprecision_flag,
         "-I{}".format(swig_include_dir),
     ],
 )
