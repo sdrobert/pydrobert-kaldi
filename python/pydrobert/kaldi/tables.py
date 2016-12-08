@@ -1,8 +1,39 @@
-"""Interface for Kaldi's readers and writers
+"""Interfaces for Kaldi's readers and writers
 
-The README file has a good example of standard usage; using `open`
-should be enough for most. However, :class:`KaldiIO` subclasses can be
-initialized directly for greater granularity.
+Kaldi uses the table analogy to store and retrieve data.  In a nutshell,
+Kaldi uses archive ("ark") files to store binary or text data, and
+script files ("scp") to point *into* archives. Both use whitespace-free
+strings as keys. Scripts and archives do not have any built-in type
+checking, so it is necessary to specify the input/output type when the
+files are opened. A full account can be found on Kaldi's website
+under `Kaldi I/O Mechanisms`_.
+
+This module contains a factory function, `open`, which is intended to
+behave similarly to python's built-in `open` factory. `open` describes
+what parameters are relevant to different table types.
+
+For a description of the table types which can be read/written by Kaldi,
+please consult `KaldiDataTypes`.
+
+Examples
+--------
+
+>>> import pydrobert.kaldi.tables as tables
+>>> import numpy as np
+>>> # write a script/archive pair of matrices
+>>> with tables.open('ark,scp:foo.ark,bar.scp', 'dm', mode='w') as t:
+>>>    t.write('yo', np.random.random((100, 1000)))
+>>>    t.write('dog', [[1, 2], [3, 4]])
+>>> # read the archive sequentially
+>>> with tables.open('ark:foo.ark', 'bv') as t:
+>>>    for matrix in t:
+>>>        pass # do something ...
+>>> # read a script file that points to matrices with random access
+>>> with tables.open('scp:bar.scp', 'dm', mode='r+') as t:
+>>>    t['dog']
+>>>    t['yo']
+
+.. _Kaldi I/O Mechanisms: http://kaldi-asr.org/doc2/io.html
 """
 
 from __future__ import absolute_import
@@ -11,9 +42,9 @@ from __future__ import print_function
 
 import abc
 
+from collections import Container
+from collections import Iterator
 from enum import Enum # need enum34 for python 2.7
-
-import numpy
 
 from future.utils import implements_iterator
 from six import with_metaclass
@@ -26,51 +57,64 @@ __license__ = "Apache 2.0"
 __copyright__ = "Copyright 2016 Sean Robertson"
 
 class KaldiDataType(Enum):
-    """Indicates the data type an archive stores. Values for `kaldi_dtype`
+    """Enumerates the data types stored and retrieved by Kaldi tables
 
-    Whenever `kaldi_dtype` is an argument to a method or function in
-    `tables`, one of these attributes can be passed directly via
-    ``KaldiDataType.XXX`, or by its :class:`str` form, e.g. ``'bv'``.
+    This enumerable lists the types of data written and read to various
+    tables. It is used in the factory method `open` to dictate the
+    subclass created.
 
-    Attributes:
-        +----------------+------------+-------------+-----------------+
-        | Attribute Name | String Rep | Numpy shape | Precision       |
-        +================+============+=============+=================+
-        | `BaseVector`   | ``'bv'``   | (X,)        | Kaldi default   |
-        +----------------+------------+-------------+-----------------+
-        | `DoubleVector` | ``'dv'``   | (X,)        | 64-bit          |
-        +----------------+------------+-------------+-----------------+
-        | `FloatVector`  | ``'fv'``   | (X,)        | 32-bit          |
-        +----------------+------------+-------------+-----------------+
-        | `BaseMatrix`   | ``'bm'``   | (X,X)       | Kaldi default   |
-        +----------------+------------+-------------+-----------------+
-        | `DoubleMatrix` | ``'dm'``   | (X,X)       | 64-bit          |
-        +----------------+------------+-------------+-----------------+
-        | `FloatMatrix`  | ``'fm'``   | (X,X)       | 32-bit          |
-        +----------------+------------+-------------+-----------------+
-        | `WaveMatrix`   | ``'wm'``   | (X,X)       | Kaldi default   |
-        +----------------+------------+-------------+-----------------+
-        | `Token`        | ``'t'``    | N/A         | N/A             |
-        +----------------+------------+-------------+-----------------+
-        | `TokenVector`  | ``'tv'``   | N/A         | N/A             |
-        +----------------+------------+-------------+-----------------+
+    Notes
+    -----
+    The "base float" mentioned in this documentation is the same type as
+    ``kaldi::BaseFloat`, which was determined when Kaldi was built. The
+    easiest way to determine whether this is a double (64bit) or a float
+    (32bit) is by checking the value of
+    `KaldiDataType.BaseVector.is_double`.
     """
+
     BaseVector = 'bv'
+    """Inputs/outputs are 1D numpy arrays of the base float"""
+
     DoubleVector = 'dv'
+    """Inputs/outputs are 1D numpy arrays of 64-bit floats"""
+
     FloatVector = 'fv'
+    """Inputs/outputs are 1D numpy arrays of 32-bit floats"""
+
     BaseMatrix = 'bm'
+    """Inputs/outputs are 2D numpy arrays of the base float"""
+
     DoubleMatrix = 'dm'
+    """Inputs/outputs are 2D numpy arrays of 64-bit floats"""
+
     FloatMatrix = 'fm'
+    """Inputs/outputs are 2D numpy arrays of 32-bit floats"""
+
     WaveMatrix = 'wm'
+    """Inputs/outputs are wave file data, cast to base float 2D arrays
+
+    Wave matrices have the shape `(n_channels, n_samples)`. Kaldi will
+    read PCM wave files, but will always convert the samples the base
+    floats.
+
+    Though Kaldi can read wave files of different types and sample
+    rates, Kaldi will only write wave files as PCM16 sampled at 16k.
+    """
+
     Token = 't'
+    """Inputs/outputs are individual whitespace-free ASCII or unicode words"""
+
     TokenVector = 'tv'
+    """Inputs/outputs are tuples of tokens"""
 
     @property
     def is_matrix(self):
+        """bool : whether this type is a matrix type"""
         return str(self.value) in ('bm', 'dm', 'fm', 'wm')
 
     @property
     def is_floating_point(self):
+        """bool : whether this type has a floating point representation"""
         return str(self.value) in ('bv', 'fv', 'dv', 'bm', 'fm', 'dm', 'wm')
 
     @property
@@ -83,55 +127,32 @@ class KaldiDataType(Enum):
         else:
             return False
 
-class KaldiIO(with_metaclass(abc.ABCMeta), object):
-    """Base class for interacting with Kaldi scripts/archives
+class KaldiTable(object, with_metaclass(abc.ABCMeta)):
+    """Base class for interacting with tables
 
-    :class:`KaldiIO` subclasses all contain `open` and `close` methods.
-    Additional methods depend on the subclass, but in general have
-    either read- or write-like methods, depending on whether they are
-    reading or writing the archives. The return type is determined by
-    `kaldi_dtype`. `Kaldi I/O Mechanisms`_ describes how Kaldi uses
-    extended file names, tables, and such.
+    All table readers and writers are subclasses of `KaldiTable`. They
+    are opened on initialization through the factory function `open`,
+    and can be closed at any time with the `close` method.
 
-    Args:
-        xfilename(str,optional): read or write extended filename. If
-            both this and `kaldi_dtype` are specified, `open` will be
-            called immediately with these and any additional keyword
-            arguments.
-        kaldi_dtype(:class:`KaldiDataType`,optional): read or write
-            extended filename. If both this and `xfilename` are
-            specified, `open` will be called immediately with these
-            and any additional keyword arguments.
+    Parameters
+    ----------
+    xfilename : str
 
-    Raises:
-        TypeError: if only one of `xfilename` or `kaldi_dtype` are
-            specified.
+    Attributes
+    ----------
+    kaldi_dtype
 
-    Warning:
-        It is possible to raise one of Kaldi's runtime errors when using
-        these subclasses. You should consult Kaldi's output to stderr to
-        figure out what went wrong. Hopefully the error will be wrapped
-        in Python's :class:`RuntimeError` rather than causing a
-        segfault.
-
-    .. _Kaldi I/O Mechanisms:
-        http://kaldi-asr.org/doc2/io.html
+    Raises
+    ------
+    IOError
+        If unable to open table
+    SystemError
+        Kaldi errors are wrapped as `SystemError`s
     """
 
-    def __init__(self, **kwargs):
-        if 'xfilename' in kwargs and 'kaldi_dtype' in kwargs:
-            self.open(**kwargs)
-        elif 'xfilename' in kwargs:
-            raise TypeError('"xfilename" was specified but not "kaldi_dtype"')
-        elif 'kaldi_dtype' in kwargs:
-            raise TypeError('"kaldi_dtype" was specified but not "xfilename"')
-
-    if _i.kDoubleIsBase:
-        _BaseVector = KaldiDataType.DoubleVector
-        _BaseMatrix = KaldiDataType.DoubleMatrix
-    else:
-        _BaseVector = KaldiDataType.FloatVector
-        _BaseMatrix = KaldiDataType.FloatMatrix
+    def __init__(self, xfilename, **kwargs):
+        self._open(xfilename, **kwargs)
+        super(KaldiTable, self).__init__()
 
     def __enter__(self):
         return self
@@ -142,316 +163,576 @@ class KaldiIO(with_metaclass(abc.ABCMeta), object):
     def __del__(self):
         self.close()
 
-    def open(self, xfilename, kaldi_dtype, **kwargs):
-        """Open a Kaldi script or archive
-
-        Args:
-            xfilename(str): An extended file name to open. Whether this
-                is a `wxfilename` or `rxfilename` depends on the
-                subclass. This can be an archive or script file.
-            kaldi_dtype(KaldiDataType): What kaldi data type is/will be
-                stored. All array-likes written or read are expected to
-                be of this type.
-            utt2spk(str, optional): Applicable to
-                :class:`KaldiRandomAccessTableReader`, setting this
-                opens a `RandomAccessTableReaderMapped`_ and with
-                `utt2spk_rxfilename` set to this.
-            with_keys(bool, optional): Applicable to
-                :class:`KaldiSequentialTableReader`, setting this to
-                true returns pairs of (key, val) when iterating instead
-                of just the value
-            wav_with_info(bool, optional): Applicable to readers of
-                `kaldi_dtype = WaveMatrix`. If `True`, `WaveInfoMatrix`
-                output will be appended to values, making tuples of
-                `(val, n_channels, duration_in_secs, sample_rate)`.
-            tv_error_on_str(bool, optional): Applicable to
-                :class:`KaldiTableWriter` when `kaldi_dtype` is
-                `TokenVector`. If True, this raises a `ValueError` when
-                the user tries to write a string to file. If False, the
-                string will be interpreted as a list of character
-                tokens. Defaults to True.
-
-        Raises:
-            IOError: If the arhive or script cannot be opened, but does
-                not cause a :class:`RuntimeError`.
-
-        ..seealso:: :class:`KaldiDataType`
-        .. _`RandomAccessTableReaderMapped`:
-            http://kaldi-asr.org/doc2/classkaldi_1_1RandomAccessTableReaderMapped.html
-        """
-        kaldi_dtype = KaldiDataType(kaldi_dtype)
-        if kaldi_dtype == KaldiDataType.BaseVector:
-            kaldi_dtype = KaldiIO._BaseVector
-        elif kaldi_dtype == KaldiDataType.BaseMatrix:
-            kaldi_dtype = KaldiIO._BaseMatrix
-        return self._open(xfilename, kaldi_dtype, **kwargs)
-
-    @abc.abstractmethod
-    def _open(self, xfilename, dtype, **kwargs):
+    @abc.abstractproperty
+    def kaldi_dtype(self):
+        """KaldiDataType or None: The open table's data type"""
         pass
 
     @abc.abstractmethod
     def close(self):
-        """Closes the `KaldiIO` object, or does nothing if not opened
+        """Close the kaldi script or archive (if open)"""
+        pass
 
-        This happens automatically when this object is destroyed.
-        """
+    @abc.abstractmethod
+    def _open(self, xfilename, **kwargs):
         pass
 
 @implements_iterator
-class KaldiSequentialTableReader(KaldiIO):
-    """Read a Kaldi script/archive as an iterable"""
+class KaldiSequentialReader(KaldiTable, Iterator):
+    """Abstract class for iterating over table entries
 
-    def __init__(self, **kwargs):
+    `KaldiSequentialReader` instances are essentially iterators over
+    key-value pairs. The default behaviour (i.e. that in a for-loop) is
+    to iterate over the values in order of access. Similar to `dict`
+    instances, `items`, `values`, and `keys` return iterators over their
+    respective domains. Alternatively, the `move` method moves to the
+    next pair, at which point the `key` and `value` properties can be
+    queried.
+
+    Though it is possible to mix and match access patterns, all methods
+    refer to the same underlying iterator (this).
+
+    Parameters
+    ----------
+    xfilename : str
+
+    Attributes
+    ----------
+    kaldi_dtype
+    key
+    value
+    done
+
+    Raises
+    ------
+    IOError
+    SystemError
+    """
+
+    # implementation note: subclasses are expected to implement _open,
+    # which should:
+    # - open an instance of a pydrobert.kaldi._internal sequential
+    #   reader, raise IOError on fail
+    # - set self._internal to instance
+    # - set self._kaldi_dtype
+
+    def __init__(self, xfilename, **kwargs):
+        self._iterator_type = 0
         self._internal = None
-        self._with_keys = False
-        super(KaldiSequentialTableReader, self).__init__(**kwargs)
+        self._kaldi_dtype = None
+        super(KaldiSequentialReader, self).__init__(xfilename, **kwargs)
+
+    @property
+    def kaldi_dtype(self):
+        return self._kaldi_dtype
+
+    @property
+    def key(self):
+        """str: return current pair's key, or `None` if done or closed"""
+        if not self.done:
+            return self._internal.Key()
+        return None
+
+    @property
+    def value(self):
+        """return current pair's value, or `None` if done or closed"""
+        if not self.done:
+            return self._internal.Value()
+        return None
+
+    @property
+    def done(self):
+        """bool: `True` when unopened or pairs are exhausted"""
+        return not self._internal or self._internal.Done()
 
     def close(self):
         if self._internal:
             self._internal.Close()
             self._internal = None
+            self._kaldi_dtype = None
 
-    def _open(self, xfilename, kaldi_dtype, with_keys=False, **kwargs):
-        if len(kwargs):
-            raise TypeError(
-                "'{}' is an invalid argument for this function".format(
-                    next(iter(kwargs))))
-        self._with_keys = with_keys
-        cls = None
-        if kaldi_dtype == KaldiDataType.DoubleVector:
-            cls = _i.SequentialDoubleVectorReader
-        elif kaldi_dtype == KaldiDataType.FloatVector:
-            cls = _i.SequentialFloatVectorReader
-        elif kaldi_dtype == KaldiDataType.DoubleMatrix:
-            cls = _i.SequentialDoubleMatrixReader
-        elif kaldi_dtype == KaldiDataType.FloatMatrix:
-            cls = _i.SequentialFloatMatrixReader
-        elif kaldi_dtype == KaldiDataType.WaveMatrix:
-            cls = _i.SequentialWaveReader
-        elif kaldi_dtype == KaldiDataType.Token:
-            cls = _i.SequentialTokenReader
-        elif kaldi_dtype == KaldiDataType.TokenVector:
-            cls = _i.SequentialTokenVectorReader
-        assert cls
-        instance = cls()
-        if not instance.Open(xfilename):
-            raise IOError(
-                'Unable to open file "{}" for sequential '
-                'read.'.format(xfilename))
-        self._internal = instance
+    def move(self):
+        """Move iterator forward
 
-    def __iter__(self):
+        Returns
+        -------
+        bool
+            `True` if moved to new pair. `False` if done (pairs
+            exhausted)
+
+        Raises
+        ------
+        IOError
+            Reader unopened
+        """
         if not self._internal:
-            raise ValueError('I/O operation on a closed file')
+            raise IOError('I/O operation on a closed table')
+        if self.done:
+            return False
+        self._internal.Next()
+
+    def keys(self):
+        """Returns iterator over keys"""
+        self._iterator_type = 1
+        return self
+
+    def values(self):
+        """Returns iterator over values"""
+        self._iterator_type = 0
+        return self
+
+    def items(self):
+        """Returns iterator over key, value pairs"""
+        self._iterator_type = 2
         return self
 
     def __next__(self):
-        if not self._internal:
-            raise ValueError('I/O operation on a closed file')
-        if self._internal.Done():
+        if self.done:
             raise StopIteration
-        ret = self._internal.Value()
-        if self._with_keys:
-            ret = self._internal.Key(), ret
-        self._internal.Next()
+        ret = None
+        if self._iterator_type == 2:
+            ret = self.key, self.value
+        elif self._iterator_type == 1:
+            ret = self.key
+        else:
+            ret = self.value
+        self.move()
         return ret
 
-class KaldiRandomAccessTableReader(KaldiIO):
-    """Read a Kaldi archive/script like a dictionary with string keys"""
+class KaldiRandomAccessReader(KaldiTable, Container):
+    """Read-only access to values of table by key
 
-    def __init__(self, **kwargs):
+    `KaldiRandomAccessReader` objects can access values of a table
+    through either the `get` method or square bracket access (e.g.
+    ``a[key]`). The presence of a key can be checked with "in" syntax
+    (e.g. `key in a`). Unlike a `dict`, the extent of a
+    `KaldiRandomAccessReader` is not known beforehand, so neither
+    iterators nor length methods are implemented.
+
+    Parameters
+    ----------
+    xfilename : str
+    utt2spk : str, optional    
+        If set, the reader uses `utt2spk` as a map from utterance ids to
+        speaker ids. The data in `xfilename`, which are assumed to be
+        referenced by speaker ids, can then be refrenced by utterance.
+        If `utt2spk` is unspecified, the keys in `xfilename` are used to
+        query for data.
+
+    Attributes
+    ----------
+    kaldi_dtype
+
+    Raises
+    ------
+    IOError
+    SystemError
+    """
+
+    def __init__(self, xfilename, **kwargs):
         self._internal = None
-        super(KaldiRandomAccessTableReader, self).__init__(**kwargs)
+        self._kaldi_dtype = None
+        super(KaldiRandomAccessReader, self).__init__(xfilename, **kwargs)
 
-    def close(self):
-        if self._internal:
-            self._internal.Close()
-            self._internal = None
-
-    def _open(self, xfilename, kaldi_dtype, utt2spk=None, **kwargs):
-        if len(kwargs):
-            raise TypeError(
-                "'{}' is an invalid argument for this function".format(
-                    next(iter(kwargs))))
-        cls = None
-        if kaldi_dtype == KaldiDataType.DoubleVector:
-            if utt2spk:
-                cls = _i.RandomAccessDoubleVectorReaderMapped
-            else:
-                cls = _i.RandomAccessDoubleVectorReader
-        elif kaldi_dtype == KaldiDataType.FloatVector:
-            if utt2spk:
-                cls = _i.RandomAccessFloatVectorReaderMapped
-            else:
-                cls = _i.RandomAccessFloatVectorReader
-        elif kaldi_dtype == KaldiDataType.DoubleMatrix:
-            if utt2spk:
-                cls = _i.RandomAccessDoubleMatrixReaderMapped
-            else:
-                cls = _i.RandomAccessDoubleMatrixReader
-        elif kaldi_dtype == KaldiDataType.FloatMatrix:
-            if utt2spk:
-                cls = _i.RandomAccessFloatMatrixReaderMapped
-            else:
-                cls = _i.RandomAccessFloatMatrixReader
-        elif kaldi_dtype == KaldiDataType.WaveMatrix:
-            cls = _i.RandomAccessWaveReader
-        elif kaldi_dtype == KaldiDataType.Token:
-            cls = _i.RandomAccessTokenReader
-        elif kaldi_dtype == KaldiDataType.TokenVector:
-            cls = _i.RandomAccessTokenVectorReader
-        assert cls
-        instance = cls()
-        res = None
-        if utt2spk:
-            res = instance.Open(xfilename, utt2spk, **kwargs)
-        else:
-            res = instance.Open(xfilename, **kwargs)
-        if not res:
-            raise IOError(
-                'Unable to open file "{}" for writing.'.format(xfilename))
-        self._internal = instance
-
-    def get(self, key, will_raise=False):
-        """Get data indexed by key
-
-        Args:
-            key(str): Key which data is mapped to in archive
-            will_raise(bool optional): Whether to raise a
-                :class:`KeyError`. If the key is not found. Defaults to
-                ``False``.
-
-        Returns:
-            :class:`numpy.ndarray` associated with key if present,
-            ``None`` if the key is absent and `will_raise` is set to
-            ``False``
-
-        Raises:
-            ValueError: If object is closed
-            KeyError: If `key` is not present in script/archive and
-                `will_raise` is set to ``True``.
-
-        Examples:
-            >>> reader.get('foo') # (1)
-            >>> reader.get('foo', will_raise=True) # (2)
-            >>> reader['foo'] # equivalent to (2)
-        """
+    def __contains__(self, key):
         if not self._internal:
-            raise ValueError('I/O operation on a closed file')
-        if not self._internal.HasKey(key):
-            if will_raise:
-                raise KeyError(key)
-            return None
-        return self._internal.Value(key)
+            raise IOError('I/O operation on a closed table')
+        return self._internal.HasKey(key)
 
     def __getitem__(self, key):
-        return self.get(key, will_raise=True)
+        if not self._internal:
+            raise IOError('I/O operation on a closed table')
+        if key not in self:
+            raise KeyError(key)
+        return self._internal.Value(key)
 
-class KaldiTableWriter(KaldiIO):
-    """Write to key/data combinations sequentially to a Kaldi script/archive"""
+    def get(self, key, default=None):
+        """D.get(k[,d]) -> D[k] if k in D, else d.  d defaults to None."""
+        try:
+            return self[key]
+        except KeyError:
+            return default
 
-    def __init__(self, **kwargs):
-        self._error_on_str = False
-        self._internal = None
-        super(KaldiTableWriter, self).__init__(**kwargs)
+    @property
+    def kaldi_dtype(self):
+        return self._kaldi_dtype
 
     def close(self):
         if self._internal:
             self._internal.Close()
             self._internal = None
+            self._kaldi_dtype = None
 
-    def _open(self, xfilename, kaldi_dtype, tv_error_on_str=True, **kwargs):
-        if len(kwargs):
-            raise TypeError(
-                "'{}' is an invalid argument for this function".format(
-                    next(iter(kwargs))))
-        cls = None
-        self._error_on_str = False
-        if kaldi_dtype == KaldiDataType.DoubleVector:
-            cls = _i.DoubleVectorWriter
-        elif kaldi_dtype == KaldiDataType.FloatVector:
-            cls = _i.FloatVectorWriter
-        elif kaldi_dtype == KaldiDataType.DoubleMatrix:
-            cls = _i.DoubleMatrixWriter
-        elif kaldi_dtype == KaldiDataType.FloatMatrix:
-            cls = _i.FloatMatrixWriter
-        elif kaldi_dtype == KaldiDataType.WaveMatrix:
-            cls = _i.WaveWriter
-        elif kaldi_dtype == KaldiDataType.Token:
-            cls = _i.TokenWriter
-        elif kaldi_dtype == KaldiDataType.TokenVector:
-            cls = _i.TokenVectorWriter
-            self._error_on_str = tv_error_on_str
-        assert cls
-        instance = cls()
-        if not instance.Open(xfilename, **kwargs):
-            raise IOError(
-                'Unable to open file "{}" for writing.'.format(xfilename))
-        self._internal = instance
+class KaldiWriter(KaldiTable):
+    """Write key-value pairs to tables
+
+    Parameters
+    ----------
+    xfilename : str
+
+    Attributes
+    ----------
+    kaldi_dtype
+
+    Raises
+    ------
+    IOError
+    SystemError
+    """
+
+    def __init__(self, xfilename, **kwargs):
+        self._internal = None
+        self._kaldi_dtype = None
+        super(KaldiWriter, self).__init__(xfilename, **kwargs)
 
     def write(self, key, value):
-        """Write key/value pair to script/archive
+        """Write key value pair
 
-        Args:
-            key(str):
-            value(array-like):
+        Parameters
+        ----------
+        key: str
+        value
 
-        Raises:
-            ValueError: Operating on closed file, or `value` cannot be
-                cast to the `kaldi_dtype` specified when this object
-                was opened
-            TypeError: If casting the 1value`, already a
-                :class:`numpy.ndarray` to the `kaldi_dtype`
-
-        Warning:
-            In the case of a matrix `kaldi_dtype`, Kaldi does not accept
-            arrays of shape (0,X) or (X,0), where X > 0. This method
-            automatically converts all such input to a matrix of shape
-            (0,0).
+        Notes
+        -----
+        For Kaldi's table writers, pairs are written in order without
+        backtracking. Uniqueness is not checked.
         """
         if not self._internal:
-            raise ValueError('I/O operation on a closed file')
-        if self._error_on_str and isinstance(value, str):
+            raise IOError('I/O operation on a closed table')
+        self._internal.Write(key, value)
+
+    @property
+    def kaldi_dtype(self):
+        return self._kaldi_dtype
+
+    def close(self):
+        if self._internal:
+            self._internal.Close()
+            self._internal = None
+            self._kaldi_dtype = None
+
+class _KaldiSequentialSimpleReader(KaldiSequentialReader):
+    __doc__ = KaldiSequentialReader.__doc__
+
+    def __init__(self, xfilename, **kwargs):
+        self._dtype_to_cls = {
+            'bm' : _i.SequentialDoubleMatrixReader \
+                if _i.kDoubleIsBase else _i.SequentialFloatMatrixReader,
+            'bv' : _i.SequentialDoubleVectorReader \
+                if _i.kDoubleIsBase else _i.SequentialFloatVectorReader,
+            'dm' : _i.SequentialDoubleMatrixReader,
+            'dv' : _i.SequentialDoubleVectorReader,
+            'fm' : _i.SequentialDoubleMatrixReader,
+            'fv' : _i.SequentialDoubleVectorReader,
+            't' : _i.SequentialTokenReader,
+            'tv' : _i.SequentialTokenVectorReader,
+        }
+        super(_KaldiSequentialSimpleReader, self).__init__(xfilename, **kwargs)
+
+    def _open(self, xfilename, **kwargs):
+        kaldi_dtype = kwargs.pop('kaldi_dtype', KaldiDataType.BaseVector)
+        if len(kwargs):
             raise TypeError(
-                'Writing strings as vectors was disallowed. If desired, '
-                'set tv_error_on_str to False on open.'
+                "open() got an unexpected keyword argument '{}'"
+                "".format(kwargs.popitem()[0])
             )
+        try:
+            instance = self._dtype_to_cls[kaldi_dtype]()
+        except KeyError:
+            raise TypeError('"{}" is not a KaldiDataType'.format(kaldi_dtype))
+        if not instance.Open(xfilename):
+            raise IOError('Unable to open for sequential read')
+        self._internal = instance
+        self._kaldi_dtype = kaldi_dtype
+
+class _KaldiRandomAccessSimpleReader(KaldiRandomAccessReader):
+    __doc__ = KaldiRandomAccessReader.__doc__
+
+    def __init__(self, xfilename, **kwargs):
+        self._dtype_to_cls = {
+            'bm' : _i.RandomAccessDoubleMatrixReader \
+                if _i.kDoubleIsBase else _i.RandomAccessFloatMatrixReader,
+            'bv' : _i.RandomAccessDoubleVectorReader \
+                if _i.kDoubleIsBase else _i.RandomAccessFloatVectorReader,
+            'dm' : _i.RandomAccessDoubleMatrixReader,
+            'dv' : _i.RandomAccessDoubleVectorReader,
+            'fm' : _i.RandomAccessFloatMatrixReader,
+            'fv' : _i.RandomAccessFloatVectorReader,
+            't' : _i.RandomAccessTokenReader,
+            'tv' : _i.RandomAccessTokenVectorReader,
+        }
+        super(_KaldiRandomAccessSimpleReader, self).__init__(
+            xfilename, **kwargs)
+
+    def _open(self, xfilename, **kwargs):
+        kaldi_dtype = kwargs.pop('kaldi_dtype', KaldiDataType.BaseVector)
+        utt2spk = kwargs.pop('utt2spk', '')
+        if len(kwargs):
+            raise TypeError(
+                "open() got an unexpected keyword argument '{}'"
+                "".format(kwargs.popitem()[0])
+            )
+        try:
+            instance = self._dtype_to_cls[kaldi_dtype]()
+        except KeyError:
+            raise TypeError('"{}" is not a KaldiDataType'.format(kaldi_dtype))
+        if not instance.Open(xfilename, utt2spk):
+            raise IOError('Unable to open for random access read')
+        self._internal = instance
+        self._kaldi_dtype = kaldi_dtype
+
+class _KaldiSimpleWriter(KaldiWriter):
+    __doc__ = KaldiWriter.__doc__
+
+    def __init__(self, xfilename, **kwargs):
+        self._dtype_to_cls = {
+            'bm' : _i.DoubleMatrixWriter \
+                if _i.kDoubleIsBase else _i.FloatMatrixWriter,
+            'bv' : _i.DoubleVectorWriter \
+                if _i.kDoubleIsBase else _i.FloatVectorWriter,
+            'dm' : _i.DoubleMatrixWriter,
+            'dv' : _i.DoubleVectorWriter,
+            'fm' : _i.FloatMatrixWriter,
+            'fv' : _i.FloatVectorWriter,
+            't' : _i.TokenWriter,
+            'wm' : _i.WaveWriter,
+        }
+        super(_KaldiSimpleWriter, self).__init__(xfilename, **kwargs)
+
+    def _open(self, xfilename, **kwargs):
+        kaldi_dtype = kwargs.pop('kaldi_dtype', KaldiDataType.BaseVector)
+        if len(kwargs):
+            raise TypeError(
+                "open() got an unexpected keyword argument '{}'"
+                "".format(kwargs.popitem()[0])
+            )
+        try:
+            instance = self._dtype_to_cls[kaldi_dtype]()
+        except KeyError:
+            raise TypeError('"{}" is not a KaldiDataType'.format(kaldi_dtype))
+        if not instance.Open(xfilename):
+            raise IOError('Unable to open for write')
+        self._internal = instance
+        self._kaldi_dtype = kaldi_dtype
+
+class _KaldiSequentialWaveReader(KaldiSequentialReader):
+    __doc__ = KaldiSequentialReader.__doc__
+
+    def __init__(self, xfilename, **kwargs):
+        self._value_style = None
+        # lambdas b/c internal not yet set
+        self._value_map = {
+            'b' : lambda: self._internal.Value(),
+            's' : lambda: self._internal.SampFreq(),
+            'd' : lambda: self._internal.Duration(),
+        }
+        super(_KaldiSequentialWaveReader, self).__init__(xfilename, **kwargs)
+
+    @property
+    def value(self):
+        if self._internal and not self._internal.Done():
+            ret = tuple(self._value_map[key]() for key in self._value_style)
+            if len(ret) == 1:
+                return ret[0]
+            else:
+                return ret
+        return None
+
+    def _open(self, xfilename, **kwargs):
+        value_style = kwargs.pop('value_style', 'b')
+        if len(kwargs):
+            raise TypeError(
+                "open() got an unexpected keyword argument '{}'"
+                "".format(kwargs.popitem()[0])
+            )
+        if not value_style:
+            raise ValueError('value_style must be a non-empty string')
+        for char in value_style:
+            if char not in 'bsd':
+                raise ValueError(
+                    '"{}" in value_style must be one of "b","s","d"'
+                    ''.format(char)
+                )
+        instance = None
+        if 'b' in value_style:
+            instance = _i.SequentialWaveReader()
+        else:
+            instance = _i.SequentialWaveInfoReader()
+        if not instance.Open(xfilename):
+            raise IOError('Unable to open for sequential read')
+        self._kaldi_dtype = KaldiDataType.WaveMatrix
+        self._internal = instance
+        self._value_style = value_style
+
+class _KaldiRandomAccessWaveReader(KaldiRandomAccessReader):
+    __doc__ = KaldiRandomAccessReader.__doc__
+
+    def __init__(self, xfilename, **kwargs):
+        self._value_style = None
+        self._value_map = {
+            'b' : lambda: self._internal.Value(),
+            's' : lambda: self._internal.SampFreq(),
+            'd' : lambda: self._internal.Duration,
+        }
+        super(_KaldiRandomAccessWaveReader, self).__init__(xfilename, **kwargs)
+
+    def __getitem__(self, key):
+        if not self._internal:
+            raise IOError('I/O operation on a closed table')
+        if key not in self:
+            raise KeyError(key)
+        ret = tuple(self._value_map[key]() for key in self._value_style)
+        if len(ret) == 1:
+            return ret[0]
+        else:
+            return ret
+
+    def _open(self, xfilename, **kwargs):
+        value_style = kwargs.pop('value_style', 'b')
+        if len(kwargs):
+            raise TypeError(
+                "open() got an unexpected keyword argument '{}'"
+                "".format(kwargs.popitem()[0])
+            )
+        if not value_style:
+            raise ValueError('value_style must be a non-empty string')
+        for char in value_style:
+            if char not in 'bsd':
+                raise ValueError(
+                    '"{}" in value_style must be one of "b","s","d"'
+                    ''.format(char)
+                )
+        instance = None
+        if 'b' in value_style:
+            instance = _i.RandomAccessWaveReader()
+        else:
+            instance = _i.RandomAccessWaveInfoReader()
+        if not instance.Open(xfilename):
+            raise IOError('Unable to open for random access read')
+        self._kaldi_dtype = KaldiDataType.WaveMatrix
+        self._internal = instance
+        self._value_style = value_style
+
+class _KaldiTokenVectorWriter(KaldiWriter):
+    __doc__ = KaldiWriter.__doc__
+
+    def __init__(self, xfilename, **kwargs):
+        self._error_on_str = None
+        super(_KaldiTokenVectorWriter, self).__init__(xfilename, **kwargs)
+
+    def _open(self, xfilename, **kwargs):
+        error_on_str = kwargs.pop('error_on_str', True)
+        if len(kwargs):
+            raise TypeError(
+                "open() got an unexpected keyword argument '{}'"
+                "".format(kwargs.popitem()[0])
+            )
+        instance = _i.TokenVectorWriter()
+        if not instance.Open(xfilename):
+            raise IOError('Unable to open for random access read')
+        self._kaldi_dtype = KaldiDataType.WaveMatrix
+        self._internal = instance
+        self._error_on_str = error_on_str
+
+    def write(self, key, value):
+        if not self._internal:
+            raise IOError('I/O operation on a closed file')
+        if isinstance(value, str):
+            raise ValueError(
+                'Expected list of tokens, got string. If you want '
+                'to treat strings as lists of character-wide tokens, '
+                'set error_on_str to False when opening')
         self._internal.Write(key, value)
 
 def open(xfilename, kaldi_dtype, mode='r', **kwargs):
-    """:class:`KaldiIO` factory method for initializing/opening tables
+    """Factory function for initializing and opening tables
 
-    Args:
-        xfilename(str):
-        kaldi_dtype(KaldiDataType):
-        utt2spk(str, optional):
-        tv_error_on_str(bool, optional):
-        with_keys(bool, optional)
-        mode(str, optional): One of "r", "r+", and "w", which generate
-            a :class:`KaldiSequentialTableReader`,
-            a :class:`KaldiRandomAccessTableReader`, and a
-            :class:`KaldiTableWriter` respectively.
+    This function finds the correct `KaldiTable` according to the args
+    `kaldi_dtype` and `mode`. Specific combinations allow for optional
+    parameters outlined by the table below
 
-    Returns:
-        A :class:`KaldiIO` subclass, opened
+    +------+-------------+=====================+
+    | mode | kaldi_dtype | additional kwargs   |
+    +======+=============+=====================+
+    |`'r'` | `'wm'`      | `value_style='b'`   |
+    +------+-------------+---------------------+
+    |`'r+'`| *           | `utt2spk=''`        |
+    +------+-------------+---------------------+
+    |`'r+'`| `'wm'`      | `value_style='b'`   |
+    +------+-------------+---------------------+
+    |`'w'` | `'tv'`      | `error_on_str=True` |
+    +------+-------------+---------------------+
 
-    Raises:
-        IOError:
+    Parameters
+    ----------
+    xfilename : str
+        The "extended file name" used by kaldi to open the script.
+        Generally these will take the form `"{ark|scp}:<path_to_file>"`,
+        though they can take much more interesting forms (like pipes).
+        More information can be found on the `Kaldi website
+        <http://kaldi-asr.org/doc2/io.html>`_.
+    kaldi_dtype : KaldiDataType
+        The type of data the table is expected to handle.
+    mode : {'r', 'r+', 'w'}, optional
+        Specifies the type of access to be performed: read sequential,
+        read random, or write. They are implemented by subclasses of
+        `KaldiSequentialReader`, `KaldiRandomAccessReader`, or
+        `KaldiWriter`, resp. Defaults to `'r'`.
+    error_on_str : bool, optional
+        Token vectors (`'tv'`) accept sequences of whitespace-free
+        ASCII/UTF strings. A `str` is also a sequence of characters,
+        which may satisfy the token requirements. If
+        `error_on_str=True`, a `ValueError` is raised when writing a
+        `str` as a token vector. Otherwise a `str` can be written.
+        Defaults to `True`.
+    utt2spk : str, optional
+        If set, the reader uses `utt2spk` as a map from utterance ids to
+        speaker ids. The data in `xfilename`, which are assumed to be
+        referenced by speaker ids, can then be refrenced by utterance.
+        If `utt2spk` is unspecified, the keys in `xfilename` are used to
+        query for data.
+    value_style : str of {'b', 's', 'd'}, optional
+        `wm` readers can provide not only the audio buffer (`'b'`) of a
+        wave file, but its sampling rate (`'s'`), and/or duration (in
+        sec, `'d'`). Setting `value_style` to some combination of `'b'`,
+        `'s'`, and/or `'d'` will cause the reader to return a tuple of
+        that information. If `value_style` is only one character, the
+        result will not be contained in a tuple. Defaults to `'b'`
 
-    ..seealso:: :class:`KaldiIO`
+    Returns
+    -------
+    KaldiTable
+        A table, opened.
+
+    Raises
+    ------
+        IOError
+            On failure to open
+        SytemError
+            Kaldi errors are thrown as `SystemError`s.
     """
+    table = None
     if mode == 'r':
-        io_obj = KaldiSequentialTableReader(
-            xfilename=xfilename, kaldi_dtype=kaldi_dtype, **kwargs)
+        if kaldi_dtype == 'wm':
+            table = _KaldiSequentialWaveReader(xfilename, **kwargs)
+        else:
+            table = _KaldiSequentialSimpleReader(
+                xfilename, kaldi_dtype=kaldi_dtype, **kwargs)
     elif mode == 'r+':
-        io_obj = KaldiRandomAccessTableReader(
-            xfilename=xfilename, kaldi_dtype=kaldi_dtype, **kwargs)
+        if kaldi_dtype == 'wm':
+            table = _KaldiRandomAccessWaveReader(xfilename, **kwargs)
+        else:
+            table = _KaldiRandomAccessSimpleReader(
+                xfilename, kaldi_dtype=kaldi_dtype, **kwargs)
     elif mode in ('w', 'w+'):
-        io_obj = KaldiTableWriter(
-            xfilename=xfilename, kaldi_dtype=kaldi_dtype, **kwargs)
+        if kaldi_dtype == 'tv':
+            table = _KaldiTokenVectorWriter(xfilename, **kwargs)
+        else:
+            table = _KaldiSimpleWriter(
+                xfilename, kaldi_dtype=kaldi_dtype, **kwargs)
     else:
         raise ValueError(
             'Invalid Kaldi I/O mode "{}" (should be one of "r","r+","w")'
             ''.format(mode))
-    return io_obj
+    return table

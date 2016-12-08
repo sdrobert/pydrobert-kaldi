@@ -51,7 +51,7 @@ namespace kaldi {
   kaldi::BaseFloat Duration() { return $self->Value().Duration(); };
 }
 
-%extend kaldi::RandomAccessTableReader<kaldi::WaveHolder > {
+%extend kaldi::RandomAccessTableReaderMapped<kaldi::WaveHolder > {
   void Value(const std::string &key, kaldi::BaseFloat **matrix_out,
              kaldi::MatrixIndexT *dim_row,
              kaldi::MatrixIndexT *dim_col) {
@@ -106,7 +106,7 @@ namespace kaldi {
   kaldi::BaseFloat Duration() { return $self->Value().Duration(); };
 }
 
-%extend kaldi::RandomAccessTableReader<kaldi::WaveInfoHolder > {
+%extend kaldi::RandomAccessTableReaderMapped<kaldi::WaveInfoHolder > {
   kaldi::BaseFloat SampFreq(const std::string &key) {
     return $self->Value(key).SampFreq();
   };
@@ -116,7 +116,7 @@ namespace kaldi {
 }
 
 %template(SequentialWaveReader) kaldi::SequentialTableReader<kaldi::WaveHolder >;
-%template(RandomAccessWaveReader) kaldi::RandomAccessTableReader<kaldi::WaveHolder >;
+%template(RandomAccessWaveReaderMapped) kaldi::RandomAccessTableReaderMapped<kaldi::WaveHolder >;
 %template(WaveWriter) kaldi::TableWriter<kaldi::WaveHolder >;
 %template(SequentialWaveInfoReader) kaldi::SequentialTableReader<kaldi::WaveInfoHolder >;
-%template(RandomAccessWaveInfoReader) kaldi::RandomAccessTableReader<kaldi::WaveInfoHolder >;
+%template(RandomAccessWaveInfoReaderMapped) kaldi::RandomAccessTableReaderMapped<kaldi::WaveInfoHolder >;

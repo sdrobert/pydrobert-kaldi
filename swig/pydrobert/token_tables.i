@@ -31,7 +31,7 @@ namespace kaldi {
     return $self->Value();
   };
 }
-%extend kaldi::RandomAccessTableReader<kaldi::TokenHolder > {
+%extend kaldi::RandomAccessTableReaderMapped<kaldi::TokenHolder > {
   const std::string& Value(const std::string& key) {
     return $self->Value(key);
   };
@@ -53,7 +53,7 @@ namespace kaldi {
     return $self->Value();
   };
 }
-%extend kaldi::RandomAccessTableReader<kaldi::TokenVectorHolder > {
+%extend kaldi::RandomAccessTableReaderMapped<kaldi::TokenVectorHolder > {
   const std::vector<std::string >& Value(const std::string& key) {
     return $self->Value(key);
   };
@@ -61,8 +61,8 @@ namespace kaldi {
 
 %template(TokenWriter) kaldi::TableWriter<kaldi::TokenHolder >;
 %template(SequentialTokenReader) kaldi::SequentialTableReader<kaldi::TokenHolder >;
-%template(RandomAccessTokenReader) kaldi::RandomAccessTableReader<kaldi::TokenHolder >;
+%template(RandomAccessTokenReader) kaldi::RandomAccessTableReaderMapped<kaldi::TokenHolder >;
 
 %template(TokenVectorWriter) kaldi::TableWriter<kaldi::TokenVectorHolder >;
 %template(SequentialTokenVectorReader) kaldi::SequentialTableReader<kaldi::TokenVectorHolder >;
-%template(RandomAccessTokenVectorReader) kaldi::RandomAccessTableReader<kaldi::TokenVectorHolder >;
+%template(RandomAccessTokenVectorReader) kaldi::RandomAccessTableReaderMapped<kaldi::TokenVectorHolder >;

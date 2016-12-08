@@ -34,8 +34,6 @@ class TestTables:
         os.remove(self._temp_name_2)
 
     def test_read_write_data_types(self):
-        writer = tables.KaldiTableWriter()
-        reader = tables.KaldiSequentialTableReader()
         valid_pairs = (
             ('bv', []),
             ('bm', [[]]),
@@ -63,16 +61,15 @@ class TestTables:
             dbg_text = ' (Text={}, Pair={})'.format(is_text, valid_pair)
             dtype, value = valid_pair
             try:
+                xfilename = None
                 if is_text:
-                    writer.open('ark,t:{}'.format(self._temp_name_1), dtype)
+                    xfilename = 'ark,t:{}'.format(self._temp_name_1)
                 else:
-                    writer.open('ark:{}'.format(self._temp_name_1), dtype)
+                    xfilename = 'ark:{}'.format(self._temp_name_1)
+                writer = tables.open(xfilename, dtype, mode='w')
                 writer.write('a', value)
                 writer.close()
-                if is_text:
-                    reader.open('ark,t:{}'.format(self._temp_name_1), dtype)
-                else:
-                    reader.open('ark:{}'.format(self._temp_name_1), dtype)
+                reader = tables.open(xfilename, dtype)
                 once = True
                 for read_value in iter(reader):
                     assert once, "Multiple values"
@@ -83,12 +80,12 @@ class TestTables:
                         assert read_value == value, \
                             "Values not equal: {} {}".format(read_value, value)
                     once = False
+                reader.close()
             except Exception as exc:
                 exc.args = tuple([exc.args[0] + dbg_text] + list(exc.args[1:]))
                 raise
 
     def test_write_invalid(self):
-        writer = tables.KaldiTableWriter()
         invalid_pairs = (
             ('bv', ['a', 2, 3]),
             ('bv', 'abc'),
@@ -108,10 +105,12 @@ class TestTables:
             dtype, value = invalid_pair
             dbg_text = ' (Text={}, Pair={})'.format(is_text, invalid_pair)
             try:
+                xfilename = None
                 if is_text:
-                    writer.open('ark,t:{}'.format(self._temp_name_1), dtype)
+                    xfilename = 'ark,t:{}'.format(self._temp_name_1)
                 else:
-                    writer.open('ark:{}'.format(self._temp_name_1), dtype)
+                    xfilename = 'ark:{}'.format(self._temp_name_1)
+                writer = tables.open(xfilename, dtype, mode='w')
                 try:
                     writer.write('a', value)
                     # will not get here if all is well
@@ -128,8 +127,6 @@ class TestTables:
                 raise
 
     def test_read_sequential(self):
-        writer = tables.KaldiTableWriter()
-        reader = tables.KaldiSequentialTableReader()
         values = (
             [[1, 2] * 10] * 10,
             numpy.eye(1000, dtype=numpy.float32),
@@ -138,53 +135,53 @@ class TestTables:
                 numpy.arange(1000, dtype=numpy.float32),
                 numpy.arange(1000, dtype=numpy.float32)),
         )
-        writer.open('ark:{}'.format(self._temp_name_1), 'fm')
+        writer = tables.open('ark:{}'.format(self._temp_name_1), 'fm', mode='w')
         for key, value in enumerate(values):
             writer.write(str(key), value)
         # shouldn't need to close: writer should flush after each
         # we confound "once" and "background" testing here, but I assume
         # these are working in Kaldi and shouldn't be visible here
-        reader.open('ark,bg:{}'.format(self._temp_name_1), 'fm')
+        reader = tables.open('ark,bg:{}'.format(self._temp_name_1), 'fm')
         for act_value, reader_value in zip(values, iter(reader)):
             assert numpy.allclose(act_value, reader_value)
         # check that the keys are all savvy
         reader.close()
-        reader.open('ark:' + self._temp_name_1, 'fm', with_keys=True)
-        for idx, tup in enumerate(iter(reader)):
+        reader = tables.open('ark:' + self._temp_name_1, 'fm')
+        for idx, tup in enumerate(reader.items()):
             key, value = tup
             assert str(idx) == key
 
     def test_read_random(self):
-        writer = tables.KaldiTableWriter()
-        reader = tables.KaldiRandomAccessTableReader()
-        writer.open('ark:{}'.format(self._temp_name_1), 'dv')
+        writer = tables.open('ark:{}'.format(self._temp_name_1), 'dv', mode='w')
         writer.write('able', [])
         writer.write('was', [2])
         writer.write('I', [3, 3])
         writer.write('ere', [4, 4])
         writer.close()
-        reader.open('ark,o:{}'.format(self._temp_name_1), 'dv')
+        reader = tables.open(
+            'ark,o:{}'.format(self._temp_name_1), 'dv', mode='r+')
         assert numpy.allclose(reader['I'], [3, 3])
         assert numpy.allclose(reader['able'], [])
         assert numpy.allclose(reader['was'], [2])
 
     def test_write_script_and_archive(self):
-        writer = tables.KaldiTableWriter()
-        reader = tables.KaldiRandomAccessTableReader()
         values = {
             'foo': numpy.ones((21, 32), dtype=numpy.float64),
             'bar': numpy.zeros((10, 1000), dtype=numpy.float64),
             'baz': -1e10 * numpy.eye(20, dtype=numpy.float64),
         }
         keys = list(values)
-        writer.open(
-            'ark,scp:{},{}'.format(self._temp_name_1, self._temp_name_2), 'dm')
+        writer = tables.open(
+            'ark,scp:{},{}'.format(self._temp_name_1, self._temp_name_2),
+            'dm', mode='w'
+        )
         # to make a missing entry, append it to the file's end with a subproc
         for key in keys:
             writer.write(key, values[key])
         writer.close()
         keys.reverse()
-        reader.open('scp:{}'.format(self._temp_name_2), 'dm')
+        reader = tables.open(
+            'scp:{}'.format(self._temp_name_2), 'dm', mode='r+')
         for key in keys:
             assert numpy.allclose(reader[key], values[key]), key
         assert numpy.allclose(reader['bar'], values['bar']), "Failed doublechk"
@@ -192,38 +189,38 @@ class TestTables:
     def test_read_write_pipe_unix(self):
         if self._windows:
             raise SkipTest
-        writer = tables.KaldiTableWriter()
-        reader = tables.KaldiRandomAccessTableReader()
         value = numpy.ones((1000,10000), dtype=numpy.float32)
-        writer.open('ark:| gzip -c > {}'.format(self._temp_name_1), 'fm')
+        writer = tables.open(
+            'ark:| gzip -c > {}'.format(self._temp_name_1), 'fm', mode='w')
         writer.write('bar', value)
         writer.close()
-        reader.open('ark:gunzip -c {}|'.format(self._temp_name_1), 'fm')
+        reader = tables.open(
+            'ark:gunzip -c {}|'.format(self._temp_name_1), 'fm', mode='r+')
         assert numpy.allclose(reader['bar'], value)
 
     def test_context_open(self):
         xfilename = 'ark:{}'.format(self._temp_name_1)
         with tables.open(xfilename, 'bm', mode='w') as kaldi_io:
-            assert isinstance(kaldi_io, tables.KaldiIO)
-            assert isinstance(kaldi_io, tables.KaldiTableWriter)
+            assert isinstance(kaldi_io, tables.KaldiTable)
+            assert isinstance(kaldi_io, tables.KaldiWriter)
         with tables.open(xfilename, 'bm') as kaldi_io:
-            assert isinstance(kaldi_io, tables.KaldiSequentialTableReader)
+            assert isinstance(kaldi_io, tables.KaldiSequentialReader)
         with tables.open(xfilename, 'bm', mode='r') as kaldi_io:
-            assert isinstance(kaldi_io, tables.KaldiSequentialTableReader)
+            assert isinstance(kaldi_io, tables.KaldiSequentialReader)
         with tables.open(xfilename, 'bm', mode='r+') as kaldi_io:
-            assert isinstance(kaldi_io, tables.KaldiRandomAccessTableReader)
+            assert isinstance(kaldi_io, tables.KaldiRandomAccessReader)
 
     def test_filehandle_open(self):
         xfilename = 'ark:{}'.format(self._temp_name_1)
         kaldi_io = tables.open(xfilename, 'bm', mode='w')
-        assert isinstance(kaldi_io, tables.KaldiIO)
-        assert isinstance(kaldi_io, tables.KaldiTableWriter)
+        assert isinstance(kaldi_io, tables.KaldiTable)
+        assert isinstance(kaldi_io, tables.KaldiWriter)
         kaldi_io = tables.open(xfilename, 'bm')
-        assert isinstance(kaldi_io, tables.KaldiSequentialTableReader)
+        assert isinstance(kaldi_io, tables.KaldiSequentialReader)
         kaldi_io = tables.open(xfilename, 'bm', mode='r')
-        assert isinstance(kaldi_io, tables.KaldiSequentialTableReader)
+        assert isinstance(kaldi_io, tables.KaldiSequentialReader)
         kaldi_io = tables.open(xfilename, 'bm', mode='r+')
-        assert isinstance(kaldi_io, tables.KaldiRandomAccessTableReader)
+        assert isinstance(kaldi_io, tables.KaldiRandomAccessReader)
 
     def test_no_exception_on_double_close(self):
         xfilename = 'ark:{}'.format(self._temp_name_1)
@@ -233,8 +230,7 @@ class TestTables:
 
     def test_wave_read_write_valid(self):
         xfilename = 'ark:{}'.format(self._temp_name_1)
-        writer = tables.KaldiTableWriter(
-            xfilename=xfilename, kaldi_dtype='wm')
+        writer = tables.open(xfilename, 'wm', mode='w')
         n_waves = 10
         keys = [str(i) for i in range(n_waves)]
         n_samples = [numpy.random.randint(1, 100000) for _ in keys]
@@ -247,9 +243,10 @@ class TestTables:
         for key, buf in zip(keys, bufs):
             writer.write(key, buf)
         writer.close()
-        reader = tables.KaldiSequentialTableReader(
-            xfilename=xfilename, kaldi_dtype='wm')
-        for actual_buf, expected_buf in zip(reader, bufs):
+        reader = tables.open(xfilename, 'wm', value_style='sb')
+        for vals, expected_buf in zip(reader, bufs):
+            sample_rate, actual_buf = vals
+            assert int(sample_rate) == 16000
             assert numpy.allclose(actual_buf, expected_buf)
             n_waves -= 1
         assert not n_waves, "Incorrect number of reads!"

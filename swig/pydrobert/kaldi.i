@@ -47,15 +47,6 @@ namespace kaldi {
       bool Close();
       // const T &Value();
   };
-  template <class Holder> class RandomAccessTableReader {
-    public:
-      typedef typename Holder::T T;
-      bool Open(const std::string &rspecifier);
-      bool IsOpen() const;
-      bool Close();
-      bool HasKey(const std::string &key);
-      // const T &Value(const std::string &key);
-  };
   template <class Holder> class RandomAccessTableReaderMapped {
     public:
       typedef typename Holder::T T;
@@ -79,16 +70,21 @@ namespace kaldi {
 // to determine BaseFloat in python wrapper
 #if KALDI_DOUBLEPRECISION
 %constant bool kDoubleIsBase = true;
+namespace kaldi {
+  typedef double BaseFloat;
+}
 #else
 %constant bool kDoubleIsBase = false;
+namespace kaldi {
+  typedef float BaseFloat;
+}
 #endif
 
 %define TEMPLATE_WITH_KOBJECT_NAME_AND_TYPE(Name, Type)
 %template(Name) Type;
 %template(Name ## Holder) kaldi::KaldiObjectHolder<Type >;
 %template(Sequential ## Name ## Reader) kaldi::SequentialTableReader<kaldi::KaldiObjectHolder<Type > >;
-%template(RandomAccess ## Name ## Reader) kaldi::RandomAccessTableReader<kaldi::KaldiObjectHolder<Type > >;
-%template(RandomAccess ## Name ## ReaderMapped) kaldi::RandomAccessTableReaderMapped<kaldi::KaldiObjectHolder<Type > >;
+%template(RandomAccess ## Name ## Reader) kaldi::RandomAccessTableReaderMapped<kaldi::KaldiObjectHolder<Type > >;
 %template(Name ## Writer) kaldi::TableWriter<kaldi::KaldiObjectHolder<Type > >;
 %enddef
 

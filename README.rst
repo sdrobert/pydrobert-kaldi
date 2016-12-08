@@ -52,20 +52,20 @@ The latter is also useful if you have Kaldi already installed somewhere.
 Possible Problems
 -----------------
 
- - To make the Anaconda Cloud install cross-compatible, I rely on Conda's
-   `gcc 4.8.5` library and implicitly its `libgcc`. This can cause issues with
-   past/future installs that want another version. I highly suggest you isolate
-   this package from your root environment.
- - The OSX build uses the "Accelerate Framework" and expects it to be in a
-   specific absolute path. If you're getting ``symbol not found`` errors, try
-   manually editing the path with ``install_name_tool`` or, better yet, build
-   from source.
- - Be careful when using extended file name options such as "o" (once) or
-   "s" (sorted). They are valid, but this package caches nothing and does very
-   little error checking!
- - I haven't dealt with storing tokens (character strings without spaces)
-   because I don't want to deal with the whole Python encoding business. If
-   you're reading and writing strings, just use Python's I/O :)
+- To make the Anaconda Cloud install cross-compatible, I rely on Conda's
+  `gcc 4.8.5` library and implicitly its `libgcc`. This can cause issues with
+  past/future installs that want another version. I highly suggest you isolate
+  this package from your root environment.
+- The OSX build uses the "Accelerate Framework" and expects it to be in a
+  specific absolute path. If you're getting ``symbol not found`` errors, try
+  manually editing the path with ``install_name_tool`` or, better yet, build
+  from source.
+- Be careful when using extended file name options such as "o" (once) or
+  "s" (sorted). They are valid, but this package caches nothing and does very
+  little error checking!
+- I haven't dealt with storing tokens (character strings without spaces)
+  because I don't want to deal with the whole Python encoding business. If
+  you're reading and writing strings, just use Python's I/O :)
 
 License
 -------

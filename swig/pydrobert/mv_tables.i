@@ -96,36 +96,6 @@ namespace kaldi {
     *dim_col = num_cols;
   };
 }
-%extend kaldi::RandomAccessTableReader<kaldi::KaldiObjectHolder<kaldi::Vector<Real > > > {
-  void Value(const std::string &key, Real **vec_out, kaldi::MatrixIndexT *len) {
-    const kaldi::Vector<Real > &vec = $self->Value(key);
-    const kaldi::MatrixIndexT dim = vec.Dim();
-    *vec_out = (Real*) std::malloc(dim * sizeof(Real));
-    std::memcpy(*vec_out, vec.Data(), dim * sizeof(Real));
-    *len = dim;
-  };
-}
-%extend kaldi::RandomAccessTableReader<kaldi::KaldiObjectHolder<kaldi::Matrix<Real > > > {
-  void Value(const std::string &key, Real **matrix_out,
-             kaldi::MatrixIndexT *dim_row,
-             kaldi::MatrixIndexT *dim_col) {
-    const kaldi::Matrix<Real > &matr = $self->Value(key);
-    const kaldi::MatrixIndexT num_rows = matr.NumRows();
-    const kaldi::MatrixIndexT num_cols = matr.NumCols();
-    const kaldi::MatrixIndexT stride = matr.Stride();
-    *matrix_out = (Real*) std::malloc(sizeof(Real) * num_rows * num_cols);
-    if (stride == num_cols) {
-      std::memcpy(*matrix_out, matr.Data(), sizeof(Real) * num_rows * num_cols);
-    } else {
-      for (kaldi::MatrixIndexT row = 0; row < num_rows; ++row) {
-        std::memcpy((*matrix_out) + (row * num_cols), matr.Data() + (row * stride),
-                    num_cols * sizeof(Real));
-      }
-    }
-    *dim_row = num_rows;
-    *dim_col = num_cols;
-  };
-}
 %extend kaldi::RandomAccessTableReaderMapped<kaldi::KaldiObjectHolder<kaldi::Vector<Real > > > {
   void Value(const std::string &key, Real **vec_out, kaldi::MatrixIndexT *len) {
     const kaldi::Vector<Real > &vec = $self->Value(key);
