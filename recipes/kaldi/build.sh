@@ -7,7 +7,7 @@ fi
 
 pushd src || exit 1
 ./configure --shared --mathlib=OPENBLAS --openblas-root=${PREFIX} || exit 1
-make util FSTROOT=blerg -j ${CPU_COUNT} || exit 1
+make matrix util thread base feat FSTROOT=blerg -j ${CPU_COUNT} || exit 1
 
 if [ -d "${PKG_CONFIG_PATH}" ]; then
   make kaldi_cxxflags FSTROOT=blerg || exit 1

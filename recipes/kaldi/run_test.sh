@@ -4,9 +4,10 @@ pkg-config --exists kaldi-base || exit 1
 pkg-config --exists kaldi-matrix || exit 1
 pkg-config --exists kaldi-thread || exit 1
 pkg-config --exists kaldi-util || exit 1
+pkg-config --exists kaldi-feat || exit 1
 
-CFLAGS=$(pkg-config --cflags kaldi-base kaldi-matrix kaldi-thread kaldi-util)
-LDLIBS=$(pkg-config --libs kaldi-base kaldi-matrix kaldi-thread kaldi-util)
+CFLAGS=$(pkg-config --cflags kaldi-base kaldi-matrix kaldi-thread kaldi-util kaldi-feat)
+LDLIBS=$(pkg-config --libs kaldi-base kaldi-matrix kaldi-thread kaldi-util kaldi-feat)
 
 cat > main.cpp <<- EOF
 #include <iostream>

@@ -1,7 +1,7 @@
-diff --git src/Makefile src/Makefile
+diff --git a/src/Makefile b/src/Makefile
 index 7589477..de2b7e2 100644
---- src/Makefile
-+++ src/Makefile
+--- a/src/Makefile
++++ b/src/Makefile
 @@ -88,15 +88,15 @@ kaldi.mk:
  ext: test_dependencies ext_depend $(SUBDIRS) $(EXT_SUBDIRS)
  	-echo Done
@@ -48,10 +48,10 @@ index 7589477..de2b7e2 100644
 +
 +kaldi_ldflags:
 +	echo $(LDFLAGS) > $@
-diff --git src/base/kaldi-types.h src/base/kaldi-types.h
+diff --git a/src/base/kaldi-types.h b/src/base/kaldi-types.h
 index 7ebf4f8..f4a8866 100644
---- src/base/kaldi-types.h
-+++ src/base/kaldi-types.h
+--- a/src/base/kaldi-types.h
++++ b/src/base/kaldi-types.h
 @@ -41,22 +41,21 @@ typedef float   BaseFloat;
  
  // for discussion on what to do if you need compile kaldi
@@ -93,10 +93,10 @@ index 7ebf4f8..f4a8866 100644
 -*/
  
  #endif  // KALDI_BASE_KALDI_TYPES_H_
-diff --git src/configure src/configure
+diff --git a/src/configure b/src/configure
 index 6ee1f64..bc7202e 100755
---- src/configure
-+++ src/configure
+--- a/src/configure
++++ b/src/configure
 @@ -57,11 +57,6 @@ if ! [ -x "$PWD/configure" ]; then
    exit 1
  fi
@@ -932,10 +932,36 @@ index 6ee1f64..bc7202e 100755
      echo "Successfully configured OpenBLAS from $OPENBLASROOT."
      exit_success;
    else
-diff --git src/feat/feature-fbank-test.cc src/feat/feature-fbank-test.cc
+diff --git a/src/feat/Makefile b/src/feat/Makefile
+index 858ed71..0f182fc 100644
+--- a/src/feat/Makefile
++++ b/src/feat/Makefile
+@@ -6,18 +6,16 @@ include ../kaldi.mk
+ 
+ TESTFILES = feature-mfcc-test feature-plp-test feature-fbank-test \
+          feature-functions-test pitch-functions-test feature-sdc-test \
+-         resample-test online-feature-test sinusoid-detection-test \
+-         signal-test
++         resample-test sinusoid-detection-test signal-test
+ 
+ OBJFILES = feature-functions.o feature-mfcc.o feature-plp.o feature-fbank.o \
+            feature-spectrogram.o mel-computations.o wave-reader.o \
+-           pitch-functions.o resample.o online-feature.o sinusoid-detection.o \
++           resample.o sinusoid-detection.o \
+            signal.o feature-window.o
+ 
+ LIBNAME = kaldi-feat
+ 
+-ADDLIBS = ../transform/kaldi-transform.a ../gmm/kaldi-gmm.a ../tree/kaldi-tree.a \
+-	../util/kaldi-util.a ../thread/kaldi-thread.a ../matrix/kaldi-matrix.a ../base/kaldi-base.a
++ADDLIBS = ../util/kaldi-util.a ../thread/kaldi-thread.a ../matrix/kaldi-matrix.a ../base/kaldi-base.a
+ 
+ include ../makefiles/default_rules.mk
+ 
+diff --git a/src/feat/feature-fbank-test.cc b/src/feat/feature-fbank-test.cc
 deleted file mode 100644
 index e458df0..0000000
---- src/feat/feature-fbank-test.cc
+--- a/src/feat/feature-fbank-test.cc
 +++ /dev/null
 @@ -1,470 +0,0 @@
 -// feat/feature-fbank-test.cc
@@ -1408,10 +1434,10 @@ index e458df0..0000000
 -}
 -
 -
-diff --git src/feat/feature-functions-test.cc src/feat/feature-functions-test.cc
+diff --git a/src/feat/feature-functions-test.cc b/src/feat/feature-functions-test.cc
 deleted file mode 100644
 index e4f6170..0000000
---- src/feat/feature-functions-test.cc
+--- a/src/feat/feature-functions-test.cc
 +++ /dev/null
 @@ -1,112 +0,0 @@
 -// feat/feature-functions-test.cc
@@ -1526,10 +1552,10 @@ index e4f6170..0000000
 -}
 -
 -
-diff --git src/feat/feature-mfcc-test.cc src/feat/feature-mfcc-test.cc
+diff --git a/src/feat/feature-mfcc-test.cc b/src/feat/feature-mfcc-test.cc
 deleted file mode 100644
 index bf23c37..0000000
---- src/feat/feature-mfcc-test.cc
+--- a/src/feat/feature-mfcc-test.cc
 +++ /dev/null
 @@ -1,686 +0,0 @@
 -// feat/feature-mfcc-test.cc
@@ -2218,10 +2244,10 @@ index bf23c37..0000000
 -}
 -
 -
-diff --git src/feat/feature-plp-test.cc src/feat/feature-plp-test.cc
+diff --git a/src/feat/feature-plp-test.cc b/src/feat/feature-plp-test.cc
 deleted file mode 100644
 index a48c939..0000000
---- src/feat/feature-plp-test.cc
+--- a/src/feat/feature-plp-test.cc
 +++ /dev/null
 @@ -1,177 +0,0 @@
 -// feat/feature-plp-test.cc
@@ -2401,10 +2427,10 @@ index a48c939..0000000
 -}
 -
 -
-diff --git src/feat/feature-sdc-test.cc src/feat/feature-sdc-test.cc
+diff --git a/src/feat/feature-sdc-test.cc b/src/feat/feature-sdc-test.cc
 deleted file mode 100644
 index 3ecef14..0000000
---- src/feat/feature-sdc-test.cc
+--- a/src/feat/feature-sdc-test.cc
 +++ /dev/null
 @@ -1,170 +0,0 @@
 -// feat/feature-sdc-test.cc
@@ -2577,10 +2603,10 @@ index 3ecef14..0000000
 -  
 -}
 -
-diff --git src/feat/online-feature-test.cc src/feat/online-feature-test.cc
+diff --git a/src/feat/online-feature-test.cc b/src/feat/online-feature-test.cc
 deleted file mode 100644
 index 556160f..0000000
---- src/feat/online-feature-test.cc
+--- a/src/feat/online-feature-test.cc
 +++ /dev/null
 @@ -1,403 +0,0 @@
 -// feat/online-feature-test.cc
@@ -2986,10 +3012,10 @@ index 556160f..0000000
 -  }
 -  std::cout << "Test OK.\n";
 -}
-diff --git src/feat/online-feature.cc src/feat/online-feature.cc
+diff --git a/src/feat/online-feature.cc b/src/feat/online-feature.cc
 deleted file mode 100644
 index 267a472..0000000
---- src/feat/online-feature.cc
+--- a/src/feat/online-feature.cc
 +++ /dev/null
 @@ -1,514 +0,0 @@
 -// feat/online-feature.cc
@@ -3506,10 +3532,10 @@ index 267a472..0000000
 -
 -
 -}  // namespace kaldi
-diff --git src/feat/online-feature.h src/feat/online-feature.h
+diff --git a/src/feat/online-feature.h b/src/feat/online-feature.h
 deleted file mode 100644
 index ba87f69..0000000
---- src/feat/online-feature.h
+--- a/src/feat/online-feature.h
 +++ /dev/null
 @@ -1,590 +0,0 @@
 -// feat/online-feature.h
@@ -4102,10 +4128,10 @@ index ba87f69..0000000
 -}  // namespace kaldi
 -
 -#endif  // KALDI_FEAT_ONLINE_FEATURE_H_
-diff --git src/feat/pitch-functions-test.cc src/feat/pitch-functions-test.cc
+diff --git a/src/feat/pitch-functions-test.cc b/src/feat/pitch-functions-test.cc
 deleted file mode 100644
 index 26c8ae6..0000000
---- src/feat/pitch-functions-test.cc
+--- a/src/feat/pitch-functions-test.cc
 +++ /dev/null
 @@ -1,561 +0,0 @@
 -// feat/pitch-functions-test.cc
@@ -4669,10 +4695,10 @@ index 26c8ae6..0000000
 -    return 1;
 -  }
 -}
-diff --git src/feat/pitch-functions.cc src/feat/pitch-functions.cc
+diff --git a/src/feat/pitch-functions.cc b/src/feat/pitch-functions.cc
 deleted file mode 100644
 index 12dd503..0000000
---- src/feat/pitch-functions.cc
+--- a/src/feat/pitch-functions.cc
 +++ /dev/null
 @@ -1,1632 +0,0 @@
 -// feat/pitch-functions.cc
@@ -6307,10 +6333,10 @@ index 12dd503..0000000
 -
 -
 -}  // namespace kaldi
-diff --git src/feat/pitch-functions.h src/feat/pitch-functions.h
+diff --git a/src/feat/pitch-functions.h b/src/feat/pitch-functions.h
 deleted file mode 100644
 index fd9ead0..0000000
---- src/feat/pitch-functions.h
+--- a/src/feat/pitch-functions.h
 +++ /dev/null
 @@ -1,447 +0,0 @@
 -// feat/pitch-functions.h
@@ -6760,10 +6786,10 @@ index fd9ead0..0000000
 -/// @} End of "addtogroup feat"
 -}  // namespace kaldi
 -#endif  // KALDI_FEAT_PITCH_FUNCTIONS_H_
-diff --git src/feat/resample-test.cc src/feat/resample-test.cc
+diff --git a/src/feat/resample-test.cc b/src/feat/resample-test.cc
 deleted file mode 100644
 index ad56d2b..0000000
---- src/feat/resample-test.cc
+--- a/src/feat/resample-test.cc
 +++ /dev/null
 @@ -1,293 +0,0 @@
 -// feat/resample-test.cc
@@ -7059,10 +7085,10 @@ index ad56d2b..0000000
 -    return 1;
 -  }
 -}
-diff --git src/feat/signal-test.cc src/feat/signal-test.cc
+diff --git a/src/feat/signal-test.cc b/src/feat/signal-test.cc
 deleted file mode 100644
 index 39a3790..0000000
---- src/feat/signal-test.cc
+--- a/src/feat/signal-test.cc
 +++ /dev/null
 @@ -1,63 +0,0 @@
 -// feat/signal-test.cc
@@ -7128,10 +7154,10 @@ index 39a3790..0000000
 -  KALDI_LOG << "Tests succeeded.";
 -
 -}
-diff --git src/feat/sinusoid-detection-test.cc src/feat/sinusoid-detection-test.cc
+diff --git a/src/feat/sinusoid-detection-test.cc b/src/feat/sinusoid-detection-test.cc
 deleted file mode 100644
 index 68148b4..0000000
---- src/feat/sinusoid-detection-test.cc
+--- a/src/feat/sinusoid-detection-test.cc
 +++ /dev/null
 @@ -1,452 +0,0 @@
 -// feat/sinusoid-detection-test.cc
@@ -7586,10 +7612,10 @@ index 68148b4..0000000
 -  }
 -
 -}
-diff --git src/makefiles/darwin_10_10.mk src/makefiles/darwin_10_10.mk
+diff --git a/src/makefiles/darwin_10_10.mk b/src/makefiles/darwin_10_10.mk
 index 4314397..f13befa 100644
---- src/makefiles/darwin_10_10.mk
-+++ src/makefiles/darwin_10_10.mk
+--- a/src/makefiles/darwin_10_10.mk
++++ b/src/makefiles/darwin_10_10.mk
 @@ -1,8 +1,8 @@
  # makefiles/darwin_10_10.mk contains Darwin-specific rules for OS X 10.10.*
  
@@ -7634,10 +7660,10 @@ index 4314397..f13befa 100644
  endif
  
  # We need to tell recent versions of g++ to allow vector conversions without
-diff --git src/makefiles/darwin_10_11.mk src/makefiles/darwin_10_11.mk
+diff --git a/src/makefiles/darwin_10_11.mk b/src/makefiles/darwin_10_11.mk
 index 407ced6..1dcec2d 100644
---- src/makefiles/darwin_10_11.mk
-+++ src/makefiles/darwin_10_11.mk
+--- a/src/makefiles/darwin_10_11.mk
++++ b/src/makefiles/darwin_10_11.mk
 @@ -1,8 +1,8 @@
  # makefiles/darwin_10_11.mk contains Darwin-specific rules for OS X 10.11.*
  
@@ -7678,10 +7704,10 @@ index 407ced6..1dcec2d 100644
  endif
  
  # We need to tell recent versions of g++ to allow vector conversions without
-diff --git src/makefiles/darwin_10_5.mk src/makefiles/darwin_10_5.mk
+diff --git a/src/makefiles/darwin_10_5.mk b/src/makefiles/darwin_10_5.mk
 index 5a1353b..9c2456a 100644
---- src/makefiles/darwin_10_5.mk
-+++ src/makefiles/darwin_10_5.mk
+--- a/src/makefiles/darwin_10_5.mk
++++ b/src/makefiles/darwin_10_5.mk
 @@ -1,8 +1,8 @@
  # makefiles/darwin_10_5.mk contains Darwin-specific rules for OS X 10.5.*
  
@@ -7711,10 +7737,10 @@ index 5a1353b..9c2456a 100644
  CXX = g++-4
  CC = g++-4
  RANLIB = ranlib
-diff --git src/makefiles/darwin_10_6.mk src/makefiles/darwin_10_6.mk
+diff --git a/src/makefiles/darwin_10_6.mk b/src/makefiles/darwin_10_6.mk
 index 1a39602..269fb5c 100644
---- src/makefiles/darwin_10_6.mk
-+++ src/makefiles/darwin_10_6.mk
+--- a/src/makefiles/darwin_10_6.mk
++++ b/src/makefiles/darwin_10_6.mk
 @@ -1,8 +1,8 @@
  # makefiles/darwin_10_6.mk contains Darwin-specific rules for OS X 10.6.*
  
@@ -7744,10 +7770,10 @@ index 1a39602..269fb5c 100644
  CXX = g++
  CC = g++
  RANLIB = ranlib
-diff --git src/makefiles/darwin_10_7.mk src/makefiles/darwin_10_7.mk
+diff --git a/src/makefiles/darwin_10_7.mk b/src/makefiles/darwin_10_7.mk
 index 40804af..ec54373 100644
---- src/makefiles/darwin_10_7.mk
-+++ src/makefiles/darwin_10_7.mk
+--- a/src/makefiles/darwin_10_7.mk
++++ b/src/makefiles/darwin_10_7.mk
 @@ -1,8 +1,8 @@
  # makefiles/darwin_10_6.mk contains Darwin-specific rules for OS X 10.7.*
  
@@ -7777,10 +7803,10 @@ index 40804af..ec54373 100644
  CXX = g++
  CC = g++
  RANLIB = ranlib
-diff --git src/makefiles/darwin_10_8.mk src/makefiles/darwin_10_8.mk
+diff --git a/src/makefiles/darwin_10_8.mk b/src/makefiles/darwin_10_8.mk
 index 7fd3bb0..1b7aac9 100644
---- src/makefiles/darwin_10_8.mk
-+++ src/makefiles/darwin_10_8.mk
+--- a/src/makefiles/darwin_10_8.mk
++++ b/src/makefiles/darwin_10_8.mk
 @@ -1,8 +1,8 @@
  # makefiles/darwin_10_8.mk contains Darwin-specific rules for OS X 10.8.*
  
@@ -7810,10 +7836,10 @@ index 7fd3bb0..1b7aac9 100644
  CXX = g++
  CC = g++
  RANLIB = ranlib
-diff --git src/makefiles/darwin_10_9.mk src/makefiles/darwin_10_9.mk
+diff --git a/src/makefiles/darwin_10_9.mk b/src/makefiles/darwin_10_9.mk
 index 6477a60..dac13cb 100644
---- src/makefiles/darwin_10_9.mk
-+++ src/makefiles/darwin_10_9.mk
+--- a/src/makefiles/darwin_10_9.mk
++++ b/src/makefiles/darwin_10_9.mk
 @@ -1,8 +1,8 @@
  # makefiles/darwin_10_9.mk contains Darwin-specific rules for OS X 10.9.*
  
@@ -7843,10 +7869,10 @@ index 6477a60..dac13cb 100644
  CXX = g++
  CC = $(CXX)
  RANLIB = ranlib
-diff --git src/makefiles/default_rules.mk src/makefiles/default_rules.mk
+diff --git a/src/makefiles/default_rules.mk b/src/makefiles/default_rules.mk
 index 3d3f963..6f43915 100644
---- src/makefiles/default_rules.mk
-+++ src/makefiles/default_rules.mk
+--- a/src/makefiles/default_rules.mk
++++ b/src/makefiles/default_rules.mk
 @@ -37,12 +37,12 @@ $(LIBFILE): $(OBJFILES)
  ifeq ($(KALDI_FLAVOR), dynamic)
  ifeq ($(shell uname), Darwin)
@@ -7862,10 +7888,10 @@ index 3d3f963..6f43915 100644
  	#cp $@ $(KALDILIBDIR)
  else  # Platform not supported
  	$(error Dynamic libraries not supported on this platform. Run configure with --static flag. )
-diff --git src/makefiles/linux_openblas.mk src/makefiles/linux_openblas.mk
+diff --git a/src/makefiles/linux_openblas.mk b/src/makefiles/linux_openblas.mk
 index b910d82..52dca7a 100644
---- src/makefiles/linux_openblas.mk
-+++ src/makefiles/linux_openblas.mk
+--- a/src/makefiles/linux_openblas.mk
++++ b/src/makefiles/linux_openblas.mk
 @@ -1,8 +1,8 @@
  # You have to make sure FSTROOT,OPENBLASROOT,OPENBLASLIBS are set...
  

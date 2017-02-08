@@ -80,9 +80,21 @@ Libs: -L${{libdir}} {}
         if pkg_version:
             f.write(
                 'Version: {0}\nRequires: kaldi-base >= {0}, kaldi-matrix >= '
-                '{0}, kaldi-thread = {0}\n'.format(pkg_version))
+                '{0}, kaldi-thread >= {0}\n'.format(pkg_version))
         else:
             f.write('Requires: kaldi-base kaldi-matrix kaldi-thread\n')
+        f.write(postamble)
+    with open(os.path.join(pkg_config_dir, 'kaldi-feat.pc'), 'w') as f:
+        f.write(preamble)
+        f.write('Name: kaldi-feat\nDescription: kaldi i/o component\n')
+        if pkg_version:
+            f.write(
+                'Version: {0}\nRequires: kaldi-base >= {0}, kaldi-matrix >= '
+                '{0}, kaldi-thread >= {0} kaldi-util >= {0}\n'
+                ''.format(pkg_version))
+        else:
+            f.write(
+                'Requires: kaldi-base kaldi-matrix kaldi-thread kaldi-util\n')
         f.write(postamble)
     return 0
 

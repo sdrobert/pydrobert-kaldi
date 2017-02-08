@@ -1,6 +1,6 @@
 package:
   name: pydrobert-kaldi
-  version: {{ GIT_DESCRIBE_TAG }}
+  version: 0.2
 
 source:
   path: ../..
@@ -13,7 +13,7 @@ requirements:
     - swig >=3.0
     - kaldi-io-core
     - pkgconfig
-    - pkg-config [osx]
+    - pkg-config
   run:
     - gcc >=4.8.5 [linux]
     - python
