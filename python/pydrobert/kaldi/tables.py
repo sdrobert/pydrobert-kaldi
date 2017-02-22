@@ -312,7 +312,7 @@ class KaldiRandomAccessReader(KaldiTable, Container):
     Parameters
     ----------
     xfilename : str
-    utt2spk : str, optional    
+    utt2spk : str, optional
         If set, the reader uses `utt2spk` as a map from utterance ids to
         speaker ids. The data in `xfilename`, which are assumed to be
         referenced by speaker ids, can then be refrenced by utterance.
@@ -438,7 +438,7 @@ class _KaldiSequentialSimpleReader(KaldiSequentialReader):
                 "".format(kwargs.popitem()[0])
             )
         try:
-            instance = self._dtype_to_cls[kaldi_dtype]()
+            instance = self._dtype_to_cls[str(kaldi_dtype)]()
         except KeyError:
             raise TypeError('"{}" is not a KaldiDataType'.format(kaldi_dtype))
         if not instance.Open(xfilename):
@@ -474,7 +474,7 @@ class _KaldiRandomAccessSimpleReader(KaldiRandomAccessReader):
                 "".format(kwargs.popitem()[0])
             )
         try:
-            instance = self._dtype_to_cls[kaldi_dtype]()
+            instance = self._dtype_to_cls[str(kaldi_dtype)]()
         except KeyError:
             raise TypeError('"{}" is not a KaldiDataType'.format(kaldi_dtype))
         if not instance.Open(xfilename, utt2spk):
@@ -508,7 +508,7 @@ class _KaldiSimpleWriter(KaldiWriter):
                 "".format(kwargs.popitem()[0])
             )
         try:
-            instance = self._dtype_to_cls[kaldi_dtype]()
+            instance = self._dtype_to_cls[str(kaldi_dtype)]()
         except KeyError:
             raise TypeError('"{}" is not a KaldiDataType'.format(kaldi_dtype))
         if not instance.Open(xfilename):
@@ -555,7 +555,7 @@ class _KaldiSequentialWaveReader(KaldiSequentialReader):
                     ''.format(char)
                 )
         instance = None
-        if 'b' in value_style:
+        if 'b' in str(value_style):
             instance = _i.SequentialWaveReader()
         else:
             instance = _i.SequentialWaveInfoReader()
@@ -597,14 +597,14 @@ class _KaldiRandomAccessWaveReader(KaldiRandomAccessReader):
             )
         if not value_style:
             raise ValueError('value_style must be a non-empty string')
-        for char in value_style:
+        for char in str(value_style):
             if char not in 'bsd':
                 raise ValueError(
                     '"{}" in value_style must be one of "b","s","d"'
                     ''.format(char)
                 )
         instance = None
-        if 'b' in value_style:
+        if 'b' in str(value_style):
             instance = _i.RandomAccessWaveReader()
         else:
             instance = _i.RandomAccessWaveInfoReader()
