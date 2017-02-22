@@ -41,11 +41,11 @@ try::
    # if you don't have a copy of kaldi somewhere
    conda build recipes/kaldi
    conda build recipes/clean
+   conda install --use-local pydrobert-kaldi
    # if you do have a copy of kaldi somewhere
    export KALDI_ROOT=/path/to/kaldi/repo
    conda build recipes/dirty
-   # finally (for both)
-   conda install --use-local pydrobert-kaldi
+   conda install --use-local pydrobert-kaldi-dirty
 
 The latter is also useful if you have Kaldi already installed somewhere. 
 
