@@ -438,7 +438,7 @@ class _KaldiSequentialSimpleReader(KaldiSequentialReader):
                 "".format(kwargs.popitem()[0])
             )
         try:
-            instance = self._dtype_to_cls[str(kaldi_dtype)]()
+            instance = self._dtype_to_cls[kaldi_dtype.value]()
         except KeyError:
             raise TypeError('"{}" is not a KaldiDataType'.format(kaldi_dtype))
         if not instance.Open(xfilename):
@@ -474,7 +474,7 @@ class _KaldiRandomAccessSimpleReader(KaldiRandomAccessReader):
                 "".format(kwargs.popitem()[0])
             )
         try:
-            instance = self._dtype_to_cls[str(kaldi_dtype)]()
+            instance = self._dtype_to_cls[kaldi_dtype.value]()
         except KeyError:
             raise TypeError('"{}" is not a KaldiDataType'.format(kaldi_dtype))
         if not instance.Open(xfilename, utt2spk):
@@ -508,7 +508,7 @@ class _KaldiSimpleWriter(KaldiWriter):
                 "".format(kwargs.popitem()[0])
             )
         try:
-            instance = self._dtype_to_cls[str(kaldi_dtype)]()
+            instance = self._dtype_to_cls[kaldi_dtype.value]()
         except KeyError:
             raise TypeError('"{}" is not a KaldiDataType'.format(kaldi_dtype))
         if not instance.Open(xfilename):
@@ -555,7 +555,7 @@ class _KaldiSequentialWaveReader(KaldiSequentialReader):
                     ''.format(char)
                 )
         instance = None
-        if 'b' in str(value_style):
+        if 'b' in value_style:
             instance = _i.SequentialWaveReader()
         else:
             instance = _i.SequentialWaveInfoReader()
@@ -573,7 +573,7 @@ class _KaldiRandomAccessWaveReader(KaldiRandomAccessReader):
         self._value_map = {
             'b' : lambda: self._internal.Value(),
             's' : lambda: self._internal.SampFreq(),
-            'd' : lambda: self._internal.Duration,
+            'd' : lambda: self._internal.Duration(),
         }
         super(_KaldiRandomAccessWaveReader, self).__init__(xfilename, **kwargs)
 
@@ -604,7 +604,7 @@ class _KaldiRandomAccessWaveReader(KaldiRandomAccessReader):
                     ''.format(char)
                 )
         instance = None
-        if 'b' in str(value_style):
+        if 'b' in value_style:
             instance = _i.RandomAccessWaveReader()
         else:
             instance = _i.RandomAccessWaveInfoReader()
@@ -713,20 +713,21 @@ def open(xfilename, kaldi_dtype, mode='r', **kwargs):
             Kaldi errors are thrown as `SystemError`s.
     """
     table = None
+    kaldi_dtype = KaldiDataType(kaldi_dtype)
     if mode == 'r':
-        if kaldi_dtype == 'wm':
+        if kaldi_dtype.value == 'wm':
             table = _KaldiSequentialWaveReader(xfilename, **kwargs)
         else:
             table = _KaldiSequentialSimpleReader(
                 xfilename, kaldi_dtype=kaldi_dtype, **kwargs)
     elif mode == 'r+':
-        if kaldi_dtype == 'wm':
+        if kaldi_dtype.value == 'wm':
             table = _KaldiRandomAccessWaveReader(xfilename, **kwargs)
         else:
             table = _KaldiRandomAccessSimpleReader(
                 xfilename, kaldi_dtype=kaldi_dtype, **kwargs)
     elif mode in ('w', 'w+'):
-        if kaldi_dtype == 'tv':
+        if kaldi_dtype.value == 'tv':
             table = _KaldiTokenVectorWriter(xfilename, **kwargs)
         else:
             table = _KaldiSimpleWriter(

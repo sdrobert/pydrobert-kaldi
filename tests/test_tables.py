@@ -222,6 +222,23 @@ class TestTables:
         kaldi_io = tables.open(xfilename, 'bm', mode='r+')
         assert isinstance(kaldi_io, tables.KaldiRandomAccessReader)
 
+    def test_open_string_or_data_type(self):
+        xfilename = 'ark:{}'.format(self._temp_name_1)
+        tables.open(xfilename, 'bm', mode='w')
+        tables.open(xfilename, tables.KaldiDataType.BaseMatrix, mode='w')
+        tables.open(xfilename, 'bm', mode='r')
+        tables.open(xfilename, tables.KaldiDataType.BaseMatrix, mode='r')
+        tables.open(xfilename, 'bm', mode='r+')
+        tables.open(xfilename, tables.KaldiDataType.BaseMatrix, mode='r+')
+
+    def test_invalid_data_type(self):
+        xfilename = 'ark:{}'.format(self._temp_name_1)
+        try:
+            tables.open(xfilename, 'foo', mode='w')
+            assert False, "Could open with invalid data type"
+        except ValueError:
+            pass
+
     def test_no_exception_on_double_close(self):
         xfilename = 'ark:{}'.format(self._temp_name_1)
         kaldi_io = tables.open(xfilename, 'bm', mode='w')
@@ -243,10 +260,11 @@ class TestTables:
         for key, buf in zip(keys, bufs):
             writer.write(key, buf)
         writer.close()
-        reader = tables.open(xfilename, 'wm', value_style='sb')
+        reader = tables.open(xfilename, 'wm', value_style='sbd')
         for vals, expected_buf in zip(reader, bufs):
-            sample_rate, actual_buf = vals
+            sample_rate, actual_buf, dur = vals
             assert int(sample_rate) == 16000
+            assert isinstance(dur, float)
             assert numpy.allclose(actual_buf, expected_buf)
             n_waves -= 1
         assert not n_waves, "Incorrect number of reads!"
