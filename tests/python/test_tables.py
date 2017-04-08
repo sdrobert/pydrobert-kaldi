@@ -52,22 +52,9 @@ def temp_file_2_name():
     ('tv', ('foo', 'bar')),
     ('tv', ('skryyyyy',)),
     ('tv', ('\u00D6a', 'n\u00F9')),
-    pytest.mark.xfail(('bv', ['a', 2, 3])),
-    pytest.mark.xfail(('bv', 'abc')),
-    pytest.mark.xfail(('bv', [[1, 2]])),
-    pytest.mark.xfail(('fv', np.arange(3, dtype=np.float64))), # downcast not ok
-    pytest.mark.xfail(('bm', [['a', 2]])),
-    pytest.mark.xfail(('bm', [0])),
-    pytest.mark.xfail(('fm', np.random.random((10, 1)).astype(np.float64))),
-    pytest.mark.xfail(('t', 1)),
-    pytest.mark.xfail(('t', [])),
-    pytest.mark.xfail(('t', 'was I')),
-    pytest.mark.xfail(('tv', ['a', 1])),
-    pytest.mark.xfail(('tv', ("it's", 'me DIO'))),
-    pytest.mark.xfail(('tv', 'foobar')),
 ])
 @pytest.mark.parametrize('is_text', [True, False])
-def test_read_write_data_types(temp_file_1_name, dtype, value, is_text):
+def test_read_write(temp_file_1_name, dtype, value, is_text):
     xfilename = None
     if is_text:
         xfilename = 'ark,t:{}'.format(temp_file_1_name)
@@ -86,6 +73,32 @@ def test_read_write_data_types(temp_file_1_name, dtype, value, is_text):
             assert read_value == value
         once = False
     reader.close()
+
+@pytest.mark.parametrize('dtype,value', [
+    ('bv', ['a', 2, 3]),
+    ('bv', 'abc'),
+    ('bv', [[1, 2]]),
+    ('fv', np.arange(3, dtype=np.float64)), # downcast not ok
+    ('bm', [['a', 2]]),
+    ('bm', [0]),
+    ('fm', np.random.random((10, 1)).astype(np.float64)),
+    ('t', 1),
+    ('t', []),
+    ('t', 'was I'),
+    ('tv', ['a', 1]),
+    ('tv', ("it's", 'me DIO')),
+    ('tv', 'foobar'),
+])
+@pytest.mark.parametrize('is_text', [True, False])
+def test_read_write_invalid(temp_file_1_name, dtype, value, is_text):
+    xfilename = None
+    if is_text:
+        xfilename = 'ark,t:{}'.format(temp_file_1_name)
+    else:
+        xfilename = 'ark:{}'.format(temp_file_1_name)
+    writer = tables.open(xfilename, dtype, mode='w')
+    with pytest.raises(Exception):
+        writer.write('a', value)
 
 def test_read_sequential(temp_file_1_name):
     values = (
@@ -190,10 +203,10 @@ def test_open_string_or_data_type(temp_file_1_name):
     tables.open(xfilename, 'bm', mode='r+')
     tables.open(xfilename, tables.KaldiDataType.BaseMatrix, mode='r+')
 
-@pytest.mark.xfail(raises=ValueError)
 def test_invalid_data_type(temp_file_1_name):
     xfilename = 'ark:{}'.format(temp_file_1_name)
-    tables.open(xfilename, 'foo', mode='w')
+    with pytest.raises(ValueError):
+        tables.open(xfilename, 'foo', mode='w')
 
 def test_no_exception_on_double_close(temp_file_1_name):
     xfilename = 'ark:{}'.format(temp_file_1_name)

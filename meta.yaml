@@ -2,10 +2,10 @@
 
 package:
   name: pydrobert-kaldi-{{ blas_variant }}
-  version: {{ environ.get('GIT_DESCRIBE_TAG', '1.0.0') }}
+  version: {{ environ.get('GIT_DESCRIBE_TAG', '0.0.0') }}
 
 source:
-  path: ../..
+  path: .
 
 requirements:
   build:
@@ -16,6 +16,7 @@ requirements:
     - setuptools
     - swig >=3.0
     - numpy
+    - pytest-runner
   run:
     - libgcc >=4.8.5 # [linux]
     - {{ blas_variant }} # [linux]
@@ -34,6 +35,7 @@ test:
   requires:
     - gcc >=4.8.5 # [linux]
     - pytest
+    - scipy
   imports:
     - pydrobert
     - pydrobert.kaldi

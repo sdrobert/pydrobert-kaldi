@@ -1,1 +1,5 @@
-LC_ALL=C py.test tests/python || exit 1
+export LC_ALL=C
+
+
+
+py.test tests/python || exit 1

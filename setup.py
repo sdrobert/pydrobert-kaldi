@@ -19,7 +19,7 @@ FLAGS = ['-std=c++11']
 if 'MKLROOT' in environ:
     assert False, "FIXME - Untested"
     MKL_ROOT = path.abspath(environ['MKLROOT'])
-    if not path.isdir(path.join(MKL_ROOT, 'include')):
+    if path.isdir(path.join(MKL_ROOT, 'include')):
         BLAS_INCLUDES = [path.join(MKL_ROOT, 'include')]
     else:
         raise Exception('MKLROOT set, but could not find include dir')
@@ -43,9 +43,24 @@ elif 'OPENBLASROOT' in environ:
     if path.isdir(path.join(OPENBLAS_ROOT, 'lib')):
         BLAS_LIBRARY_DIRS.append(path.join(OPENBLAS_ROOT, 'lib'))
     if not BLAS_LIBRARY_DIRS:
-        raise Exception('OPENBLASROOT set, but could not find library')
+        raise Exception('OPENBLASROOT set, but could not find library dir')
     BLAS_LIBRARIES = ['gfortran', 'openblas']
     DEFINES.append(('HAVE_OPENBLAS', None))
+elif 'ATLASROOT' in environ:
+    ATLAS_ROOT = path.abspath(environ['ATLASROOT'])
+    if path.isdir(path.join(ATLAS_ROOT, 'include')):
+        BLAS_INCLUDES = [path.join(ATLAS_ROOT, 'include')]
+    else:
+        raise Exception('ATLASROOT set, but could not find include dir')
+    BLAS_LIBRARY_DIRS = []
+    if path.isdir(path.join(ATLAS_ROOT, 'lib64')):
+        BLAS_LIBRARY_DIRS.append(path.join(ATLAS_ROOT, 'lib64'))
+    if path.isdir(path.join(ATLAS_ROOT, 'lib')):
+        BLAS_LIBRARY_DIRS.append(path.join(ATLAS_ROOT, 'lib'))
+    if not BLAS_LIBRARY_DIRS:
+        raise Exception('ATLASROOT set, but could not find library dir')
+    BLAS_LIBRARIES = ['atlas']
+    DEFINES.append(('HAVE_ATLAS', None))
 else:
     raise Exception('One of OPENBLASROOT, MKLROOT must be set')
 
@@ -84,7 +99,7 @@ KALDI_LIBRARY = Extension(
 
 setup(
     name='pydrobert-kaldi',
-    version='1.0.0', #FIXME(sdrobert)
+    version=environ.get('GIT_DESCRIBE_TAG', '0.0.0'),
     description='Swig bindings for kaldi',
     long_description=LONG_DESCRIPTION,
     url='https://github.com/pydrobert-kaldi',
