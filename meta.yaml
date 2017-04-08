@@ -1,0 +1,46 @@
+{% set blas_variant = os.environ.get('BLAS_VARIANT', 'openblas') %}
+
+package:
+  name: pydrobert-kaldi-{{ blas_variant }}
+  version: {{ environ.get('GIT_DESCRIBE_TAG', '1.0.0') }}
+
+source:
+  path: ../..
+
+requirements:
+  build:
+    - python
+    - gcc >=4.8.5 # [linux]
+    - {{ blas_variant }} # [linux]
+    - libgcc >=4.8.5
+    - setuptools
+    - swig >=3.0
+    - numpy
+  run:
+    - libgcc >=4.8.5 # [linux]
+    - {{ blas_variant }} # [linux]
+    - python
+    - numpy
+    - future
+    - six
+    - enum34 # [py2k]
+
+build:
+  detect_binary_files_with_prefix: True
+
+test:
+  source_files:
+    - tests
+  requires:
+    - gcc >=4.8.5 # [linux]
+    - pytest
+  imports:
+    - pydrobert
+    - pydrobert.kaldi
+    - pydrobert.kaldi._internal
+    - pydrobert.kaldi.tables
+
+about:
+  home: https://github.com/sdrobert/pydrobert-kaldi
+  license: Apache 2.0
+  license_file: LICENSE
