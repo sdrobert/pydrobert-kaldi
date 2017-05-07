@@ -32,6 +32,7 @@ build:
 test:
   source_files:
     - tests
+    - src/*/*.h
   requires:
     - gcc >=4.8.5 # [linux]
     - pytest

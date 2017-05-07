@@ -63,3 +63,7 @@ target/
 
 #Ipython Notebook
 .ipynb_checkpoints
+
+# sdrobert: additional crap
+swig/pydrobert/internal.py
+swig/pydrobert/kaldi_wrap.cpp
