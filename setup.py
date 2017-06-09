@@ -136,7 +136,7 @@ except ImportError:
 INSTALL_REQUIRES = ['numpy', 'six', 'future']
 if version_info < (3, 0):
     INSTALL_REQUIRES.append('enum34')
-SETUP_REQUIRES = ['pytest-runner', 'numpy']
+SETUP_REQUIRES = ['pytest-runner', 'numpy', 'setuptools_scm']
 TESTS_REQUIRE = ['pytest']
 
 KALDI_LIBRARY = Extension(
@@ -155,7 +155,7 @@ KALDI_LIBRARY = Extension(
 
 setup(
     name='pydrobert-kaldi',
-    version=environ.get('GIT_DESCRIBE_TAG', '0.0.0'),
+    use_scm_version=True,
     description='Swig bindings for kaldi',
     long_description=LONG_DESCRIPTION,
     url='https://github.com/pydrobert-kaldi',
