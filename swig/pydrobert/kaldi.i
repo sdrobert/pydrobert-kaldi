@@ -7,9 +7,10 @@
   #include "util/kaldi-holder.h"
   #include "util/kaldi-table.h"
 %}
-%include "numpy/numpy.i"
 %include "std_string.i"
 %include "std_vector.i"
+%include "stdint.i"
+%include "numpy/numpy.i"
 %include "exception.i"
 
 %exception {
@@ -91,3 +92,4 @@ namespace kaldi {
 %include "pydrobert/mv_tables.i"
 %include "pydrobert/wave_tables.i"
 %include "pydrobert/token_tables.i"
+%include "pydrobert/error.i"
