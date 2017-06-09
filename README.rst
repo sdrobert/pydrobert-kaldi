@@ -5,57 +5,41 @@ pydrobert-kaldi
 What is it?
 -----------
 
-Kaldi_ I/O (table) SWIG_ bindings. Easily shove your audio features into Numpy_
-arrays. It builds for Python 2.7 and above. You can do stuff like
+Some Kaldi_ SWIG_ bindings for Python. The primary purpose is to read and write
+Kaldi-style features efficiently and python-ically for use outside the Kaldi
+ecosystem. For example:
 
-.. code:: python
+>>> from pydrobert.kaldi import tables
+>>> with tables.open('scp:foo.scp', 'bm') as f:
+>>>     for matrix in f:
+>>>         # do something
+>>>
 
-   import pydrobert.kaldi.tables as tables
+This functionality exists in the `tables` submodule. Kaldi logging is
+automatically tethered to a logger named ``'pydrobert.kaldi'`` from Python's
+`logging` module.
 
-   # write binary BaseFloat matrices to file a.ark w/ keys+offsets in b.scp
-   with tables.open('ark,scp:a.ark,b.scp', 'bm', mode='w') as f:
-       f.write('foo', [[1, 2], [3, 4]])
-       f.write('bar', [[1]])
-
-   # read back in numpy arrays sequentially or with random access
-   with tables.open('scp:b.scp', 'bm', mode='r') as f:
-       for n_array in f:
-           print(n_array)
-   f = tables.open('scp:b.scp', 'bm', mode='r+')
-   print(f['bar'])
-   f.close()
+Eventually, I plan on adding hooks for Kaldi audio features and
+pre-/post-processing. However, I have no plans on porting any code involving
+modelling or decoding.
 
 Installation
 ------------
 
-Installation is through Conda_. To install from the Anaconda Cloud, try the
-command::
+Kaldi requires BLAS libraries to operate. The least-hassle method of installing
+this package is through Conda_. Simply::
 
-   conda install -c sdrobert pydrobert-kaldi
+   conda install -c sdrobert pydrobert-kaldi-openblas
 
-And everything will work automagically. If that's not working for you, you can
-try::
-
-   # use 'conda-build'
-   conda install conda-build
-   # if you don't have a copy of kaldi somewhere
-   conda build recipes/kaldi
-   conda build recipes/clean
-   conda install --use-local pydrobert-kaldi
-   # if you do have a copy of kaldi somewhere
-   export KALDI_ROOT=/path/to/kaldi/repo
-   conda build recipes/dirty
-   conda install --use-local pydrobert-kaldi-dirty
-
-The latter is also useful if you have Kaldi already installed somewhere. 
+Which installs `pydrobert.kaldi` with OpenBLAS.
 
 Possible Problems
 -----------------
 
 - To make the Anaconda Cloud install cross-compatible, I rely on Conda's
-  `gcc 4.8.5` library and implicitly its `libgcc`. This can cause issues with
-  past/future installs that want another version. I highly suggest you isolate
-  this package from your root environment.
+  `libgcc` package. This can cause issues with past/future installs that want
+  another version. I highly suggest you isolate this package from your root
+  environment.
 - The OSX build uses the "Accelerate Framework" and expects it to be in a
   specific absolute path. If you're getting ``symbol not found`` errors, try
   manually editing the path with ``install_name_tool`` or, better yet, build
@@ -63,14 +47,17 @@ Possible Problems
 - Be careful when using extended file name options such as "o" (once) or
   "s" (sorted). They are valid, but this package caches nothing and does very
   little error checking!
-- I haven't dealt with storing tokens (character strings without spaces)
-  because I don't want to deal with the whole Python encoding business. If
-  you're reading and writing strings, just use Python's I/O :)
 
 License
 -------
 
-Kaldi_ is covered by the Apache 2.0 license, and so too is this.
+This code is licensed under Apache 2.0.
+
+Code found under the `src/` directory has been primarily copied from Kaldi_
+version 5.1.46. `setup.py` is also strongly influenced by Kaldi's build
+configuration. Kaldi is also covered by the Apache 2.0 license; its specific
+license file was copied into `src/COPYING_Kaldi_Project` to live among its
+fellows. The Kaldi team uses a minim
 
 .. _Kaldi: http://kaldi-asr.org/
 .. _Swig: http://www.swig.org/
