@@ -31,7 +31,19 @@ this package is through Conda_. Simply::
 
    conda install -c sdrobert pydrobert-kaldi-openblas
 
-Which installs `pydrobert.kaldi` with OpenBLAS.
+Which installs `pydrobert.kaldi` binaries with OpenBLAS.
+
+Alternatively, to build through pip::
+
+   # for OpenBLAS
+   OPENBLASROOT=/path/to/openblas/install pip install \
+     git+https://github.com/sdrobert/pydrobert-kaldi.git
+   # for MKL
+   MKLROOT=/path/to/mkl/install pip install \
+     git+https://github.com/sdrobert/pydrobert-kaldi.git
+
+Though this takes considerably longer, given the binaries must be compiled for
+your specific BLAS library.
 
 Possible Problems
 -----------------

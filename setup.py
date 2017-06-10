@@ -19,6 +19,7 @@ from os import environ
 from os import path
 from os import walk
 from setuptools import setup
+from setuptools.command.build_ext import build_ext
 from setuptools.extension import Extension
 from sys import maxsize
 from sys import stderr
@@ -127,16 +128,19 @@ SRC_FILES = [path.join(SWIG_DIR, 'pydrobert', 'kaldi.i')]
 for base_dir, _, files in walk(SRC_DIR):
     SRC_FILES += [path.join(base_dir, f) for f in files if f.endswith('.cc')]
 
-try:
-    import numpy as np
-    NPY_INCLUDES = np.get_include()
-except ImportError:
-    raise Exception('Numpy needed for install')
+# https://stackoverflow.com/questions/2379898/
+# make-distutils-look-for-numpy-header-files-in-the-correct-place
+class CustomBuildExtCommand(build_ext):
+    def run(self):
+        import numpy
+        self.include_dirs.append(numpy.get_include())
+        build_ext.run(self)
+
 
 INSTALL_REQUIRES = ['numpy', 'six', 'future']
 if version_info < (3, 0):
     INSTALL_REQUIRES.append('enum34')
-SETUP_REQUIRES = ['pytest-runner', 'numpy', 'setuptools_scm']
+SETUP_REQUIRES = ['pytest-runner', 'setuptools_scm']
 TESTS_REQUIRE = ['pytest']
 
 KALDI_LIBRARY = Extension(
@@ -145,7 +149,7 @@ KALDI_LIBRARY = Extension(
     libraries=['pthread', 'm', 'dl'] + BLAS_LIBRARIES,
     runtime_library_dirs=BLAS_LIBRARY_DIRS,
     library_dirs=BLAS_LIBRARY_DIRS,
-    include_dirs=[SRC_DIR, NPY_INCLUDES] + BLAS_INCLUDES,
+    include_dirs=[SRC_DIR] + BLAS_INCLUDES,
     extra_compile_args=FLAGS,
     extra_link_args=LD_FLAGS,
     define_macros=DEFINES,
@@ -175,6 +179,7 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
     packages=['pydrobert', 'pydrobert.kaldi'],
+    cmdclass = {'build_ext': CustomBuildExtCommand},
     setup_requires=SETUP_REQUIRES,
     install_requires=INSTALL_REQUIRES,
     tests_require=TESTS_REQUIRE,
