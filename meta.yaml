@@ -1,7 +1,8 @@
 {% set blas_variant = os.environ.get('BLAS_VARIANT', 'openblas') %}
 
 package:
-  name: pydrobert-kaldi-{{ blas_variant }}
+  name: pydrobert-kaldi-accelerate # [osx]
+  name: pydrobert-kaldi-{{ blas_variant }} # [linux]
   version: {{ environ.get('GIT_DESCRIBE_TAG', 'v0.0.0') }}
 
 source:
@@ -12,8 +13,9 @@ requirements:
     - python
     - gcc >=4.8.5 # [linux]
     - {{ blas_variant }} # [linux]
-    - libgcc >=4.8.5
+    - libgcc >=4.8.5 # [linux]
     - setuptools
+    - setuptools_scm
     - swig >=3.0
     - numpy
     - pytest-runner
@@ -32,9 +34,7 @@ build:
 test:
   source_files:
     - tests
-    - src/*/*.h
   requires:
-    - gcc >=4.8.5 # [linux]
     - pytest
     - scipy
   imports:

@@ -26,14 +26,13 @@ modelling or decoding.
 Installation
 ------------
 
-Kaldi requires BLAS libraries to operate. The least-hassle method of installing
-this package is through Conda_. Simply::
+If you're on a Linux machine and you've got Conda_ installed, your life is easy.
+Simply::
 
    conda install -c sdrobert pydrobert-kaldi-openblas
 
-Which installs `pydrobert.kaldi` binaries with OpenBLAS.
-
-Alternatively, to build through pip::
+Which installs `pydrobert.kaldi` binaries with OpenBLAS. Alternatively, to build
+through pip on Linux, you'll need to point the install to a BLAS library::
 
    # for OpenBLAS
    OPENBLASROOT=/path/to/openblas/install pip install \
@@ -42,23 +41,15 @@ Alternatively, to build through pip::
    MKLROOT=/path/to/mkl/install pip install \
      git+https://github.com/sdrobert/pydrobert-kaldi.git
 
-Though this takes considerably longer, given the binaries must be compiled for
+This takes considerably longer, given the binaries must be compiled for
 your specific BLAS library.
 
-Possible Problems
------------------
+The OSX build links to Apple's Accelerate framework, which lives outside the
+Conda environment and thus has to be built locally::
 
-- To make the Anaconda Cloud install cross-compatible, I rely on Conda's
-  `libgcc` package. This can cause issues with past/future installs that want
-  another version. I highly suggest you isolate this package from your root
-  environment.
-- The OSX build uses the "Accelerate Framework" and expects it to be in a
-  specific absolute path. If you're getting ``symbol not found`` errors, try
-  manually editing the path with ``install_name_tool`` or, better yet, build
-  from source.
-- Be careful when using extended file name options such as "o" (once) or
-  "s" (sorted). They are valid, but this package caches nothing and does very
-  little error checking!
+   pip install git+https://github.com/sdrobert/pydrobert-kaldi.git
+
+I plan on getting Windows working some time in the future.
 
 License
 -------
@@ -69,7 +60,7 @@ Code found under the `src/` directory has been primarily copied from Kaldi_
 version 5.1.46. `setup.py` is also strongly influenced by Kaldi's build
 configuration. Kaldi is also covered by the Apache 2.0 license; its specific
 license file was copied into `src/COPYING_Kaldi_Project` to live among its
-fellows. The Kaldi team uses a minim
+fellows.
 
 .. _Kaldi: http://kaldi-asr.org/
 .. _Swig: http://www.swig.org/

@@ -126,14 +126,18 @@ def test_read_sequential(temp_file_1_name):
     writer = tables.open('ark:{}'.format(temp_file_1_name), 'fm', mode='w')
     for key, value in enumerate(values):
         writer.write(str(key), value)
+    writer.close()
     # shouldn't need to close: writer should flush after each
     # we confound "once" and "background" testing here, but I assume
     # these are working in Kaldi and shouldn't be visible here
+    count = 0
     reader = tables.open('ark,bg:{}'.format(temp_file_1_name), 'fm')
     for act_value, reader_value in zip(values, iter(reader)):
         assert np.allclose(act_value, reader_value)
-    # check that the keys are all savvy
+        count += 1
+    assert count == len(values)
     reader.close()
+    # check that the keys are all savvy
     reader = tables.open('ark:{}'.format(temp_file_1_name), 'fm')
     for idx, tup in enumerate(reader.items()):
         key, value = tup
@@ -171,7 +175,7 @@ def test_write_script_and_archive(temp_file_1_name, temp_file_2_name):
     reader = tables.open('scp:{}'.format(temp_file_2_name), 'dm', mode='r+')
     for key in keys:
         assert np.allclose(reader[key], values[key]), key
-    assert np.allclose(reader['bar'], values['bar']), "Failed doublechk"
+    assert np.allclose(reader['bar'], values['bar']), "Failed doublecheck"
 
 @pytest.mark.skipif(platform.system() == 'Windows', reason='Not posix')
 def test_read_write_pipe_posix(temp_file_1_name):

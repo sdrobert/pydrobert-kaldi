@@ -14,6 +14,8 @@
 
 from __future__ import print_function
 
+import platform
+
 from codecs import open
 from os import environ
 from os import path
@@ -32,93 +34,108 @@ SWIG_DIR = path.join(PWD, 'swig')
 DEFINES = [
     ('KALDI_DOUBLEPRECISION', environ.get('KALDI_DOUBLEPRECISION', '0')),
     # ('_GLIBCXX_USE_CXX11_ABI', '0'),
+    ('HAVE_EXECINFO_H', '1'),
+    ('HAVE_CXXABI_H', None),
 ]
 IS_64_BIT = maxsize > 2 ** 32
-FLAGS = ['-std=c++11', '-m64' if IS_64_BIT else '-m32']
+FLAGS = ['-std=c++11', '-m64' if IS_64_BIT else '-m32', '-msse', '-msse2']
+FLAGS += ['-pthread', '-fPIC']
 LD_FLAGS = []
 
-if 'MKLROOT' in environ:
-    # IMPORTANT: make sure that BLAS_LIBRARIES stays in this order, or you'll
-    # get failed symbol lookups
-    MKL_ROOT = path.abspath(environ['MKLROOT'])
-    MKL_THREADING = environ.get('MKL_THREADING_TYPE', 'sequential')
-    if path.isdir(path.join(MKL_ROOT, 'mkl')) and \
-            environ.get('FORCE_MKLROOT', '0') == '0':
-        MKL_ROOT = path.join(MKL_ROOT, 'mkl')
-        print(
-            'Setting MKL root to "{}". If this is not desired, export the '
-            'environment variable FORCE_MKLROOT'.format(MKL_ROOT),
-            file=stderr
-        )
-    if path.isdir(path.join(MKL_ROOT, 'include')):
-        BLAS_INCLUDES = [path.join(MKL_ROOT, 'include')]
-    else:
-        raise Exception('MKLROOT set, but could not find include dir')
-    if IS_64_BIT:
-        BLAS_LIBRARIES = ['mkl_intel_lp64',]
-        if path.isdir(path.join(MKL_ROOT, 'lib', 'intel64')):
-            BLAS_LIBRARY_DIRS = [path.join(MKL_ROOT, 'lib', 'intel64'),]
-            if path.isdir(path.join(path.dirname(MKL_ROOT), 'lib', 'intel64')):
-                BLAS_LIBRARY_DIRS.append(
-                    path.join(path.dirname(MKL_ROOT), 'lib', 'intel64'))
+if platform.system() == 'Linux':
+    if 'MKLROOT' in environ:
+        # IMPORTANT: make sure that BLAS_LIBRARIES stays in this order, or you'll
+        # get failed symbol lookups
+        MKL_ROOT = path.abspath(environ['MKLROOT'])
+        MKL_THREADING = environ.get('MKL_THREADING_TYPE', 'sequential')
+        if path.isdir(path.join(MKL_ROOT, 'mkl')) and \
+                environ.get('FORCE_MKLROOT', '0') == '0':
+            MKL_ROOT = path.join(MKL_ROOT, 'mkl')
+            print(
+                'Setting MKL root to "{}". If this is not desired, export the '
+                'environment variable FORCE_MKLROOT'.format(MKL_ROOT),
+                file=stderr
+            )
+        if path.isdir(path.join(MKL_ROOT, 'include')):
+            BLAS_INCLUDES = [path.join(MKL_ROOT, 'include')]
         else:
-            raise Exception('MKLROOT set, but could not find library dir')
-    else:
-        BLAS_LIBRARIES = ['mkl_intel',]
-        if path.isdir(path.join(MKL_ROOT, 'lib', 'ia32')):
-            BLAS_LIBRARY_DIRS = [path.join(MKL_ROOT, 'lib', 'ia32'),]
-            if path.isdir(path.join(path.dirname(MKL_ROOT), 'lib', 'ia32')):
-                BLAS_LIBRARY_DIRS.append(
-                    path.join(path.dirname(MKL_ROOT), 'lib', 'ia32'))
+            raise Exception('MKLROOT set, but could not find include dir')
+        if IS_64_BIT:
+            BLAS_LIBRARIES = ['mkl_intel_lp64',]
+            if path.isdir(path.join(MKL_ROOT, 'lib', 'intel64')):
+                BLAS_LIBRARY_DIRS = [path.join(MKL_ROOT, 'lib', 'intel64'),]
+                if path.isdir(
+                        path.join(path.dirname(MKL_ROOT), 'lib', 'intel64')):
+                    BLAS_LIBRARY_DIRS.append(
+                        path.join(path.dirname(MKL_ROOT), 'lib', 'intel64'))
+            else:
+                raise Exception('MKLROOT set, but could not find library dir')
         else:
-            raise Exception('MKLROOT set, but could not find library dir')
-    if MKL_THREADING in ('intel', 'iomp'):
-        BLAS_LIBRARIES.append('mkl_intel_thread')
-        BLAS_LIBRARIES.append('iomp5')
-    elif MKL_THREADING in ('gnu', 'gomp'):
-        BLAS_LIBRARIES.append('mkl_gnu_thread')
-        BLAS_LIBRARIES.append('gomp')
-    elif MKL_THREADING == 'sequential':
-        BLAS_LIBRARIES.append('mkl_sequential')
+            BLAS_LIBRARIES = ['mkl_intel',]
+            if path.isdir(path.join(MKL_ROOT, 'lib', 'ia32')):
+                BLAS_LIBRARY_DIRS = [path.join(MKL_ROOT, 'lib', 'ia32'),]
+                if path.isdir(
+                        path.join(path.dirname(MKL_ROOT), 'lib', 'ia32')):
+                    BLAS_LIBRARY_DIRS.append(
+                        path.join(path.dirname(MKL_ROOT), 'lib', 'ia32'))
+            else:
+                raise Exception('MKLROOT set, but could not find library dir')
+        if MKL_THREADING in ('intel', 'iomp'):
+            BLAS_LIBRARIES.append('mkl_intel_thread')
+            BLAS_LIBRARIES.append('iomp5')
+        elif MKL_THREADING in ('gnu', 'gomp'):
+            BLAS_LIBRARIES.append('mkl_gnu_thread')
+            BLAS_LIBRARIES.append('gomp')
+        elif MKL_THREADING == 'sequential':
+            BLAS_LIBRARIES.append('mkl_sequential')
+        else:
+            raise ValueError('Invalid MKL_THREADING setting')
+        BLAS_LIBRARIES.append('mkl_core')
+        LD_FLAGS.append('-Wl,--no-as-needed')
+        DEFINES.append(('HAVE_MKL', None))
+    elif 'OPENBLASROOT' in environ:
+        OPENBLAS_ROOT = path.abspath(environ['OPENBLASROOT'])
+        if path.isdir(path.join(OPENBLAS_ROOT, 'include')):
+            BLAS_INCLUDES = [path.join(OPENBLAS_ROOT, 'include')]
+        else:
+            raise Exception('OPENBLASROOT set, but could not find include dir')
+        BLAS_LIBRARY_DIRS = []
+        if path.isdir(path.join(OPENBLAS_ROOT, 'lib64')):
+            BLAS_LIBRARY_DIRS.append(path.join(OPENBLAS_ROOT, 'lib64'))
+        if path.isdir(path.join(OPENBLAS_ROOT, 'lib')):
+            BLAS_LIBRARY_DIRS.append(path.join(OPENBLAS_ROOT, 'lib'))
+        if not BLAS_LIBRARY_DIRS:
+            raise Exception('OPENBLASROOT set, but could not find library dir')
+        BLAS_LIBRARIES = ['gfortran', 'openblas']
+        DEFINES.append(('HAVE_OPENBLAS', None))
+    elif 'ATLASROOT' in environ:
+        ATLAS_ROOT = path.abspath(environ['ATLASROOT'])
+        if path.isdir(path.join(ATLAS_ROOT, 'include')):
+            BLAS_INCLUDES = [path.join(ATLAS_ROOT, 'include')]
+            if path.isdir(path.join(BLAS_INCLUDES[0], 'atlas')):
+                BLAS_INCLUDES.append(path.join(BLAS_INCLUDES[0], 'atlas'))
+        else:
+            raise Exception('ATLASROOT set, but could not find include dir')
+        BLAS_LIBRARY_DIRS = []
+        if path.isdir(path.join(ATLAS_ROOT, 'lib64')):
+            BLAS_LIBRARY_DIRS.append(path.join(ATLAS_ROOT, 'lib64'))
+        if path.isdir(path.join(ATLAS_ROOT, 'lib')):
+            BLAS_LIBRARY_DIRS.append(path.join(ATLAS_ROOT, 'lib'))
+        if not BLAS_LIBRARY_DIRS:
+            raise Exception('ATLASROOT set, but could not find library dir')
+        BLAS_LIBRARIES = ['atlas']
+        DEFINES.append(('HAVE_ATLAS', None))
     else:
-        raise ValueError('Invalid MKL_THREADING setting')
-    BLAS_LIBRARIES.append('mkl_core')
-    LD_FLAGS.append('-Wl,--no-as-needed')
-    DEFINES.append(('HAVE_MKL', None))
-elif 'OPENBLASROOT' in environ:
-    OPENBLAS_ROOT = path.abspath(environ['OPENBLASROOT'])
-    if path.isdir(path.join(OPENBLAS_ROOT, 'include')):
-        BLAS_INCLUDES = [path.join(OPENBLAS_ROOT, 'include')]
-    else:
-        raise Exception('OPENBLASROOT set, but could not find include dir')
+        raise Exception('One of OPENBLASROOT, MKLROOT must be set')
+elif platform.system() == 'Darwin':
+    FLAGS += ['-flax-vector-conversions', '-stdlib=libc++']
+    DEFINES.append(('HAVE_CLAPACK', None))
+    BLAS_LIBRARIES = []
     BLAS_LIBRARY_DIRS = []
-    if path.isdir(path.join(OPENBLAS_ROOT, 'lib64')):
-        BLAS_LIBRARY_DIRS.append(path.join(OPENBLAS_ROOT, 'lib64'))
-    if path.isdir(path.join(OPENBLAS_ROOT, 'lib')):
-        BLAS_LIBRARY_DIRS.append(path.join(OPENBLAS_ROOT, 'lib'))
-    if not BLAS_LIBRARY_DIRS:
-        raise Exception('OPENBLASROOT set, but could not find library dir')
-    BLAS_LIBRARIES = ['gfortran', 'openblas']
-    DEFINES.append(('HAVE_OPENBLAS', None))
-elif 'ATLASROOT' in environ:
-    ATLAS_ROOT = path.abspath(environ['ATLASROOT'])
-    if path.isdir(path.join(ATLAS_ROOT, 'include')):
-        BLAS_INCLUDES = [path.join(ATLAS_ROOT, 'include')]
-        if path.isdir(path.join(BLAS_INCLUDES[0], 'atlas')):
-            BLAS_INCLUDES.append(path.join(BLAS_INCLUDES[0], 'atlas'))
-    else:
-        raise Exception('ATLASROOT set, but could not find include dir')
-    BLAS_LIBRARY_DIRS = []
-    if path.isdir(path.join(ATLAS_ROOT, 'lib64')):
-        BLAS_LIBRARY_DIRS.append(path.join(ATLAS_ROOT, 'lib64'))
-    if path.isdir(path.join(ATLAS_ROOT, 'lib')):
-        BLAS_LIBRARY_DIRS.append(path.join(ATLAS_ROOT, 'lib'))
-    if not BLAS_LIBRARY_DIRS:
-        raise Exception('ATLASROOT set, but could not find library dir')
-    BLAS_LIBRARIES = ['atlas']
-    DEFINES.append(('HAVE_ATLAS', None))
+    BLAS_INCLUDES = []
+    LD_FLAGS = ['-framework', 'Accelerate', '-stdlib=libc++']
 else:
-    raise Exception('One of OPENBLASROOT, MKLROOT must be set')
+    raise Exception('OS unsupported... for now')
 
 # Get the long description from the README file
 with open(path.join(PWD, 'README.rst'), encoding='utf-8') as f:
@@ -135,7 +152,6 @@ class CustomBuildExtCommand(build_ext):
         import numpy
         self.include_dirs.append(numpy.get_include())
         build_ext.run(self)
-
 
 INSTALL_REQUIRES = ['numpy', 'six', 'future']
 if version_info < (3, 0):
@@ -185,5 +201,4 @@ setup(
     tests_require=TESTS_REQUIRE,
     ext_modules=[KALDI_LIBRARY],
     namespace_packages=['pydrobert'],
-    package_dir={'':PYTHON_DIR},
 )

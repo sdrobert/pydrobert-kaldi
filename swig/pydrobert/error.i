@@ -23,13 +23,13 @@
 #include "base/kaldi-error.h"
 
 namespace kaldi {
-  PyObject *g_py_log_handler = NULL;
+  static PyObject *g_py_log_handler = NULL;
   
   void SetPythonLogHandler(PyObject *py_func) {
     Py_XDECREF(g_py_log_handler);
     g_py_log_handler = py_func;
     if (g_py_log_handler) {
-      SetLogHandler([=]
+      SetLogHandler([]
         (const LogMessageEnvelope &envelope, const char * message)
         {
           PyObject *envelope_obj = Py_BuildValue(
