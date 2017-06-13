@@ -21,7 +21,10 @@ from __future__ import print_function
 import logging
 import os
 
-from io import StringIO
+try:
+    from StringIO import StringIO # py 2.7
+except ImportError:
+    from io import StringIO
 from tempfile import NamedTemporaryFile
 
 import numpy as np
