@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Nosetests for `pydrobert.kaldi.tables`"""
+"""Pytests for `pydrobert.kaldi.tables`"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -22,7 +22,6 @@ import os
 import platform
 import wave
 
-from itertools import product
 from tempfile import NamedTemporaryFile
 
 import numpy as np
