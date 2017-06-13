@@ -50,7 +50,7 @@ if locale.getdefaultlocale() != (None, None):
 
 class KaldiLogger(logging.getLoggerClass()):
     """Logger subclass to make it easier to synchronize logging with Kaldi
-    
+
     This class is almost the same as the class it inherits from, with two key
     changes:
      - line numbers, function names, paths, and levels will be overwritten if
@@ -62,10 +62,25 @@ class KaldiLogger(logging.getLoggerClass()):
     """
 
     def makeRecord(self, *args, **kwargs):
+        # unfortunately, the signature for this method differs between
+        # python 2 and python 3 (there's an additional keyword argument
+        # in python 3). They are, however, in the same order:
+        # name, level, fn, lno, msg, args, exc_info, func, extra, sinfo
+        if len(args) >= 9:
+            extra = args[8]
+        else:
+            extra = kwargs.get('extra', None)
+        if extra and 'kaldi_envelope' in extra:
+            kaldi_envelope = extra['kaldi_envelope']
+            args = list(args)
+            args[1] = kaldi_envelope[0]
+            args[2] = kaldi_envelope[2]
+            args[3] = kaldi_envelope[3]
+            if len(args) >= 8:
+                args[7] = kaldi_envelope[1]
+            else:
+                kwargs['func'] = kaldi_envelope[1]
         record = super(KaldiLogger, self).makeRecord(*args, **kwargs)
-        if hasattr(record, 'kaldi_envelope'):
-            record.level, record.func, record.pathname, record.lineno, = \
-                record.kaldi_envelope
         return record
 
     def setLevel(self, lvl):

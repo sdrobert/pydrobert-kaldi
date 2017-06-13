@@ -59,7 +59,7 @@ namespace kaldi {
   void SetPythonLogHandler(PyObject *py_func);
 }  // namespace kaldi
 
-%typemap(python, in) PyObject *py_func {
+%typemap(in) PyObject *py_func {
   if (!PyCallable_Check($input)) {
       PyErr_SetString(PyExc_TypeError, "Expected callable");
       return NULL;
