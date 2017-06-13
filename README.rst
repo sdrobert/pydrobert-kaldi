@@ -2,6 +2,8 @@
 pydrobert-kaldi
 ===============
 
+.. image:: https://travis-ci.org/sdrobert/pydrobert-kaldi.svg?branch=master
+
 What is it?
 -----------
 
