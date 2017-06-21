@@ -31,6 +31,7 @@ from __future__ import print_function
 import locale
 import logging
 import sys
+import warnings
 
 from ._internal import SetPythonLogHandler as _set_log_handler
 from ._internal import SetVerboseLevel as _set_verbose_level
@@ -46,7 +47,7 @@ LOCALE_MESSAGE = """\
 It looks like you did not 'export LC_ALL=C' before you started python.
 This is important to do if you plan on using kaldi's sorted tables at all."""
 if locale.getdefaultlocale() != (None, None):
-    print(LOCALE_MESSAGE, file=sys.stderr)
+    warnings.warn(LOCALE_MESSAGE)
 
 class KaldiLogger(logging.getLoggerClass()):
     """Logger subclass to make it easier to synchronize logging with Kaldi
