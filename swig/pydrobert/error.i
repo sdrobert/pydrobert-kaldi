@@ -34,7 +34,7 @@ namespace kaldi {
         {
           PyObject *envelope_obj = Py_BuildValue(
             "(issi)",
-            -10 * envelope.severity + 20, // to roughly match python logging
+            envelope.severity,
             envelope.func, envelope.file, envelope.line
           );
           PyObject *arg_list = Py_BuildValue("(Os)", envelope_obj, message);
@@ -50,6 +50,10 @@ namespace kaldi {
     }
     Py_XINCREF(py_func);
   }
+
+  void VerboseLog(int32_t lvl, const char * message) {
+    KALDI_VLOG(lvl) << message;
+  }
 }
 %}
 
@@ -57,6 +61,7 @@ namespace kaldi {
   int32_t GetVerboseLevel();
   void SetVerboseLevel(int32_t i);
   void SetPythonLogHandler(PyObject *py_func);
+  void VerboseLog(int32_t lvl, const char * message);
 }  // namespace kaldi
 
 %typemap(in) PyObject *py_func {

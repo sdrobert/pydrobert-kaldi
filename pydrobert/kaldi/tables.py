@@ -666,7 +666,7 @@ def open(xfilename, kaldi_dtype, mode='r', **kwargs):
     `kaldi_dtype` and `mode`. Specific combinations allow for optional
     parameters outlined by the table below
 
-    +------+-------------+=====================+
+    +------+-------------+---------------------+
     | mode | kaldi_dtype | additional kwargs   |
     +======+=============+=====================+
     |`'r'` | `'wm'`      | `value_style='b'`   |
