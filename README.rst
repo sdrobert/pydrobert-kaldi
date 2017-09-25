@@ -17,9 +17,11 @@ ecosystem. For example:
 >>>         # do something
 >>>
 
-This functionality exists in the `tables` submodule. Kaldi logging is
-automatically tethered to a logger named ``'pydrobert.kaldi'`` from Python's
-`logging` module.
+This functionality exists in the `tables` submodule.
+
+By default, Kaldi error, warning, and critical messages are piped to standard
+error. The `logging` submodule provides hooks into python's native logging
+interface: the `logging` module.
 
 Eventually, I plan on adding hooks for Kaldi audio features and
 pre-/post-processing. However, I have no plans on porting any code involving
