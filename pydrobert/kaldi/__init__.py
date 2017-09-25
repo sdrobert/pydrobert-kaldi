@@ -25,6 +25,7 @@ Note:
     prints a warning to stderr if it detects any other locale.
 """
 
+from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
@@ -33,8 +34,8 @@ import logging
 import sys
 import warnings
 
-from ._internal import SetPythonLogHandler as _set_log_handler
-from ._internal import SetVerboseLevel as _set_verbose_level
+from pydrobert.kaldi._internal import SetPythonLogHandler as _set_log_handler
+from pydrobert.kaldi._internal import SetVerboseLevel as _set_verbose_level
 
 __author__ = "Sean Robertson"
 __email__ = "sdrobert@cs.toronto.edu"
@@ -49,8 +50,8 @@ This is important to do if you plan on using kaldi's sorted tables at all."""
 if locale.getdefaultlocale() != (None, None):
     warnings.warn(LOCALE_MESSAGE)
 
-_KALDI_LOG_LEVEL = logging.INFO
-'''The log level kaldi is set to'''
+_KALDI_LOG_LEVEL = None
+'''The log level (verbosity) kaldi is set to'''
 
 _REGISTERED_LOGGER_NAMES = set()
 '''The loggers who will receive kaldi's messages'''
@@ -87,9 +88,9 @@ class KaldiLogger(logging.getLoggerClass()):
        instances of ``KaldiLogger`` to filter appropriately
     """
 
-    def __new__(cls, name, *args, **kwargs):
+    def __init__(self, name, *args, **kwargs):
+        super(KaldiLogger, self).__init__(name, *args, **kwargs)
         _REGISTERED_LOGGER_NAMES.add(name)
-        return super(KaldiLogger, cls).__new__(cls, name, *args, **kwargs)
 
     def makeRecord(self, *args, **kwargs):
         # unfortunately, the signature for this method differs between
@@ -122,11 +123,11 @@ class KaldiLogger(logging.getLoggerClass()):
         _convert_logging_lvl_to_kaldi_lvl(lvl)
         return lvl
 
-def _convert_logging_lvl_to_kaldi_lvl(lvl):
+def _convert_logging_lvl_to_kaldi_lvl(lvl, force=False):
     global _KALDI_LOG_LEVEL
-    if lvl < _KALDI_LOG_LEVEL:
+    if force or lvl < _KALDI_LOG_LEVEL:
         if lvl >= 10:
-            _set_verbose_level((lvl - 20) // -10)
+            _set_verbose_level(max(-3, (lvl - 20) // -10))
         else:
             _set_verbose_level(11 - lvl)
         _KALDI_LOG_LEVEL = lvl
@@ -151,6 +152,9 @@ def _initialize_module_logging():
     logger = logging.getLogger('pydrobert.kaldi')
     logging.setLoggerClass(old_logger_class)
     logger.addHandler(logging.StreamHandler())
+    # this is to make sure kaldi aligns with whatever the initial root
+    logger.getEffectiveLevel()
 
+_convert_logging_lvl_to_kaldi_lvl(logging.CRITICAL, force=True)
 _set_log_handler(_kaldi_logging_callback)
 _initialize_module_logging()
