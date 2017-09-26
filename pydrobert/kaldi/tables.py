@@ -63,7 +63,7 @@ from enum import Enum # need enum34 for python 2.7
 from future.utils import implements_iterator
 from six import with_metaclass
 
-from . import _internal as _i
+from pydrobert.kaldi import _internal as _i
 
 __author__ = "Sean Robertson"
 __email__ = "sdrobert@cs.toronto.edu"
@@ -80,7 +80,7 @@ class KaldiDataType(Enum):
     Notes
     -----
     The "base float" mentioned in this documentation is the same type as
-    ``kaldi::BaseFloat`, which was determined when Kaldi was built. The
+    ``kaldi::BaseFloat``, which was determined when Kaldi was built. The
     easiest way to determine whether this is a double (64bit) or a float
     (32bit) is by checking the value of
     `KaldiDataType.BaseVector.is_double`.
