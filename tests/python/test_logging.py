@@ -29,7 +29,7 @@ import pytest
 from builtins import chr
 from six.moves import StringIO
 
-from pydrobert.kaldi import tables
+from pydrobert.kaldi import io
 from pydrobert.kaldi._internal import VerboseLog as verbose_log
 from pydrobert.kaldi.logging import KaldiLogger
 from pydrobert.kaldi.logging import deregister_logger_for_kaldi
@@ -104,10 +104,10 @@ def test_do_not_callback_unregistered(kaldi_logger):
 
 def elicit_warning(filename, threaded=False):
     # helper to elicit a natural warning from kaldi
-    writer = tables.open('ark,t:{}'.format(filename), 'bv', 'w')
+    writer = io.open('ark,t:{}'.format(filename), 'bv', 'w')
     writer.write('zz', [np.infty])
     writer.close()
-    reader = tables.open(
+    reader = io.open(
         'ark,t{}:{}'.format(',bg' if threaded else '', filename), 'bv')
     next(reader)
     reader.close()

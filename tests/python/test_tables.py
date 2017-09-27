@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Pytests for `pydrobert.kaldi.tables`"""
+"""Pytests for `pydrobert.kaldi.io.tables`"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -20,14 +20,14 @@ from __future__ import print_function
 
 import os
 import platform
-import wave
 
 from tempfile import NamedTemporaryFile
 
 import numpy as np
 import pytest
 
-from pydrobert.kaldi import tables
+from pydrobert.kaldi.io import open as io_open
+from pydrobert.kaldi.io import tables
 
 @pytest.fixture
 def temp_file_1_name():
@@ -68,15 +68,15 @@ def temp_file_2_name():
 ])
 @pytest.mark.parametrize('is_text', [True, False])
 def test_read_write(temp_file_1_name, dtype, value, is_text):
-    xfilename = None
+    specifier = None
     if is_text:
-        xfilename = 'ark,t:{}'.format(temp_file_1_name)
+        specifier = 'ark,t:{}'.format(temp_file_1_name)
     else:
-        xfilename = 'ark:{}'.format(temp_file_1_name)
-    writer = tables.open(xfilename, dtype, mode='w')
+        specifier = 'ark:{}'.format(temp_file_1_name)
+    writer = io_open(specifier, dtype, mode='w')
     writer.write('a', value)
     writer.close()
-    reader = tables.open(xfilename, dtype)
+    reader = io_open(specifier, dtype)
     once = True
     for read_value in iter(reader):
         assert once, "Multiple values"
@@ -104,12 +104,12 @@ def test_read_write(temp_file_1_name, dtype, value, is_text):
 ])
 @pytest.mark.parametrize('is_text', [True, False])
 def test_read_write_invalid(temp_file_1_name, dtype, value, is_text):
-    xfilename = None
+    specifier = None
     if is_text:
-        xfilename = 'ark,t:{}'.format(temp_file_1_name)
+        specifier = 'ark,t:{}'.format(temp_file_1_name)
     else:
-        xfilename = 'ark:{}'.format(temp_file_1_name)
-    writer = tables.open(xfilename, dtype, mode='w')
+        specifier = 'ark:{}'.format(temp_file_1_name)
+    writer = io_open(specifier, dtype, mode='w')
     with pytest.raises(Exception):
         writer.write('a', value)
 
@@ -122,7 +122,7 @@ def test_read_sequential(temp_file_1_name):
             np.arange(1000, dtype=np.float32),
             np.arange(1000, dtype=np.float32)),
     )
-    writer = tables.open('ark:{}'.format(temp_file_1_name), 'fm', mode='w')
+    writer = io_open('ark:{}'.format(temp_file_1_name), 'fm', mode='w')
     for key, value in enumerate(values):
         writer.write(str(key), value)
     writer.close()
@@ -130,26 +130,26 @@ def test_read_sequential(temp_file_1_name):
     # we confound "once" and "background" testing here, but I assume
     # these are working in Kaldi and shouldn't be visible here
     count = 0
-    reader = tables.open('ark,bg:{}'.format(temp_file_1_name), 'fm')
+    reader = io_open('ark,bg:{}'.format(temp_file_1_name), 'fm')
     for act_value, reader_value in zip(values, iter(reader)):
         assert np.allclose(act_value, reader_value)
         count += 1
     assert count == len(values)
     reader.close()
     # check that the keys are all savvy
-    reader = tables.open('ark:{}'.format(temp_file_1_name), 'fm')
+    reader = io_open('ark:{}'.format(temp_file_1_name), 'fm')
     for idx, tup in enumerate(reader.items()):
         key, value = tup
         assert str(idx) == key
 
 def test_read_random(temp_file_1_name):
-    writer = tables.open('ark:{}'.format(temp_file_1_name), 'dv', mode='w')
+    writer = io_open('ark:{}'.format(temp_file_1_name), 'dv', mode='w')
     writer.write('able', [])
     writer.write('was', [2])
     writer.write('I', [3, 3])
     writer.write('ere', [4, 4])
     writer.close()
-    reader = tables.open(
+    reader = io_open(
         'ark,o:{}'.format(temp_file_1_name), 'dv', mode='r+')
     assert np.allclose(reader['I'], [3, 3])
     assert np.allclose(reader['able'], [])
@@ -162,7 +162,7 @@ def test_write_script_and_archive(temp_file_1_name, temp_file_2_name):
         'baz': -1e10 * np.eye(20, dtype=np.float64),
     }
     keys = list(values)
-    writer = tables.open(
+    writer = io_open(
         'ark,scp:{},{}'.format(temp_file_1_name, temp_file_2_name),
         'dm', mode='w'
     )
@@ -171,7 +171,7 @@ def test_write_script_and_archive(temp_file_1_name, temp_file_2_name):
         writer.write(key, values[key])
     writer.close()
     keys.reverse()
-    reader = tables.open('scp:{}'.format(temp_file_2_name), 'dm', mode='r+')
+    reader = io_open('scp:{}'.format(temp_file_2_name), 'dm', mode='r+')
     for key in keys:
         assert np.allclose(reader[key], values[key]), key
     assert np.allclose(reader['bar'], values['bar']), "Failed doublecheck"
@@ -179,61 +179,61 @@ def test_write_script_and_archive(temp_file_1_name, temp_file_2_name):
 @pytest.mark.skipif(platform.system() == 'Windows', reason='Not posix')
 def test_read_write_pipe_posix(temp_file_1_name):
     value = np.ones((1000,10000), dtype=np.float32)
-    writer = tables.open(
+    writer = io_open(
         'ark:| gzip -c > {}'.format(temp_file_1_name), 'fm', mode='w')
     writer.write('bar', value)
     writer.close()
-    reader = tables.open(
+    reader = io_open(
         'ark:gunzip -c {}|'.format(temp_file_1_name), 'fm', mode='r+')
     assert np.allclose(reader['bar'], value)
 
 def test_context_open(temp_file_1_name):
-    xfilename = 'ark:{}'.format(temp_file_1_name)
-    with tables.open(xfilename, 'bm', mode='w') as kaldi_io:
+    specifier = 'ark:{}'.format(temp_file_1_name)
+    with io_open(specifier, 'bm', mode='w') as kaldi_io:
         assert isinstance(kaldi_io, tables.KaldiTable)
         assert isinstance(kaldi_io, tables.KaldiWriter)
-    with tables.open(xfilename, 'bm') as kaldi_io:
+    with io_open(specifier, 'bm') as kaldi_io:
         assert isinstance(kaldi_io, tables.KaldiSequentialReader)
-    with tables.open(xfilename, 'bm', mode='r') as kaldi_io:
+    with io_open(specifier, 'bm', mode='r') as kaldi_io:
         assert isinstance(kaldi_io, tables.KaldiSequentialReader)
-    with tables.open(xfilename, 'bm', mode='r+') as kaldi_io:
+    with io_open(specifier, 'bm', mode='r+') as kaldi_io:
         assert isinstance(kaldi_io, tables.KaldiRandomAccessReader)
 
 def test_filehandle_open(temp_file_1_name):
-    xfilename = 'ark:{}'.format(temp_file_1_name)
-    kaldi_io = tables.open(xfilename, 'bm', mode='w')
+    specifier = 'ark:{}'.format(temp_file_1_name)
+    kaldi_io = io_open(specifier, 'bm', mode='w')
     assert isinstance(kaldi_io, tables.KaldiTable)
     assert isinstance(kaldi_io, tables.KaldiWriter)
-    kaldi_io = tables.open(xfilename, 'bm')
+    kaldi_io = io_open(specifier, 'bm')
     assert isinstance(kaldi_io, tables.KaldiSequentialReader)
-    kaldi_io = tables.open(xfilename, 'bm', mode='r')
+    kaldi_io = io_open(specifier, 'bm', mode='r')
     assert isinstance(kaldi_io, tables.KaldiSequentialReader)
-    kaldi_io = tables.open(xfilename, 'bm', mode='r+')
+    kaldi_io = io_open(specifier, 'bm', mode='r+')
     assert isinstance(kaldi_io, tables.KaldiRandomAccessReader)
 
 def test_open_string_or_data_type(temp_file_1_name):
-    xfilename = 'ark:{}'.format(temp_file_1_name)
-    tables.open(xfilename, 'bm', mode='w')
-    tables.open(xfilename, tables.KaldiDataType.BaseMatrix, mode='w')
-    tables.open(xfilename, 'bm', mode='r')
-    tables.open(xfilename, tables.KaldiDataType.BaseMatrix, mode='r')
-    tables.open(xfilename, 'bm', mode='r+')
-    tables.open(xfilename, tables.KaldiDataType.BaseMatrix, mode='r+')
+    specifier = 'ark:{}'.format(temp_file_1_name)
+    io_open(specifier, 'bm', mode='w')
+    io_open(specifier, tables.KaldiDataType.BaseMatrix, mode='w')
+    io_open(specifier, 'bm', mode='r')
+    io_open(specifier, tables.KaldiDataType.BaseMatrix, mode='r')
+    io_open(specifier, 'bm', mode='r+')
+    io_open(specifier, tables.KaldiDataType.BaseMatrix, mode='r+')
 
 def test_invalid_data_type(temp_file_1_name):
-    xfilename = 'ark:{}'.format(temp_file_1_name)
+    specifier = 'ark:{}'.format(temp_file_1_name)
     with pytest.raises(ValueError):
-        tables.open(xfilename, 'foo', mode='w')
+        io_open(specifier, 'foo', mode='w')
 
 def test_no_exception_on_double_close(temp_file_1_name):
-    xfilename = 'ark:{}'.format(temp_file_1_name)
-    kaldi_io = tables.open(xfilename, 'bm', mode='w')
+    specifier = 'ark:{}'.format(temp_file_1_name)
+    kaldi_io = io_open(specifier, 'bm', mode='w')
     kaldi_io.close()
     kaldi_io.close()
 
 def test_wave_read_write_valid(temp_file_1_name):
-    xfilename = 'ark:{}'.format(temp_file_1_name)
-    writer = tables.open(xfilename, 'wm', mode='w')
+    specifier = 'ark:{}'.format(temp_file_1_name)
+    writer = io_open(specifier, 'wm', mode='w')
     n_waves = 10
     keys = [str(i) for i in range(n_waves)]
     n_samples = [np.random.randint(1, 100000) for _ in keys]
@@ -246,7 +246,7 @@ def test_wave_read_write_valid(temp_file_1_name):
     for key, buf in zip(keys, bufs):
         writer.write(key, buf)
     writer.close()
-    reader = tables.open(xfilename, 'wm', value_style='sbd')
+    reader = io_open(specifier, 'wm', value_style='sbd')
     for vals, expected_buf in zip(reader, bufs):
         sample_rate, actual_buf, dur = vals
         assert int(sample_rate) == 16000
