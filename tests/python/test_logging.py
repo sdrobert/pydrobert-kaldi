@@ -19,9 +19,6 @@ from __future__ import division
 from __future__ import print_function
 
 import logging
-import os
-
-from tempfile import NamedTemporaryFile
 
 import numpy as np
 import pytest
@@ -34,13 +31,6 @@ from pydrobert.kaldi._internal import VerboseLog as verbose_log
 from pydrobert.kaldi.logging import KaldiLogger
 from pydrobert.kaldi.logging import deregister_logger_for_kaldi
 from pydrobert.kaldi.logging import register_logger_for_kaldi
-
-@pytest.fixture
-def temp_file_1_name():
-    temp = NamedTemporaryFile(delete=False)
-    temp.close()
-    yield temp.name
-    os.remove(temp.name)
 
 @pytest.fixture
 def kaldi_logger():

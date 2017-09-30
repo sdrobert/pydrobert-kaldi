@@ -16,41 +16,25 @@
  
 */
 
-// handling matrix and vector stuff
-%numpy_typemaps(double, NPY_DOUBLE, kaldi::MatrixIndexT);
-%numpy_typemaps(float, NPY_FLOAT, kaldi::MatrixIndexT);
-
 %{
   #include "matrix/kaldi-matrix.h"
   #include "matrix/kaldi-vector.h"
 %}
 
 namespace kaldi {
-  typedef enum {
-    kSetZero,
-    kUndefined,
-    kCopyData
-  } MatrixResizeType;
-  typedef enum {
-    kDefaultStride,
-    kStrideEqualNumCols,
-  } MatrixStrideType;
-  typedef int MatrixIndexT;
-  typedef int SignedMatrixIndexT;
-  typedef unsigned int UnsignedMatrixIndexT;
   template <typename Real> class Vector {};
   template <typename Real> class Matrix {};
 }
 
+%define EXTEND_MV_WITH_REAL(Real, RealName)
 
-%define EXTEND_MV_WITH_REAL(Real)
 // stores matrix/vector read-only in first argument, dim in second. C-contiguous
 // Kaldi always keeps rows contiguous, but not necessarily columns
-%apply(Real* IN_ARRAY1, kaldi::MatrixIndexT DIM1) {(const Real *vec_in, const kaldi::MatrixIndexT len)};
-%apply(Real* IN_ARRAY2, kaldi::MatrixIndexT DIM1, kaldi::MatrixIndexT DIM2) {(const Real* matrix_in, const kaldi::MatrixIndexT dim_row, const kaldi::MatrixIndexT dim_col)};
+%apply(Real* IN_ARRAY1, kaldi::MatrixIndexT DIM1) {(const Real *vec_in, const kaldi::MatrixIndexT len)}
+%apply(Real* IN_ARRAY2, kaldi::MatrixIndexT DIM1, kaldi::MatrixIndexT DIM2) {(const Real* matrix_in, const kaldi::MatrixIndexT dim_row, const kaldi::MatrixIndexT dim_col)}
 // will allocate into first, storing dimensions into later
-%apply(Real** ARGOUTVIEWM_ARRAY1, kaldi::MatrixIndexT* DIM1) {(Real** vec_out, kaldi::MatrixIndexT* len)};
-%apply(Real** ARGOUTVIEWM_ARRAY2, kaldi::MatrixIndexT* DIM1, kaldi::MatrixIndexT* DIM2) {(Real** matrix_out, kaldi::MatrixIndexT* dim_row, kaldi::MatrixIndexT* dim_col)};
+%apply(Real** ARGOUTVIEWM_ARRAY1, kaldi::MatrixIndexT* DIM1) {(Real** vec_out, kaldi::MatrixIndexT* len)}
+%apply(Real** ARGOUTVIEWM_ARRAY2, kaldi::MatrixIndexT* DIM1, kaldi::MatrixIndexT* DIM2) {(Real** matrix_out, kaldi::MatrixIndexT* dim_row, kaldi::MatrixIndexT* dim_col)}
 
 %extend kaldi::TableWriter<kaldi::KaldiObjectHolder<kaldi::Vector<Real > > > {
   void Write(const std::string &key,
@@ -143,11 +127,16 @@ namespace kaldi {
     *dim_col = num_cols;
   };
 }
-%enddef
-EXTEND_MV_WITH_REAL(double)
-EXTEND_MV_WITH_REAL(float)
 
-TEMPLATE_WITH_KOBJECT_NAME_AND_TYPE(DoubleVector, kaldi::Vector<double>)
-TEMPLATE_WITH_KOBJECT_NAME_AND_TYPE(FloatVector, kaldi::Vector<float>)
-TEMPLATE_WITH_KOBJECT_NAME_AND_TYPE(DoubleMatrix, kaldi::Matrix<double>)
-TEMPLATE_WITH_KOBJECT_NAME_AND_TYPE(FloatMatrix, kaldi::Matrix<float>)
+// %clear (const Real *vec_in, const kaldi::MatrixIndexT len);
+// %clear (const Real* matrix_in, const kaldi::MatrixIndexT dim_row, const kaldi::MatrixIndexT dim_col);
+// %clear (Real** vec_out, kaldi::MatrixIndexT* len);
+// %clear (Real** matrix_out, kaldi::MatrixIndexT* dim_row, kaldi::MatrixIndexT* dim_col);
+
+TEMPLATE_WITH_KOBJECT_NAME_AND_TYPE(RealName ## Vector, kaldi::Vector<Real>)
+TEMPLATE_WITH_KOBJECT_NAME_AND_TYPE(RealName ## Matrix, kaldi::Matrix<Real>)
+
+%enddef
+EXTEND_MV_WITH_REAL(double, Double)
+EXTEND_MV_WITH_REAL(float, Float)
+

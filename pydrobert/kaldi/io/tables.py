@@ -43,36 +43,96 @@ __all__ = [
 ]
 
 def open_table(
-        rspecifier, kaldi_dtype, mode='r', error_on_str=True,
+        path, kaldi_dtype, mode='r', error_on_str=True,
         utt2spk='', value_style='b'):
-    '''Open a kaldi table
+    '''Factory function to open a kaldi table
 
-    This function is designed specifically to open subclasses of
-    KaldiTable. In general, it is not necessary to use this directly, as
-    `pydrobert.kaldi.io.open` provides this functionality and more.
+    This function finds the correct `KaldiTable` according to the args
+    `kaldi_dtype` and `mode`. Specific combinations allow for optional
+    parameters outlined by the table below
+
+    +------+-------------+---------------------+
+    | mode | kaldi_dtype | additional kwargs   |
+    +======+=============+=====================+
+    |`'r'` | `'wm'`      | `value_style='b'`   |
+    +------+-------------+---------------------+
+    |`'r+'`| *           | `utt2spk=''`        |
+    +------+-------------+---------------------+
+    |`'r+'`| `'wm'`      | `value_style='b'`   |
+    +------+-------------+---------------------+
+    |`'w'` | `'tv'`      | `error_on_str=True` |
+    +------+-------------+---------------------+
+
+    Parameters
+    ----------
+    path : str
+        The specifier used by kaldi to open the script.
+        Generally these will take the form
+        ``"{ark|scp}:<path_to_file>"``,
+        though they can take much more interesting forms (like pipes).
+        More information can be found on the `Kaldi website
+        <http://kaldi-asr.org/doc2/io.html>`_.
+    kaldi_dtype : KaldiDataType
+        The type of data the table is expected to handle.
+    mode : {'r', 'r+', 'w'}, optional
+        Specifies the type of access to be performed: read sequential,
+        read random, or write. They are implemented by subclasses of
+        `KaldiSequentialReader`, `KaldiRandomAccessReader`, or
+        `KaldiWriter`, resp.
+    error_on_str : bool, optional
+        Token vectors (`'tv'`) accept sequences of whitespace-free
+        ASCII/UTF strings. A `str` is also a sequence of characters,
+        which may satisfy the token requirements. If
+        `error_on_str=True`, a `ValueError` is raised when writing a
+        `str` as a token vector. Otherwise a `str` can be written.
+    utt2spk : str, optional
+        If set, the reader uses `utt2spk` as a map from utterance ids to
+        speaker ids. The data in `path`, which are assumed to be
+        referenced by speaker ids, can then be refrenced by utterance.
+        If `utt2spk` is unspecified, the keys in `path` are used to
+        query for data.
+    value_style : str of {'b', 's', 'd'}, optional
+        `wm` readers can provide not only the audio buffer (`'b'`) of a
+        wave file, but its sampling rate (`'s'`), and/or duration (in
+        sec, `'d'`). Setting `value_style` to some combination of `'b'`,
+        `'s'`, and/or `'d'` will cause the reader to return a tuple of
+        that information. If `value_style` is only one character, the
+        result will not be contained in a tuple.
+
+    Returns
+    -------
+    KaldiTable
+        A table, opened.
+
+    Raises
+    ------
+        IOError
+            On failure to open
+        SytemError
+            Kaldi errors are thrown as `SystemError`s.
     '''
     kaldi_dtype = KaldiDataType(kaldi_dtype)
     if mode == 'r':
         if kaldi_dtype.value == 'wm':
             table = _KaldiSequentialWaveReader(
-                rspecifier, kaldi_dtype, value_style=value_style)
+                path, kaldi_dtype, value_style=value_style)
         else:
-            table = _KaldiSequentialSimpleReader(rspecifier, kaldi_dtype)
+            table = _KaldiSequentialSimpleReader(path, kaldi_dtype)
     elif mode == 'r+':
         if kaldi_dtype.value == 'wm':
             table = _KaldiRandomAccessWaveReader(
-                rspecifier, kaldi_dtype, utt2spk=utt2spk,
+                path, kaldi_dtype, utt2spk=utt2spk,
                 value_style=value_style
             )
         else:
             table = _KaldiRandomAccessSimpleReader(
-                rspecifier, kaldi_dtype, utt2spk=utt2spk)
+                path, kaldi_dtype, utt2spk=utt2spk)
     elif mode in ('w', 'w+'):
         if kaldi_dtype.value == 'tv':
             table = _KaldiTokenVectorWriter(
-                rspecifier, kaldi_dtype, error_on_str=error_on_str)
+                path, kaldi_dtype, error_on_str=error_on_str)
         else:
-            table = _KaldiSimpleWriter(rspecifier, kaldi_dtype)
+            table = _KaldiSimpleWriter(path, kaldi_dtype)
     else:
         raise ValueError(
             'Invalid Kaldi I/O mode "{}" (should be one of "r","r+","w")'
@@ -94,6 +154,7 @@ class KaldiTable(KaldiIOBase):
     Attributes
     ----------
     kaldi_dtype : KaldiDataType
+        The table's data type
 
     Raises
     ------
@@ -104,12 +165,8 @@ class KaldiTable(KaldiIOBase):
     """
 
     def __init__(self, path, kaldi_dtype):
-        self._kaldi_dtype = KaldiDataType(kaldi_dtype)
+        self.kaldi_dtype = KaldiDataType(kaldi_dtype)
         super(KaldiTable, self).__init__(path)
-
-    def kaldi_dtype(self):
-        """The open table's KaldiDataType"""
-        return self._kaldi_dtype
 
 @implements_iterator
 class KaldiSequentialReader(KaldiTable, Iterator):
@@ -199,6 +256,12 @@ class KaldiSequentialReader(KaldiTable, Iterator):
         self._iterator_type = 2
         return self
 
+    def readable(self):
+        return True
+
+    def writable(self):
+        return False
+
     def __next__(self):
         if self.closed:
             raise IOError('I/O operation on a closed file')
@@ -270,6 +333,12 @@ class KaldiRandomAccessReader(KaldiTable, Container):
         except KeyError:
             return default
 
+    def readable(self):
+        return True
+
+    def writable(self):
+        return False
+
 class KaldiWriter(KaldiTable):
     """Write key-value pairs to tables
 
@@ -303,6 +372,12 @@ class KaldiWriter(KaldiTable):
         """
         pass
 
+    def readable(self):
+        return False
+
+    def writable(self):
+        return True
+
 class _KaldiSequentialSimpleReader(KaldiSequentialReader):
     __doc__ = KaldiSequentialReader.__doc__
 
@@ -326,6 +401,7 @@ class _KaldiSequentialSimpleReader(KaldiSequentialReader):
             raise IOError('Unable to open for sequential read')
         self._internal = instance
         super(_KaldiSequentialSimpleReader, self).__init__(path, kaldi_dtype)
+        self.binary &= self._internal.IsBinary()
 
     def done(self):
         return self.closed or self._internal.Done()
@@ -346,12 +422,6 @@ class _KaldiSequentialSimpleReader(KaldiSequentialReader):
         else:
             return self._internal.Value()
 
-    def readable(self):
-        return True
-
-    def writable(self):
-        return False
-
     def move(self):
         if self.closed:
             raise IOError('I/O operation on closed file.')
@@ -364,7 +434,7 @@ class _KaldiSequentialSimpleReader(KaldiSequentialReader):
     def close(self):
         if not self.closed:
             self._internal.Close()
-        super(_KaldiSequentialSimpleReader, self).close()
+        self.closed = True
 
 class _KaldiRandomAccessSimpleReader(KaldiRandomAccessReader):
     __doc__ = KaldiRandomAccessReader.__doc__
@@ -390,12 +460,7 @@ class _KaldiRandomAccessSimpleReader(KaldiRandomAccessReader):
         self._internal = instance
         super(_KaldiRandomAccessSimpleReader, self).__init__(
             path, kaldi_dtype, utt2spk=utt2spk)
-
-    def readable(self):
-        return True
-
-    def writable(self):
-        return False
+        self.binary &= self._internal.IsBinary()
 
     def __contains__(self, key):
         if self.closed:
@@ -412,7 +477,7 @@ class _KaldiRandomAccessSimpleReader(KaldiRandomAccessReader):
     def close(self):
         if not self.closed:
             self._internal.Close()
-        super(_KaldiRandomAccessSimpleReader, self).close()
+        self.closed = True
 
 class _KaldiSimpleWriter(KaldiWriter):
     __doc__ = KaldiWriter.__doc__
@@ -437,12 +502,7 @@ class _KaldiSimpleWriter(KaldiWriter):
             raise IOError('Unable to open for write')
         self._internal = instance
         super(_KaldiSimpleWriter, self).__init__(path, kaldi_dtype)
-
-    def readable(self):
-        return False
-
-    def writable(self):
-        return True
+        self.binary &= self._internal.IsBinary()
 
     def write(self, key, value):
         if self.closed:
@@ -452,7 +512,7 @@ class _KaldiSimpleWriter(KaldiWriter):
     def close(self):
         if not self.closed:
             self._internal.Close()
-        super(_KaldiSimpleWriter, self).close()
+        self.closed = True
 
 class _KaldiSequentialWaveReader(KaldiSequentialReader):
     __doc__ = KaldiSequentialReader.__doc__
@@ -477,6 +537,7 @@ class _KaldiSequentialWaveReader(KaldiSequentialReader):
             else:
                 self._value_calls.append(self._internal.Duration)
         super(_KaldiSequentialWaveReader, self).__init__(path, kaldi_dtype)
+        self.binary = True
 
     def value(self):
         if self.closed:
@@ -501,12 +562,6 @@ class _KaldiSequentialWaveReader(KaldiSequentialReader):
         else:
             return self._internal.Key()
 
-    def readable(self):
-        return True
-
-    def writable(self):
-        return False
-
     def move(self):
         if self.closed:
             raise IOError('I/O operation on closed file.')
@@ -519,7 +574,7 @@ class _KaldiSequentialWaveReader(KaldiSequentialReader):
     def close(self):
         if not self.closed:
             self._internal.Close()
-        super(_KaldiSequentialWaveReader, self).close()
+        self.closed = True
 
 class _KaldiRandomAccessWaveReader(KaldiRandomAccessReader):
     __doc__ = KaldiRandomAccessReader.__doc__
@@ -545,12 +600,7 @@ class _KaldiRandomAccessWaveReader(KaldiRandomAccessReader):
                 self._value_calls.append(self._internal.Duration)
         super(_KaldiRandomAccessWaveReader, self).__init__(
             path, kaldi_dtype, utt2spk=utt2spk)
-
-    def readable(self):
-        return True
-
-    def writable(self):
-        return False
+        self.binary = True
 
     def __contains__(self, key):
         if self.closed:
@@ -571,7 +621,7 @@ class _KaldiRandomAccessWaveReader(KaldiRandomAccessReader):
     def close(self):
         if not self.closed:
             self._internal.Close()
-        super(_KaldiRandomAccessWaveReader, self).close()
+        self.closed = True
 
 class _KaldiTokenVectorWriter(KaldiWriter):
     __doc__ = KaldiWriter.__doc__
@@ -583,17 +633,13 @@ class _KaldiTokenVectorWriter(KaldiWriter):
             raise IOError('Unable to open for write')
         self._internal = instance
         super(_KaldiTokenVectorWriter, self).__init__(path, kaldi_dtype)
-
-    def readable(self):
-        return False
-
-    def writable(self):
-        return True
+        self.binary = False
 
     def write(self, key, value):
         if self.closed:
             raise IOError('I/O operation on a closed file')
-        if isinstance(value, str) or isinstance(value, text):
+        if self._error_on_str and (
+                isinstance(value, str) or isinstance(value, text)):
             raise ValueError(
                 'Expected list of tokens, got string. If you want '
                 'to treat strings as lists of character-wide tokens, '
@@ -603,4 +649,4 @@ class _KaldiTokenVectorWriter(KaldiWriter):
     def close(self):
         if not self.closed:
             self._internal.Close()
-        super(_KaldiTokenVectorWriter, self).close()
+        self.closed = True

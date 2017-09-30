@@ -88,6 +88,11 @@ class KaldiDataType(Enum):
         return str(self.value) in ('bm', 'dm', 'fm', 'wm')
 
     @property
+    def is_num_vector(self):
+        """bool : whether this is a numerical vector"""
+        return str(self.value) in ('bv', 'fv', 'dv')
+
+    @property
     def is_floating_point(self):
         """bool : whether this type has a floating point representation"""
         return str(self.value) in ('bv', 'fv', 'dv', 'bm', 'fm', 'dm', 'wm')

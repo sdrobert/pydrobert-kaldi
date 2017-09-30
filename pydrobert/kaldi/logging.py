@@ -99,8 +99,8 @@ def register_logger_for_kaldi(name):
 
     See module docstring for more info
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     name : str
         logger name. When a new message comes along from Kaldi, the
         callback will send a message to ``logging.getLogger(name)``

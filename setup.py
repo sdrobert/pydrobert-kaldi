@@ -44,8 +44,8 @@ LD_FLAGS = []
 
 if platform.system() == 'Linux':
     if 'MKLROOT' in environ:
-        # IMPORTANT: make sure that BLAS_LIBRARIES stays in this order, or you'll
-        # get failed symbol lookups
+        # IMPORTANT: make sure that BLAS_LIBRARIES stays in this order,
+        # or you'll get failed symbol lookups
         MKL_ROOT = path.abspath(environ['MKLROOT'])
         MKL_THREADING = environ.get('MKL_THREADING_TYPE', 'sequential')
         if path.isdir(path.join(MKL_ROOT, 'mkl')) and \

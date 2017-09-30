@@ -1,4 +1,4 @@
-# Copyright 2016 Sean Robertson
+# Copyright 2017 Sean Robertson
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,30 +18,13 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os
 import platform
-
-from tempfile import NamedTemporaryFile
 
 import numpy as np
 import pytest
 
 from pydrobert.kaldi.io import open as io_open
 from pydrobert.kaldi.io import tables
-
-@pytest.fixture
-def temp_file_1_name():
-    temp = NamedTemporaryFile(delete=False)
-    temp.close()
-    yield temp.name
-    os.remove(temp.name)
-
-@pytest.fixture
-def temp_file_2_name():
-    temp = NamedTemporaryFile(delete=False)
-    temp.close()
-    yield temp.name
-    os.remove(temp.name)
 
 @pytest.mark.parametrize('dtype,value', [
     ('bv', []),

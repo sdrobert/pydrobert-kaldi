@@ -47,7 +47,6 @@ namespace kaldi {
       bool IsOpen() const;
       bool Close();
       bool HasKey(const std::string &key);
-      // const T &Value(const std::string &key);
   };
   template <class Holder> class TableWriter {
     public:
@@ -55,13 +54,23 @@ namespace kaldi {
       bool Open(const std::string &wspecifier);
       bool IsOpen() const;
       bool Close();
-      // void Write(const std::string &key, const T &value) const;
   };
 }
+
+%define EXTEND_RW_WITH_IS_BINARY(RWName, HolderName)
+%extend RWName ## < ## HolderName > {
+  static bool IsBinary() {
+    return HolderName ## ::IsReadInBinary();
+  };
+}
+%enddef
 
 %define TEMPLATE_WITH_KOBJECT_NAME_AND_TYPE(Name, Type)
 %template(Name) Type;
 %template(Name ## Holder) kaldi::KaldiObjectHolder<Type >;
+EXTEND_RW_WITH_IS_BINARY(kaldi::SequentialTableReader, kaldi::KaldiObjectHolder<Type >);
+EXTEND_RW_WITH_IS_BINARY(kaldi::RandomAccessTableReaderMapped, kaldi::KaldiObjectHolder<Type >);
+EXTEND_RW_WITH_IS_BINARY(kaldi::TableWriter, kaldi::KaldiObjectHolder<Type >);
 %template(Sequential ## Name ## Reader) kaldi::SequentialTableReader<kaldi::KaldiObjectHolder<Type > >;
 %template(RandomAccess ## Name ## Reader) kaldi::RandomAccessTableReaderMapped<kaldi::KaldiObjectHolder<Type > >;
 %template(Name ## Writer) kaldi::TableWriter<kaldi::KaldiObjectHolder<Type > >;

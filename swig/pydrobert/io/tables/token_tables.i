@@ -75,10 +75,16 @@ namespace kaldi {
   };
 }
 
+EXTEND_RW_WITH_IS_BINARY(kaldi::SequentialTableReader, kaldi::TokenHolder);
+EXTEND_RW_WITH_IS_BINARY(kaldi::RandomAccessTableReaderMapped, kaldi::TokenHolder);
+EXTEND_RW_WITH_IS_BINARY(kaldi::TableWriter, kaldi::TokenHolder);
 %template(TokenWriter) kaldi::TableWriter<kaldi::TokenHolder >;
 %template(SequentialTokenReader) kaldi::SequentialTableReader<kaldi::TokenHolder >;
 %template(RandomAccessTokenReader) kaldi::RandomAccessTableReaderMapped<kaldi::TokenHolder >;
 
+EXTEND_RW_WITH_IS_BINARY(kaldi::SequentialTableReader, kaldi::TokenVectorHolder);
+EXTEND_RW_WITH_IS_BINARY(kaldi::RandomAccessTableReaderMapped, kaldi::TokenVectorHolder);
+EXTEND_RW_WITH_IS_BINARY(kaldi::TableWriter, kaldi::TokenVectorHolder);
 %template(TokenVectorWriter) kaldi::TableWriter<kaldi::TokenVectorHolder >;
 %template(SequentialTokenVectorReader) kaldi::SequentialTableReader<kaldi::TokenVectorHolder >;
 %template(RandomAccessTokenVectorReader) kaldi::RandomAccessTableReaderMapped<kaldi::TokenVectorHolder >;

@@ -21,6 +21,8 @@
   #define SWIG_FILE_WITH_INIT
   #define SWIG_PYTHON_2_UNICODE
 %}
+
+%include "typemaps.i"
 %include "std_string.i"
 %include "std_vector.i"
 %include "stdint.i"
@@ -42,23 +44,35 @@
   import_array();
 %}
 
-%template(StringVector) std::vector<std::string >;
-%template(IntVector) std::vector<int >;
-
 // to determine BaseFloat in python wrapper
 #if KALDI_DOUBLEPRECISION
 %constant bool kDoubleIsBase = true;
 namespace kaldi {
   typedef double BaseFloat;
 }
+%numpy_typemaps(kaldi::BaseFloat, NPY_DOUBLE, kaldi::MatrixIndexT);
 #else
 %constant bool kDoubleIsBase = false;
 namespace kaldi {
   typedef float BaseFloat;
 }
+%numpy_typemaps(kaldi::BaseFloat, NPY_FLOAT, kaldi::MatrixIndexT);
 #endif
+
+%template(StringVector) std::vector<std::string >;
+%template(IntVector) std::vector<int >;
+%template(DoubleStdVector) std::vector<double >;
+
+namespace kaldi {
+  typedef int MatrixIndexT;
+  typedef int SignedMatrixIndexT;
+  typedef unsigned int UnsignedMatrixIndexT;
+}
+
+%numpy_typemaps(double, NPY_DOUBLE, kaldi::MatrixIndexT);
+%numpy_typemaps(float, NPY_FLOAT, kaldi::MatrixIndexT);
 
 %include "pydrobert/error.i"
 %include "pydrobert/io/util.i"
-%include "pydrobert/io/basic.i"
 %include "pydrobert/io/tables/tables.i"
+%include "pydrobert/io/basic.i"
