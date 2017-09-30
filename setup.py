@@ -194,7 +194,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
-    packages=['pydrobert', 'pydrobert.kaldi'],
+    packages=['pydrobert', 'pydrobert.kaldi', 'pydrobert.kaldi.io'],
     cmdclass = {'build_ext': CustomBuildExtCommand},
     setup_requires=SETUP_REQUIRES,
     install_requires=INSTALL_REQUIRES,
