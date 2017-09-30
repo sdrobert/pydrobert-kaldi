@@ -41,7 +41,7 @@ __email__ = "sdrobert@cs.toronto.edu"
 __license__ = "Apache 2.0"
 __copyright__ = "Copyright 2016 Sean Robertson"
 
-__all__ = ['tables']
+__all__ = ['io']
 
 LOCALE_MESSAGE = """\
 It looks like you did not 'export LC_ALL=C' before you started python.
