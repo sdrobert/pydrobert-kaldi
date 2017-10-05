@@ -18,7 +18,6 @@ install:
   - conda info -a
   - conda install conda-build
   - export CONDA_PY=${TRAVIS_PYTHON_VERSION}
-  - conda build .
-  - OPENBLASROOT=$CONDA_PREFIX pip install .
+  - conda build --build-only
 script: 
-  - py.test tests/python
+  - conda build --test
