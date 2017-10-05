@@ -12,8 +12,8 @@ install:
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
+  - conda config --set always_yes yes --set changeps1 no --add channels anaconda
+  - conda update -q --all
   - conda info -a
   - conda install conda-build
   - export CONDA_PY=${TRAVIS_PYTHON_VERSION}
