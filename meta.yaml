@@ -1,29 +1,28 @@
-{% set blas_variant = os.environ.get('BLAS_VARIANT', 'openblas') %}
-
 package:
-  name: pydrobert-kaldi-accelerate # [osx]
-  name: pydrobert-kaldi-{{ blas_variant }} # [linux]
+  name: pydrobert-kaldi
   version: {{ environ.get('GIT_DESCRIBE_TAG', 'v0.0.0') }}
 
 source:
   path: .
 
 requirements:
-  build:
-    - python
-    - gcc >=4.8.5 # [linux]
-    - {{ blas_variant }} # [linux]
-    - libgcc >=4.8.5 # [linux]
+  host:
+    - python {{ python }}
+    - numpy
     - setuptools
     - setuptools_scm
+    - openblas
+    - libgfortran
+    - libgfortran-ng
     - swig >=3.0
-    - numpy
     - pytest-runner
+  build:
+    - {{ compiler('cxx') }}
   run:
-    - libgcc >=4.8.5 # [linux]
-    - {{ blas_variant }} # [linux]
     - python
-    - numpy
+    - {{ pin_compatible('numpy') }}
+    - {{ pin_compatible('openblas') }}
+    - {{ pin_compatible('libgfortran') }}
     - future
     - six
     - enum34 # [py2k]
@@ -40,8 +39,6 @@ test:
   imports:
     - pydrobert
     - pydrobert.kaldi
-    - pydrobert.kaldi._internal
-    - pydrobert.kaldi.tables
 
 about:
   home: https://github.com/sdrobert/pydrobert-kaldi

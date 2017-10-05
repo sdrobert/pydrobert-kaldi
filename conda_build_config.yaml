@@ -1,0 +1,6 @@
+python:
+  - 2.7
+
+_PYTHON_SYSCONFIGDATA_NAME:
+  - _sysconfig_x86_64_conda_cos6_linux_gnu  # [linux]
+  # - _sysconfig_x86_64-apple-darwin13.4.0    # [osx]
