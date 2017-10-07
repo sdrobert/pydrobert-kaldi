@@ -105,7 +105,7 @@ elif 'OPENBLASROOT' in environ:
         BLAS_LIBRARY_DIRS.append(path.join(OPENBLAS_ROOT, 'lib'))
     if not BLAS_LIBRARY_DIRS:
         raise Exception('OPENBLASROOT set, but could not find library dir')
-    BLAS_LIBRARIES = ['gfortran', 'openblas']
+    BLAS_LIBRARIES = ['openblas']
     DEFINES.append(('HAVE_OPENBLAS', None))
 elif 'ATLASROOT' in environ:
     ATLAS_ROOT = path.abspath(environ['ATLASROOT'])

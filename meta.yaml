@@ -12,8 +12,6 @@ requirements:
     - setuptools
     - setuptools_scm
     - openblas
-    - libgfortran
-    - libgfortran-ng
     - swig >=3.0
     - pytest-runner
   build:
@@ -22,7 +20,6 @@ requirements:
     - python
     - {{ pin_compatible('numpy') }}
     - {{ pin_compatible('openblas') }}
-    - {{ pin_compatible('libgfortran') }}
     - future
     - six
     - enum34 # [py2k]

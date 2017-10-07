@@ -18,6 +18,6 @@ install:
   - conda info -a
   - conda install conda-build
   - export CONDA_PY=${TRAVIS_PYTHON_VERSION}
-  - conda build . --build-only
+  - conda build . --no-test
 script: 
   - conda build . --test
