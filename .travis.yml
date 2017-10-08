@@ -19,5 +19,6 @@ install:
   - conda install conda-build
   - export CONDA_PY=${TRAVIS_PYTHON_VERSION}
   - conda build . --no-test
+  - conda install pydrobert-kaldi --use-local
 script: 
-  - conda build . --test
+  - pytest
