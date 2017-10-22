@@ -59,6 +59,8 @@ __all__ = [
     'KaldiLogger',
     'register_logger_for_kaldi',
     'deregister_logger_for_kaldi',
+    'kaldi_lvl_to_logging_lvl',
+    'logging_lvl_to_kaldi_lvl',
 ]
 
 class KaldiLogger(logging.getLoggerClass()):
@@ -94,6 +96,19 @@ class KaldiLogger(logging.getLoggerClass()):
         record = super(KaldiLogger, self).makeRecord(*args, **kwargs)
         return record
 
+def kaldi_logger_decorator(func):
+    '''Sets the default logger class to KaldiLogger over the func call'''
+    def _new_func(*args, **kwargs):
+        __doc__ = func.__doc__
+        logger_class = logging.getLoggerClass()
+        logging.setLoggerClass(KaldiLogger)
+        try:
+            ret = func(*args, **kwargs)
+        finally:
+            logging.setLoggerClass(logger_class)
+        return ret
+    return _new_func
+
 def register_logger_for_kaldi(name):
     '''Register logger to receive Kaldi's messages
 
@@ -116,6 +131,10 @@ def deregister_logger_for_kaldi(name):
     if not _REGISTERED_LOGGER_NAMES:
         _set_verbose_level(0)
 
+def deregister_all_loggers_for_kaldi():
+    _REGISTERED_LOGGER_NAMES.clear()
+    _set_verbose_level(0)
+
 def _kaldi_logging_handler(envelope, message):
     '''Kaldi message handler that plays nicely with logging module
 
@@ -125,7 +144,7 @@ def _kaldi_logging_handler(envelope, message):
     Otherwise, errors are propagated to registered loggers
     '''
     if _REGISTERED_LOGGER_NAMES:
-        py_severity = _kaldi_lvl_to_logging_lvl(envelope[0])
+        py_severity = kaldi_lvl_to_logging_lvl(envelope[0])
         for logger_name in _REGISTERED_LOGGER_NAMES:
             logger = logging.getLogger(logger_name)
             logger.log(
@@ -133,7 +152,7 @@ def _kaldi_logging_handler(envelope, message):
     elif envelope[0] < 0:
         print(message, file=stderr)
 
-def _kaldi_lvl_to_logging_lvl(lvl):
+def kaldi_lvl_to_logging_lvl(lvl):
     '''Convert kaldi level to logging level. See module docstring'''
     if lvl <= 1:
         lvl = lvl * -10 + 20
@@ -141,7 +160,7 @@ def _kaldi_lvl_to_logging_lvl(lvl):
         lvl = 11 - lvl
     return lvl
 
-def _logging_lvl_to_kaldi_lvl(lvl):
+def logging_lvl_to_kaldi_lvl(lvl):
     '''Convert logging level to kaldi level. See module docstring'''
     if lvl >= 10:
         lvl = max(-3, (lvl - 20) // -10)

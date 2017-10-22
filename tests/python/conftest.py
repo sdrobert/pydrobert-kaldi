@@ -37,3 +37,9 @@ def temp_file_2_name():
     temp.close()
     yield temp.name
     os.remove(temp.name)
+
+@pytest.fixture(autouse=True)
+def logging_cleanup():
+    yield
+    from pydrobert.kaldi.logging import deregister_all_loggers_for_kaldi
+    deregister_all_loggers_for_kaldi()

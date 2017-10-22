@@ -29,6 +29,9 @@ __copyright__ = "Copyright 2017 Sean Robertson"
 
 __all__ = [
     'KaldiDataType',
+    'RxfilenameType',
+    'WxfilenameType',
+    'TableType',
 ]
 
 class KaldiDataType(Enum):

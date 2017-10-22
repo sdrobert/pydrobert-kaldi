@@ -200,4 +200,12 @@ setup(
     tests_require=TESTS_REQUIRE,
     ext_modules=[KALDI_LIBRARY],
     namespace_packages=['pydrobert'],
+    entry_points={
+        'console_scripts': [
+            'write-table-to-pickle = pydrobert.kaldi.command_line:'
+            'write_table_to_pickle',
+            'write-pickle-to-table = pydrobert.kaldi.command_line:'
+            'write_pickle_to_table',
+        ]
+    }
 )

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Pytests for `pydrobert.kaldi.logging`"""
+"""Pytests for `pydrobert.kaldi.logging`"""
 
 from __future__ import absolute_import
 from __future__ import division
