@@ -26,6 +26,7 @@
 #include "matrix/kaldi-vector.h"
 #include "util/kaldi-io.h"
 #include "util/text-utils.h"
+#include "util/kaldi-holder.h"
 %}
 
 namespace kaldi {
@@ -246,3 +247,45 @@ EXTEND_IO_WITH_REAL(double, Double)
 
 // %clear (const kaldi::BaseFloat* matrix_in, const kaldi::MatrixIndexT dim_row, const kaldi::MatrixIndexT dim_col);
 // %clear (kaldi::BaseFloat** matrix_out, kaldi::MatrixIndexT* dim_row, kaldi::MatrixIndexT* dim_col);
+
+%define EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(Suffix, HolderName, ValType...)
+%extend kaldi::Input {
+  ValType Read ## Suffix() {
+    HolderName holder;
+    std::istream &is = $self->Stream();
+    if (!holder.Read(is)) {
+      PyErr_SetString(PyExc_IOError, "Unable to read basic type");
+    }
+    ValType val = holder.Value();
+    return val;
+  };
+}
+%extend kaldi::Output {
+  void Write ## Suffix(ValType val) {
+    if (!HolderName ## ::Write($self->Stream(), true, val)) {
+      PyErr_SetString(PyExc_IOError, "Unable to write basic type");
+    }
+  };
+}
+%enddef
+
+// int
+EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(Int32, kaldi::BasicHolder<long >, long);
+EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(Int32Vector, kaldi::BasicVectorHolder<long >, std::vector<long >);
+EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(Int32VectorVector, kaldi::BasicVectorVectorHolder<long >, std::vector<std::vector<long > >);
+EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(Int32PairVector, kaldi::BasicPairVectorHolder<long >, std::vector<std::pair<long, long > >);
+
+// double
+EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(Double, kaldi::BasicHolder<double >, double);
+
+// base float
+#if KALDI_DOUBLEPRECISION
+EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(BaseFloat, kaldi::BasicHolder<double >, double);
+EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(BaseFloatPairVector, kaldi::BasicPairVectorHolder<double >, std::vector<std::pair<double, double > >);
+#else
+EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(BaseFloat, kaldi::BasicHolder<float >, float);
+EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(BaseFloatPairVector, kaldi::BasicPairVectorHolder<float >, std::vector<std::pair<float, float > >);
+#endif
+
+// bool
+EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(Bool, kaldi::BasicHolder<bool >, bool);

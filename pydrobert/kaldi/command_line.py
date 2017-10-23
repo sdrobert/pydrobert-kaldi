@@ -30,8 +30,8 @@ import pydrobert.kaldi.io as kaldi_io
 
 from pydrobert.kaldi.logging import KaldiLogger
 from pydrobert.kaldi.logging import kaldi_logger_decorator
-from pydrobert.kaldi.logging import register_logger_for_kaldi
 from pydrobert.kaldi.logging import kaldi_lvl_to_logging_lvl
+from pydrobert.kaldi.logging import register_logger_for_kaldi
 
 __author__ = "Sean Robertson"
 __email__ = "sdrobert@cs.toronto.edu"
@@ -206,7 +206,7 @@ class KaldiVerbosityAction(argparse.Action):
             raise argparse.ArgumentTypeError(
                 'Verbosity must be between -3 and 9 inclusive')
         logging_lvl = kaldi_lvl_to_logging_lvl(values)
-        setattr(namespace, dest, logging_lvl)
+        setattr(namespace, self.dest, logging_lvl)
         if hasattr(parser, 'logger'):
             parser.logger.setLevel(logging_lvl)
 

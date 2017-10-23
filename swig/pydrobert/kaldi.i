@@ -23,9 +23,10 @@
 %}
 
 %include "typemaps.i"
+// %include "stdint.i" // causes weird mapping issues in vectors
 %include "std_string.i"
 %include "std_vector.i"
-%include "stdint.i"
+%include "std_pair.i"
 %include "numpy/numpy.i"
 %include "exception.i"
 
@@ -44,6 +45,13 @@
   import_array();
 %}
 
+%template(StringVector) std::vector<std::string >;
+// we support the combinations of basic types/vectors that have typedefs in
+// table-types.h
+%template(Int32Vector) std::vector<long >;
+%template(Int32VectorVector) std::vector<std::vector<long > >;
+%template(Int32PairVector) std::vector<std::pair<long, long > >;
+
 // to determine BaseFloat in python wrapper
 #if KALDI_DOUBLEPRECISION
 %constant bool kDoubleIsBase = true;
@@ -51,17 +59,15 @@ namespace kaldi {
   typedef double BaseFloat;
 }
 %numpy_typemaps(kaldi::BaseFloat, NPY_DOUBLE, kaldi::MatrixIndexT);
+%template(BaseFloatPairVector) std::vector<std::pair<double, double > >;
 #else
 %constant bool kDoubleIsBase = false;
 namespace kaldi {
   typedef float BaseFloat;
 }
 %numpy_typemaps(kaldi::BaseFloat, NPY_FLOAT, kaldi::MatrixIndexT);
+%template(BaseFloatPairVector) std::vector<std::pair<float, float > >;
 #endif
-
-%template(StringVector) std::vector<std::string >;
-%template(IntVector) std::vector<int >;
-%template(DoubleStdVector) std::vector<double >;
 
 namespace kaldi {
   typedef int MatrixIndexT;

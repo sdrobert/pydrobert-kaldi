@@ -85,15 +85,45 @@ class KaldiDataType(Enum):
     TokenVector = 'tv'
     """Inputs/outputs are tuples of tokens"""
 
+    Int32 = 'i32'
+    """Inputs/outputs are single 32-bit ints"""
+
+    Int32Vector = 'i32v'
+    """Inputs/outputs are tuples of 32-bit ints"""
+
+    Int32VectorVector = 'i32vv'
+    """Inputs/outputs are tuples of tuples of 32-bit ints"""
+
+    Int32PairVector = 'i32pv'
+    """Inputs/outputs are tuples of pairs of 32-bit ints"""
+
+    Double = 'd'
+    """Inputs/outputs are single 64-bit floats"""
+
+    BaseFloat = 'b'
+    """Inputs/outputs are single base floats"""
+
+    BaseFloatPairVector = 'bpv'
+    """Inputs/outputs are tuples of pairs of the base float"""
+
+    Bool = 'B'
+    """Inputs/outputs are single booleans"""
+
     @property
     def is_matrix(self):
-        """bool : whether this type is a matrix type"""
+        """bool : whether this type is a numpy matrix type"""
         return str(self.value) in ('bm', 'dm', 'fm', 'wm')
 
     @property
     def is_num_vector(self):
-        """bool : whether this is a numerical vector"""
+        """bool : whether this is a numpy vector"""
         return str(self.value) in ('bv', 'fv', 'dv')
+
+    @property
+    def is_basic(self):
+        """bool : whether data are stored in kaldi with Read/WriteBasicType"""
+        return str(self.value) in (
+            'i32', 'i32v', 'i32vv', 'i32pv', 'b', 'd', 'bpv', 'B')
 
     @property
     def is_floating_point(self):
@@ -103,9 +133,9 @@ class KaldiDataType(Enum):
     @property
     def is_double(self):
         '''bool: whether this data type is double precision (64-bit)'''
-        if str(self.value) in ('bv', 'bm', 'wm'):
+        if str(self.value) in ('bv', 'bm', 'wm', 'b', 'bpv'):
             return _DOUBLE_IS_BASE
-        elif str(self.value) in ('dv', 'dm'):
+        elif str(self.value) in ('dv', 'dm', 'd'):
             return True
         else:
             return False

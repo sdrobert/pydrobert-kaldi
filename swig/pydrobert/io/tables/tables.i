@@ -65,17 +65,22 @@ namespace kaldi {
 }
 %enddef
 
+%define TEMPLATE_WITH_NAME_AND_HOLDER_TYPE(Name, HolderName)
+%template(Sequential ## Name ## Reader) kaldi::SequentialTableReader<HolderName >;
+%template(RandomAccess ## Name ## Reader) kaldi::RandomAccessTableReaderMapped<HolderName >;
+%template(Name ## Writer) kaldi::TableWriter<HolderName >;
+EXTEND_RW_WITH_IS_BINARY(kaldi::SequentialTableReader, HolderName);
+EXTEND_RW_WITH_IS_BINARY(kaldi::RandomAccessTableReaderMapped, HolderName);
+EXTEND_RW_WITH_IS_BINARY(kaldi::TableWriter, HolderName);
+%enddef
+
 %define TEMPLATE_WITH_KOBJECT_NAME_AND_TYPE(Name, Type)
 %template(Name) Type;
 %template(Name ## Holder) kaldi::KaldiObjectHolder<Type >;
-EXTEND_RW_WITH_IS_BINARY(kaldi::SequentialTableReader, kaldi::KaldiObjectHolder<Type >);
-EXTEND_RW_WITH_IS_BINARY(kaldi::RandomAccessTableReaderMapped, kaldi::KaldiObjectHolder<Type >);
-EXTEND_RW_WITH_IS_BINARY(kaldi::TableWriter, kaldi::KaldiObjectHolder<Type >);
-%template(Sequential ## Name ## Reader) kaldi::SequentialTableReader<kaldi::KaldiObjectHolder<Type > >;
-%template(RandomAccess ## Name ## Reader) kaldi::RandomAccessTableReaderMapped<kaldi::KaldiObjectHolder<Type > >;
-%template(Name ## Writer) kaldi::TableWriter<kaldi::KaldiObjectHolder<Type > >;
+TEMPLATE_WITH_NAME_AND_HOLDER_TYPE(Name, kaldi::KaldiObjectHolder<Type >);
 %enddef
 
 %include "pydrobert/io/tables/mv_tables.i"
 %include "pydrobert/io/tables/token_tables.i"
 %include "pydrobert/io/tables/wave_tables.i"
+%include "pydrobert/io/tables/basic_tables.i"

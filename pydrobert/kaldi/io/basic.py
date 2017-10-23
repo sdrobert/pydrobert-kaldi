@@ -261,6 +261,23 @@ class KaldiInput(KaldiIOBase):
                 ret = self._internal.ReadToken(read_binary)
             elif kaldi_dtype == KaldiDataType.TokenVector:
                 ret = self._internal.ReadTokenVector()
+            elif kaldi_dtype.is_basic:
+                if kaldi_dtype == KaldiDataType.Int32:
+                    self._internal.ReadInt32(read_binary)
+                elif kaldi_dtype == KaldiDataType.Int32Vector:
+                    self._internal.ReadInt32Vector(read_binary)
+                elif kaldi_dtype == KaldiDataType.Int32VectorVector:
+                    self._internal.ReadInt32VectorVector(read_binary)
+                elif kaldi_dtype == KaldiDataType.Int32PairVector:
+                    self._internal.ReadInt32PairVector(read_binary)
+                elif kaldi_dtype == KaldiDataType.Double:
+                    self._internal.ReadDouble(read_binary)
+                elif kaldi_dtype == KaldiDataType.BaseFloat:
+                    self._internal.ReadBaseFloat(read_binary)
+                elif kaldi_dtype == KaldiDataType.BaseFloatPairVector:
+                    self._internal.ReadBaseFloatPairVector(read_binary)
+                else:
+                    self._internal.ReadBool(read_binary)
             elif kaldi_dtype.is_num_vector:
                 if kaldi_dtype.is_double:
                     ret = self._internal.ReadVectorDouble(read_binary)
@@ -359,6 +376,23 @@ class KaldiOutput(KaldiIOBase):
                         'to treat strings as lists of character-wide tokens, '
                         'set error_on_str to False when opening')
                 self._internal.WriteTokenVector(obj)
+            elif kaldi_dtype.is_basic:
+                if kaldi_dtype == KaldiDataType.Int32:
+                    self._internal.WriteInt32(obj)
+                elif kaldi_dtype == KaldiDataType.Int32Vector:
+                    self._internal.WriteInt32Vector(obj)
+                elif kaldi_dtype == KaldiDataType.Int32VectorVector:
+                    self._internal.WriteInt32VectorVector(obj)
+                elif kaldi_dtype == KaldiDataType.Int32PairVector:
+                    self._internal.WriteInt32PairVector(obj)
+                elif kaldi_dtype == KaldiDataType.Double:
+                    self._internal.WriteDouble(obj)
+                elif kaldi_dtype == KaldiDataType.BaseFloat:
+                    self._internal.WriteBaseFloat(obj)
+                elif kaldi_dtype == KaldiDataType.BaseFloatPairVector:
+                    self._internal.WriteBaseFloatPairVector(obj)
+                else:
+                    self._internal.WriteBool(obj)
             elif kaldi_dtype.is_num_vector:
                 if kaldi_dtype.is_double:
                     self._internal.WriteVectorDouble(write_binary, obj)

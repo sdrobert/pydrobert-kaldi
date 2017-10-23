@@ -51,17 +51,17 @@ namespace kaldi {
     Py_XINCREF(py_func);
   }
 
-  void VerboseLog(int32_t lvl, const char * message) {
+  void VerboseLog(long lvl, const char * message) {
     KALDI_VLOG(lvl) << message;
   }
 }
 %}
 
 namespace kaldi {
-  int32_t GetVerboseLevel();
-  void SetVerboseLevel(int32_t i);
+  long GetVerboseLevel();
+  void SetVerboseLevel(long i);
   void SetPythonLogHandler(PyObject *py_func);
-  void VerboseLog(int32_t lvl, const char * message);
+  void VerboseLog(long lvl, const char * message);
 }  // namespace kaldi
 
 %typemap(in) PyObject *py_func {
