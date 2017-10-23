@@ -31,6 +31,7 @@ import pydrobert.kaldi.io as kaldi_io
 from pydrobert.kaldi.logging import KaldiLogger
 from pydrobert.kaldi.logging import kaldi_logger_decorator
 from pydrobert.kaldi.logging import register_logger_for_kaldi
+from pydrobert.kaldi.logging import kaldi_lvl_to_logging_lvl
 
 __author__ = "Sean Robertson"
 __email__ = "sdrobert@cs.toronto.edu"
