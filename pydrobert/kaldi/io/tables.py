@@ -392,6 +392,14 @@ class _KaldiSequentialSimpleReader(KaldiSequentialReader):
         'fv' : _i.SequentialDoubleVectorReader,
         't' : _i.SequentialTokenReader,
         'tv' : _i.SequentialTokenVectorReader,
+        'i' : _i.SequentialInt32Reader,
+        'iv' : _i.SequentialInt32VectorReader,
+        'ivv' : _i.SequentialInt32VectorVectorReader,
+        'ipv' : _i.SequentialInt32PairVectorReader,
+        'd' : _i.SequentialDoubleReader,
+        'b' : _i.SequentialBaseFloatReader,
+        'bpv' : _i.SequentialBaseFloatPairVectorReader,
+        'B' : _i.SequentialBoolReader,
     }
 
     def __init__(self, path, kaldi_dtype):
@@ -450,6 +458,14 @@ class _KaldiRandomAccessSimpleReader(KaldiRandomAccessReader):
         'fv' : _i.RandomAccessFloatVectorReader,
         't' : _i.RandomAccessTokenReader,
         'tv' : _i.RandomAccessTokenVectorReader,
+        'i' : _i.RandomAccessInt32Reader,
+        'iv' : _i.RandomAccessInt32VectorReader,
+        'ivv' : _i.RandomAccessInt32VectorVectorReader,
+        'ipv' : _i.RandomAccessInt32PairVectorReader,
+        'd' : _i.RandomAccessDoubleReader,
+        'b' : _i.RandomAccessBaseFloatReader,
+        'bpv' : _i.RandomAccessBaseFloatPairVectorReader,
+        'B' : _i.RandomAccessBoolReader,
     }
 
     def __init__(self, path, kaldi_dtype, utt2spk=''):
@@ -493,6 +509,14 @@ class _KaldiSimpleWriter(KaldiWriter):
         'fv' : _i.FloatVectorWriter,
         't' : _i.TokenWriter,
         'wm' : _i.WaveWriter,
+        'i' : _i.Int32Writer,
+        'iv' : _i.Int32VectorWriter,
+        'ivv' : _i.Int32VectorVectorWriter,
+        'ipv' : _i.Int32PairVectorWriter,
+        'd' : _i.DoubleWriter,
+        'b' : _i.BaseFloatWriter,
+        'bpv' : _i.BaseFloatPairVectorWriter,
+        'B' : _i.BoolWriter,
     }
 
     def __init__(self, path, kaldi_dtype):

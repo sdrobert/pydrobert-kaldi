@@ -85,25 +85,25 @@ class KaldiDataType(Enum):
     TokenVector = 'tv'
     """Inputs/outputs are tuples of tokens"""
 
-    Int32 = 'i32'
+    Int32 = 'i'
     """Inputs/outputs are single 32-bit ints"""
 
-    Int32Vector = 'i32v'
+    Int32Vector = 'iv'
     """Inputs/outputs are tuples of 32-bit ints"""
 
-    Int32VectorVector = 'i32vv'
+    Int32VectorVector = 'ivv'
     """Inputs/outputs are tuples of tuples of 32-bit ints"""
 
-    Int32PairVector = 'i32pv'
+    Int32PairVector = 'ipv'
     """Inputs/outputs are tuples of pairs of 32-bit ints"""
 
     Double = 'd'
     """Inputs/outputs are single 64-bit floats"""
 
-    BaseFloat = 'b'
+    Base = 'b'
     """Inputs/outputs are single base floats"""
 
-    BaseFloatPairVector = 'bpv'
+    BasePairVector = 'bpv'
     """Inputs/outputs are tuples of pairs of the base float"""
 
     Bool = 'B'
@@ -123,7 +123,7 @@ class KaldiDataType(Enum):
     def is_basic(self):
         """bool : whether data are stored in kaldi with Read/WriteBasicType"""
         return str(self.value) in (
-            'i32', 'i32v', 'i32vv', 'i32pv', 'b', 'd', 'bpv', 'B')
+            'i', 'iv', 'ivv', 'ipv', 'b', 'd', 'bpv', 'B')
 
     @property
     def is_floating_point(self):

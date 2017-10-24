@@ -75,8 +75,8 @@ EXTEND_RW_WITH_IS_BINARY(kaldi::TableWriter, HolderName);
 %enddef
 
 %define TEMPLATE_WITH_KOBJECT_NAME_AND_TYPE(Name, Type)
-%template(Name) Type;
-%template(Name ## Holder) kaldi::KaldiObjectHolder<Type >;
+%template() Type;
+%template() kaldi::KaldiObjectHolder<Type >;
 TEMPLATE_WITH_NAME_AND_HOLDER_TYPE(Name, kaldi::KaldiObjectHolder<Type >);
 %enddef
 

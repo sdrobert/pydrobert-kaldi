@@ -45,12 +45,14 @@
   import_array();
 %}
 
-%template(StringVector) std::vector<std::string >;
+%template() std::vector<std::string >;
 // we support the combinations of basic types/vectors that have typedefs in
 // table-types.h
-%template(Int32Vector) std::vector<long >;
-%template(Int32VectorVector) std::vector<std::vector<long > >;
-%template(Int32PairVector) std::vector<std::pair<long, long > >;
+%template() std::vector<long >;
+%template() std::vector<std::vector<long > >;
+%template() std::vector<std::pair<long, long > >;
+%template() std::vector<std::pair<double, double > >;
+%template() std::vector<std::pair<float, float > >;
 
 // to determine BaseFloat in python wrapper
 #if KALDI_DOUBLEPRECISION
@@ -59,14 +61,12 @@ namespace kaldi {
   typedef double BaseFloat;
 }
 %numpy_typemaps(kaldi::BaseFloat, NPY_DOUBLE, kaldi::MatrixIndexT);
-%template(BaseFloatPairVector) std::vector<std::pair<double, double > >;
 #else
 %constant bool kDoubleIsBase = false;
 namespace kaldi {
   typedef float BaseFloat;
 }
 %numpy_typemaps(kaldi::BaseFloat, NPY_FLOAT, kaldi::MatrixIndexT);
-%template(BaseFloatPairVector) std::vector<std::pair<float, float > >;
 #endif
 
 namespace kaldi {

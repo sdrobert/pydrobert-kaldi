@@ -33,12 +33,12 @@ namespace kaldi {
   class Input {
     public:
       bool Open(const std::string &rxfilename, bool *OUTPUT);
-      int32_t Close();
+      long Close();
   };
   class Output {
     public:
       bool Open(const std::string &wxfilename, bool binary, bool write_header);
-      int32_t Close();
+      long Close();
   };
 }
 
@@ -261,8 +261,8 @@ EXTEND_IO_WITH_REAL(double, Double)
   };
 }
 %extend kaldi::Output {
-  void Write ## Suffix(ValType val) {
-    if (!HolderName ## ::Write($self->Stream(), true, val)) {
+  void Write ## Suffix(bool binary, ValType val) {
+    if (!HolderName ## ::Write($self->Stream(), binary, val)) {
       PyErr_SetString(PyExc_IOError, "Unable to write basic type");
     }
   };

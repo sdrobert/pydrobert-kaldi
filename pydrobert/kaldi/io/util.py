@@ -125,31 +125,53 @@ def parse_kaldi_output_path(path):
 def infer_kaldi_data_type(obj):
     '''Infer the appropriate kaldi data type for this object
 
-    The following map is used:
+    The following map is used (in order):
 
-    +------------------------------+---------------+
-    | Object                       | KaldiDataType |
-    +==============================+===============+
-    | 2-dim numpy array float32    | FloatMatrix   |
-    +------------------------------+---------------+
-    | 1-dim numpy array float32    | FloatVector   |
-    +------------------------------+---------------+
-    | 2-dim numpy array float64    | DoubleMatrix  |
-    +------------------------------+---------------+
-    | 1-dim numpy array float64    | DoubleVector  |
-    +------------------------------+---------------+
-    | matrix-like python container | DoubleMatrix  |
-    +------------------------------+---------------+
-    | vector-like python container | DoubleVector  |
-    +------------------------------+---------------+
-    | (matrix-like, float or int)  | WaveMatrix*   |
-    +------------------------------+---------------+
-    | str                          | Token         |
-    +------------------------------+---------------+
-    | container of str             | TokenVector   |
-    +------------------------------+---------------+
+    +------------------------------+---------------------+
+    | Object                       | KaldiDataType       |
+    +==============================+=====================+
+    | an int                       | Int32               |
+    +------------------------------+---------------------+
+    | a boolean                    | Bool                |
+    +------------------------------+---------------------+
+    | a float*                     | Base                |
+    +------------------------------+---------------------+
+    | str                          | Token               |
+    +------------------------------+---------------------+
+    | 2-dim numpy array float32    | FloatMatrix         |
+    +------------------------------+---------------------+
+    | 1-dim numpy array float32    | FloatVector         |
+    +------------------------------+---------------------+
+    | 2-dim numpy array float64    | DoubleMatrix        |
+    +------------------------------+---------------------+
+    | 1-dim numpy array float64    | DoubleVector        |
+    +------------------------------+---------------------+
+    | 1-dim numpy array of int32   | Int32Vector         |
+    +------------------------------+---------------------+
+    | 2-dim numpy array of int32*  | Int32VectorVector   |
+    +------------------------------+---------------------+
+    | (matrix-like, float or int)  | WaveMatrix**        |
+    +------------------------------+---------------------+
+    | an empty container           | BaseMatrix          |
+    +------------------------------+---------------------+
+    | container of str             | TokenVector         |
+    +------------------------------+---------------------+
+    | 1-dim py container of ints   | Int32Vector         |
+    +------------------------------+---------------------+
+    | 2-dim py container of ints*  | Int32VectorVector   |
+    +------------------------------+---------------------+
+    | 2-dim py container of pairs  | BasePairVector      |
+    | of floats                    |                     |
+    +------------------------------+---------------------+
+    | matrix-like python container | DoubleMatrix        |
+    +------------------------------+---------------------+
+    | vector-like python container | DoubleVector        |
+    +------------------------------+---------------------+
 
-    *The first element is the wave data, the second its sample
+    *The same data types could represent a `Double` or an
+    `Int32PairVector`, respectively. Care should be taken in these cases.
+
+    **The first element is the wave data, the second its sample
     frequency. The wave data can be a 2d numpy float array of the same
     precision as ``KaldiDataType.BaseMatrix``, or a matrix-like python
     container of floats and/or ints.
@@ -158,55 +180,63 @@ def infer_kaldi_data_type(obj):
     -------
     pydrobert.kaldi.io.enums.KaldiDataType or None
     '''
-    ret = _infer_numerical_type(obj)
-    if ret:
-        return ret
+    if isinstance(obj, int):
+        return KaldiDataType.Int32
+    elif isinstance(obj, bool):
+        return KaldiDataType.Bool
+    elif isinstance(obj, float):
+        return KaldiDataType.Base
+    elif isinstance(obj, str) or isinstance(obj, text):
+        return KaldiDataType.Token
+    # the remainder are expected to be containers
+    if not hasattr(obj, '__len__'):
+        return None
+    # numpy array or wav tuple?
     try:
-        if isinstance(obj, str) or isinstance(obj, text):
-            ret = KaldiDataType.Token
-        elif len(obj) and \
-                all(isinstance(x, str) or isinstance(x, text) for x in obj):
-            ret = KaldiDataType.TokenVector
-        if ret or len(obj) != 2 or (
-                not isinstance(obj[1], int) and
-                not isinstance(obj[1], float)):
-            return ret
-        # fall-through: could be wave data
-    except AttributeError:
-        return ret
-    first_type = _infer_numerical_type(obj[0])
-    if first_type and first_type.is_matrix:
-        if first_type.is_double == KaldiDataType.BaseMatrix.is_double:
-            ret = KaldiDataType.WaveMatrix
-        else:
-            try:
-                obj[0].shape
-            except AttributeError:
-                # wasn't a numpy array to begin with, so was upcast.
-                # could be a base float
-                ret = KaldiDataType.WaveMatrix
-    return ret
-
-def _infer_numerical_type(obj):
-    '''Infer if an object could be a numerical (numpy) kaldi data type'''
-    # first the easy stuff. Is it a floating point numpy array of shape
-    # 1 or 2?
-    ret = None
-    try:
-        if len(obj.shape) == 2 and obj.dtype == np.float32:
-            ret = KaldiDataType.FloatMatrix
-        elif len(obj.shape) == 1 and obj.dtype == np.float32:
-            ret = KaldiDataType.FloatVector
-        elif len(obj.shape) == 2 and obj.dtype == np.float64:
-            ret = KaldiDataType.DoubleMatrix
-        elif len(obj.shape) == 1 and obj.dtype == np.float64:
-            ret = KaldiDataType.DoubleVector
-        # fall-through means it's of the wrong type or shape
-        return ret
+        if len(obj.shape) == 1:
+            if obj.dtype == np.float32:
+                return KaldiDataType.FloatVector
+            elif obj.dtype == np.float64:
+                return KaldiDataType.DoubleVector
+            elif obj.dtype == np.int32:
+                return KaldiDataType.Int32Vector
+        elif len(obj.shape) == 2:
+            if obj.dtype == np.float32:
+                return KaldiDataType.FloatMatrix
+            elif obj.dtype == np.float64:
+                return KaldiDataType.DoubleMatrix
+            elif obj.dtype == np.int32:
+                return KaldiDataType.Int32Vector
+        elif len(obj) == 2 and \
+                len(obj[0].shape) == 2 and \
+                (obj[0].dtype == np.float32 and \
+                    not KaldiDataType.BaseMatrix.is_double) or \
+                (obj[0].dtype == np.float64 and \
+                    KaldiDataType.BaseMatrix.is_double) and \
+                (isinstance(obj[1], int) or isinstance(obj[1], float)):
+            return KaldiDataType.WaveMatrix
     except AttributeError:
         pass
-    # it's not a numpy array. Try casting it as a floating point one
-    try:
-        return _infer_numerical_type(np.array(obj).astype(np.float64))
-    except ValueError:
-        return ret
+    if not len(obj):
+        return KaldiDataType.BaseMatrix
+    elif all(isinstance(x, str) or isinstance(x, text) for x in obj):
+        return KaldiDataType.TokenVector
+    elif all(isinstance(x, int) for x in obj):
+        return KaldiDataType.Int32Vector
+    elif all(hasattr(x, '__len__') and hasattr(x, '__getitem__') for x in obj):
+        if all(all(isinstance(y, int) for y in x) for x in obj):
+            return KaldiDataType.Int32VectorVector
+        try:
+            if all(len(x) == 2 and all(np.isreal(y) for y in x) for x in obj):
+                return KaldiDataType.BasePairVector
+            elif len(np.array(x).astype(np.float64).shape) == 2:
+                return KaldiDataType.DoubleMatrix
+        except ValueError:
+            pass
+    else:
+        try:
+            if len(np.array(x).astype(np.float64).shape) == 1:
+                return KaldiDataType.DoubleVector
+        except ValueError:
+            pass
+    return None

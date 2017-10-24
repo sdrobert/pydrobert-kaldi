@@ -48,6 +48,18 @@ from pydrobert.kaldi.io import tables
     ('tv', ('foo', 'bar')),
     ('tv', ('skryyyyy',)),
     ('tv', ('\u00D6a', 'n\u00F9')),
+    ('i', -10),
+    ('iv', (0, 1, 2)),
+    ('iv', tuple()),
+    ('ivv', ((100,), (10, 40))),
+    ('ipv', ((1, 2), (3, 4))),
+    ('d', .1),
+    ('d', 1),
+    ('b', -.1),
+    ('b', -10000),
+    ('bpv', ((0, 1.3), (4.5, 6))),
+    ('B', True),
+    ('B', False),
 ])
 @pytest.mark.parametrize('is_text', [True, False])
 def test_read_write(temp_file_1_name, dtype, value, is_text):
@@ -63,7 +75,7 @@ def test_read_write(temp_file_1_name, dtype, value, is_text):
     once = True
     for read_value in iter(reader):
         assert once, "Multiple values"
-        if dtype in ('bv', 'bm', 'fv', 'fm', 'dv', 'dm'):
+        if dtype in ('bv', 'bm', 'fv', 'fm', 'dv', 'dm', 'b', 'd', 'bpv'):
             assert np.allclose(read_value, value)
         else:
             assert read_value == value
@@ -84,6 +96,13 @@ def test_read_write(temp_file_1_name, dtype, value, is_text):
     ('tv', ['a', 1]),
     ('tv', ("it's", 'me DIO')),
     ('tv', 'foobar'),
+    ('i', 'zimble'),
+    ('iv', 1),
+    ('ivv', [[[1]]]),
+    ('ipv', ((1, 2), (3,))),
+    ('d', 1+1j),
+    ('b', 'akljdal'),
+    ('bpv', ((1,), (2, 3))),
 ])
 @pytest.mark.parametrize('is_text', [True, False])
 def test_read_write_invalid(temp_file_1_name, dtype, value, is_text):
