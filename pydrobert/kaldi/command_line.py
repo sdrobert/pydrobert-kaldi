@@ -522,9 +522,15 @@ def _write_pickle_to_table_value_only(options, logger):
         while True:
             if out_type.is_floating_point:
                 if out_type.is_double:
-                    value = value.astype(np.float64, copy=False)
+                    try:
+                        value = value.astype(np.float64, copy=False)
+                    except AttributeError:
+                        value = np.array(value, dtype=np.float64)
                 else:
-                    value = value.astype(np.float32, copy=False)
+                    try:
+                        value = value.astype(np.float32, copy=False)
+                    except AttributeError:
+                        value = np.array(value, dtype=np.float32)
             writer.write(key, value)
             num_entries += 1
             if num_entries % 10 == 0:
