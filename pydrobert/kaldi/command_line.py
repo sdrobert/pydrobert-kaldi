@@ -525,12 +525,12 @@ def _write_pickle_to_table_value_only(options, logger):
                     try:
                         value = value.astype(np.float64, copy=False)
                     except AttributeError:
-                        value = np.array(value, dtype=np.float64)
+                        pass
                 else:
                     try:
                         value = value.astype(np.float32, copy=False)
                     except AttributeError:
-                        value = np.array(value, dtype=np.float32)
+                        pass
             writer.write(key, value)
             num_entries += 1
             if num_entries % 10 == 0:
@@ -606,11 +606,6 @@ def _write_pickle_to_table_key_value(options, logger):
             return 1
         logging.info(
             'Output type was inferred to be "{}"'.format(out_type.value))
-    if out_type.is_floating_point:
-        if out_type.is_double:
-            value = value.astype(np.float64, copy=False)
-        else:
-            value = value.astype(np.float32, copy=False)
     try:
         logging.info('Opening {}'.format(options.wspecifier))
         writer = kaldi_io.open(options.wspecifier, out_type, 'w')
@@ -624,9 +619,15 @@ def _write_pickle_to_table_key_value(options, logger):
         while True:
             if out_type.is_floating_point:
                 if out_type.is_double:
-                    value = value.astype(np.float64, copy=False)
+                    try:
+                        value = value.astype(np.float64, copy=False)
+                    except AttributeError:
+                        pass # will happen implicitly
                 else:
-                    value = value.astype(np.float32, copy=False)
+                    try:
+                        value = value.astype(np.float32, copy=False)
+                    except AttributeError:
+                        pass # will happen implicitly
             writer.write(key, value)
             num_entries += 1
             if num_entries % 10 == 0:
