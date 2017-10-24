@@ -505,11 +505,6 @@ def _write_pickle_to_table_value_only(options, logger):
             return 1
         logging.info(
             'Output type was inferred to be "{}"'.format(out_type.value))
-    if out_type.is_floating_point:
-        if out_type.is_double:
-            value = value.astype(np.float64, copy=False)
-        else:
-            value = value.astype(np.float32, copy=False)
     try:
         logging.info('Opening {}'.format(options.wspecifier))
         writer = kaldi_io.open(options.wspecifier, out_type, 'w')
