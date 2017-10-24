@@ -229,13 +229,13 @@ def infer_kaldi_data_type(obj):
         try:
             if all(len(x) == 2 and all(np.isreal(y) for y in x) for x in obj):
                 return KaldiDataType.BasePairVector
-            elif len(np.array(x).astype(np.float64).shape) == 2:
+            elif len(np.array(obj).astype(np.float64).shape) == 2:
                 return KaldiDataType.DoubleMatrix
         except ValueError:
             pass
     else:
         try:
-            if len(np.array(x).astype(np.float64).shape) == 1:
+            if len(np.array(obj).astype(np.float64).shape) == 1:
                 return KaldiDataType.DoubleVector
         except ValueError:
             pass
