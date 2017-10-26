@@ -535,7 +535,10 @@ def _write_pickle_to_table_value_only(options, logger):
     except EOFError:
         pass
     except (IOError, ValueError, TypeError, pickle.UnpicklingError) as error:
-        logger.error(error.message, exc_info=True)
+        if hasattr(error, 'message'):
+            logger.error(error.message, exc_info=True)
+        else:
+            logger.error('error', exc_info=True)
         return 1
     finally:
         value_in.close()
