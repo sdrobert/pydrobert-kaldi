@@ -7,7 +7,7 @@ source:
 
 requirements:
   host:
-    - python {{ python }}
+    - python
     - numpy
     - setuptools
     - setuptools_scm
