@@ -324,15 +324,14 @@ class KaldiOutput(KaldiIOBase):
     def writable(self):
         return True
 
-    def write(
-            self, obj, kaldi_dtype=None, error_on_str=True, write_binary=True):
+    def write(self, obj, kaldi_dtype, error_on_str=True, write_binary=True):
         '''Write one object to the stream
 
         Parameters
         ----------
         obj
             The object to write
-        kaldi_dtype : pydrobert.kaldi.enums.KaldiDataType, optional
+        kaldi_dtype : pydrobert.kaldi.enums.KaldiDataType
             The type of object to write. The default is to infer this
         error_on_str : bool
             Token vectors (`'tv'`) accept sequences of whitespace-free

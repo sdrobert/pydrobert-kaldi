@@ -43,14 +43,14 @@ from six.moves import cPickle as pickle
 ])
 def test_write_pickle_to_table(values, temp_file_1_name, temp_file_2_name):
     if len(values):
-        kaldi_dtype = kaldi_io.util.infer_kaldi_data_type(values[0])
+        kaldi_dtype = kaldi_io.util.infer_kaldi_data_type(values[0]).value
     else:
         kaldi_dtype = 'bm'
     with open(temp_file_1_name, 'wb') as pickle_file:
         for num, value in enumerate(values):
             pickle.dump((str(num), value), pickle_file)
     ret_code = command_line.write_pickle_to_table(
-        [temp_file_1_name, 'ark:' + temp_file_2_name])
+        [temp_file_1_name, 'ark:' + temp_file_2_name, '-o', kaldi_dtype])
     assert ret_code == 0
     kaldi_reader = kaldi_io.open('ark:' + temp_file_2_name, kaldi_dtype, 'r')
     num_entries = 0
@@ -88,7 +88,7 @@ def test_write_table_to_pickle(values, temp_file_1_name, temp_file_2_name):
         for num, value in enumerate(values):
             writer.write(str(num), value)
     ret_code = command_line.write_table_to_pickle(
-        ['ark:' + temp_file_1_name, temp_file_2_name, '--in-type', kaldi_dtype])
+        ['ark:' + temp_file_1_name, temp_file_2_name, '-i', kaldi_dtype])
     assert ret_code == 0
     num_entries = 0
     pickle_file = open(temp_file_2_name, 'rb')

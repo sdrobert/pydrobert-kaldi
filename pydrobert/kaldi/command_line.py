@@ -25,13 +25,13 @@ import sys
 from shlex import split
 
 import numpy as np
-
 import pydrobert.kaldi.io as kaldi_io
 
 from pydrobert.kaldi.logging import KaldiLogger
 from pydrobert.kaldi.logging import kaldi_logger_decorator
 from pydrobert.kaldi.logging import kaldi_lvl_to_logging_lvl
 from pydrobert.kaldi.logging import register_logger_for_kaldi
+from six.moves import cPickle as pickle
 
 __author__ = "Sean Robertson"
 __email__ = "sdrobert@cs.toronto.edu"
@@ -456,9 +456,8 @@ def _write_pickle_to_table_parse_args(args, logger):
         'wspecifier', type='kaldi_wspecifier', help='The table to write to')
     parser.add_argument(
         '-o', '--out-type', type='kaldi_dtype',
-        default=None,
-        help='The kaldi data type to cast values to. The default is inferred '
-        'from the data')
+        default=kaldi_io.enums.KaldiDataType.BaseMatrix,
+        help='The type of kaldi data type to read. Defaults to base matrix')
     options = parser.parse_args(args)
     return options
 
@@ -496,15 +495,6 @@ def _write_pickle_to_table_value_only(options, logger):
         value_in.close()
         return _write_pickle_to_table_empty(options.wspecifier, logger)
     out_type = options.out_type
-    if out_type is None:
-        logging.info('Inferring output type from first value')
-        try:
-            out_type = kaldi_io.util.infer_kaldi_data_type(value)
-        except ValueError as error:
-            logger.error(error.message, exc_info=True)
-            return 1
-        logging.info(
-            'Output type was inferred to be "{}"'.format(out_type.value))
     try:
         logging.info('Opening {}'.format(options.wspecifier))
         writer = kaldi_io.open(options.wspecifier, out_type, 'w')
@@ -546,7 +536,6 @@ def _write_pickle_to_table_value_only(options, logger):
     return 0
 
 def _write_pickle_to_table_key_value(options, logger):
-    from six.moves import cPickle as pickle
     try:
         logger.info('Opening {}'.format(options.value_in))
         if options.value_in.endswith('.gz'):
@@ -595,15 +584,6 @@ def _write_pickle_to_table_key_value(options, logger):
         logger.error(error.message, exc_info=True)
         return 1
     out_type = options.out_type
-    if out_type is None:
-        logging.info('Inferring output type from first value')
-        try:
-            out_type = kaldi_io.util.infer_kaldi_data_type(value)
-        except ValueError as error:
-            logger.error(error.message, exc_info=True)
-            return 1
-        logging.info(
-            'Output type was inferred to be "{}"'.format(out_type.value))
     try:
         logging.info('Opening {}'.format(options.wspecifier))
         writer = kaldi_io.open(options.wspecifier, out_type, 'w')
