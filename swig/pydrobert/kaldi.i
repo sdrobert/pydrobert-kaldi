@@ -50,8 +50,11 @@
 // table-types.h
 %template() std::vector<long >;
 %template() std::vector<std::vector<long > >;
+%template() std::pair<long, long >;
 %template() std::vector<std::pair<long, long > >;
+%template() std::pair<double, double >;
 %template() std::vector<std::pair<double, double > >;
+%template() std::pair<float, float >;
 %template() std::vector<std::pair<float, float > >;
 
 // to determine BaseFloat in python wrapper

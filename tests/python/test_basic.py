@@ -27,7 +27,7 @@ from pydrobert.kaldi.io import open as io_open
 def test_chained(temp_file_1_name):
     # wholly too limited a test
     obj_list = [
-        ('fv', [x for x in range(1000)]),
+        ('iv', tuple(x for x in range(1000))),
         ('fm', [[1,2.5], [1e-10, 4]]),
         ('dv', np.random.random(1)),
         ('dm', np.random.random((100, 20))),
@@ -36,8 +36,8 @@ def test_chained(temp_file_1_name):
     ]
     shuffle(obj_list)
     with io_open(temp_file_1_name, mode='w') as outp:
-        for _, obj in obj_list:
-            outp.write(obj)
+        for dtype, obj in obj_list:
+            outp.write(obj, dtype)
     with io_open(temp_file_1_name) as inp:
         for dtype, obj in obj_list:
             read = inp.read(dtype)

@@ -263,21 +263,21 @@ class KaldiInput(KaldiIOBase):
                 ret = self._internal.ReadTokenVector()
             elif kaldi_dtype.is_basic:
                 if kaldi_dtype == KaldiDataType.Int32:
-                    self._internal.ReadInt32()
+                    ret = self._internal.ReadInt32()
                 elif kaldi_dtype == KaldiDataType.Int32Vector:
-                    self._internal.ReadInt32Vector()
+                    ret = self._internal.ReadInt32Vector()
                 elif kaldi_dtype == KaldiDataType.Int32VectorVector:
-                    self._internal.ReadInt32VectorVector()
+                    ret = self._internal.ReadInt32VectorVector()
                 elif kaldi_dtype == KaldiDataType.Int32PairVector:
-                    self._internal.ReadInt32PairVector()
+                    ret = self._internal.ReadInt32PairVector()
                 elif kaldi_dtype == KaldiDataType.Double:
-                    self._internal.ReadDouble()
+                    ret = self._internal.ReadDouble()
                 elif kaldi_dtype == KaldiDataType.Base:
-                    self._internal.ReadBaseFloat()
+                    ret = self._internal.ReadBaseFloat()
                 elif kaldi_dtype == KaldiDataType.BasePairVector:
-                    self._internal.ReadBaseFloatPairVector()
+                    ret = self._internal.ReadBaseFloatPairVector()
                 else:
-                    self._internal.ReadBool()
+                    ret = self._internal.ReadBool()
             elif kaldi_dtype.is_num_vector:
                 if kaldi_dtype.is_double:
                     ret = self._internal.ReadVectorDouble(read_binary)

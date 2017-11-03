@@ -34,8 +34,6 @@
 #     exit 1
 # esac
 
-which gcc
-
 OPENBLASROOT="${CONDA_PREFIX}" ${PYTHON} "${RECIPE_DIR}/setup.py" install \
   --single-version-externally-managed \
   --record=record.txt || exit 1
