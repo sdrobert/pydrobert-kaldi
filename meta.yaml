@@ -11,21 +11,24 @@ requirements:
     - numpy
     - setuptools
     - setuptools_scm
-    - openblas
     - swig >=3.0
     - pytest-runner
+    - mkl                                  [not nomkl]
+    - mkl-include                          [not nomkl]
+    - openblas                             [nomkl]
   build:
     - {{ compiler('cxx') }}
   run:
     - python
-    - {{ pin_compatible('numpy') }}
-    - {{ pin_compatible('openblas') }}
+    - numpy
     - future
     - six
-    - enum34 # [py2k]
+    - enum34                               [py2k]
 
 build:
-  detect_binary_files_with_prefix: True
+  detect_binary_files_with_prefix: False
+  features:
+    - nomkl                                [nomkl]
 
 test:
   source_files:
@@ -41,3 +44,4 @@ about:
   home: https://github.com/sdrobert/pydrobert-kaldi
   license: Apache 2.0
   license_file: LICENSE
+  summary: Kaldi Swig bindings for Python

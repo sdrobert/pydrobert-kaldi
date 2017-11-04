@@ -41,55 +41,66 @@ IS_64_BIT = maxsize > 2 ** 32
 FLAGS = ['-std=c++11', '-m64' if IS_64_BIT else '-m32', '-msse', '-msse2']
 FLAGS += ['-pthread', '-fPIC']
 LD_FLAGS = []
-
+    
 if 'MKLROOT' in environ:
     # IMPORTANT: make sure that BLAS_LIBRARIES stays in this order,
     # or you'll get failed symbol lookups
     MKL_ROOT = path.abspath(environ['MKLROOT'])
-    MKL_THREADING = environ.get('MKL_THREADING_TYPE', 'sequential')
-    if path.isdir(path.join(MKL_ROOT, 'mkl')) and \
-            environ.get('FORCE_MKLROOT', '0') == '0':
-        MKL_ROOT = path.join(MKL_ROOT, 'mkl')
-        print(
-            'Setting MKL root to "{}". If this is not desired, export the '
-            'environment variable FORCE_MKLROOT'.format(MKL_ROOT),
-            file=stderr
-        )
-    if path.isdir(path.join(MKL_ROOT, 'include')):
-        BLAS_INCLUDES = [path.join(MKL_ROOT, 'include')]
-    else:
-        raise Exception('MKLROOT set, but could not find include dir')
-    if IS_64_BIT:
-        BLAS_LIBRARIES = ['mkl_intel_lp64',]
-        if path.isdir(path.join(MKL_ROOT, 'lib', 'intel64')):
-            BLAS_LIBRARY_DIRS = [path.join(MKL_ROOT, 'lib', 'intel64'),]
-            if path.isdir(
-                    path.join(path.dirname(MKL_ROOT), 'lib', 'intel64')):
-                BLAS_LIBRARY_DIRS.append(
-                    path.join(path.dirname(MKL_ROOT), 'lib', 'intel64'))
+    MKL_THREADING = environ.get('MKL_THREADING_TYPE', None)
+    FOUND_MKL_LIBS = {
+        'mkl_rt': False,
+        'mkl_intel': False,
+        'mkl_intel_lp64': False,
+        'mkl_intel_thread': False,
+        'mkl_gnu_thread': False,
+        'mkl_sequential': False,
+        'mkl_tbb_thread': False,
+    }
+    BLAS_LIBRARY_DIRS = set()
+    BLAS_INCLUDES = None
+    for root_name, _, base_names in walk(MKL_ROOT):
+        for base_name in base_names:
+            library_name = base_name[3:].split('.')[0]
+            if library_name in FOUND_MKL_LIBS:
+                FOUND_MKL_LIBS[library_name] = True
+                BLAS_LIBRARY_DIRS.add(root_name)
+            if base_name == 'mkl.h':
+                BLAS_INCLUDES = [root_name]
+    if not BLAS_INCLUDES:
+        raise Exception('Could not find mkl.h')
+    BLAS_LIBRARY_DIRS = list(BLAS_LIBRARY_DIRS)
+    if MKL_THREADING is None:
+        if FOUND_MKL_LIBS['mkl_rt']:
+            MKL_THREADING = 'dynamic'
+        elif FOUND_MKL_LIBS['mkl_intel_thread']:
+            MKL_THREADING = 'intel'
+        elif FOUND_MKL_LIBS['mkl_tbb_thread']:
+            MKL_THREADING = 'tbb'
+        elif FOUND_MKL_LIBS['mkl_sequential']:
+            MKL_THREADING = 'sequential'
+        elif FOUND_MKL_LIBS['mkl_gnu_thread']:
+            MKL_THREADING = 'gnu'
         else:
-            raise Exception('MKLROOT set, but could not find library dir')
+            raise Exception('Could not find a threading library for MKL')
+    if MKL_THREADING == 'dynamic':
+        BLAS_LIBRARIES = ['mkl_rt']
     else:
-        BLAS_LIBRARIES = ['mkl_intel',]
-        if path.isdir(path.join(MKL_ROOT, 'lib', 'ia32')):
-            BLAS_LIBRARY_DIRS = [path.join(MKL_ROOT, 'lib', 'ia32'),]
-            if path.isdir(
-                    path.join(path.dirname(MKL_ROOT), 'lib', 'ia32')):
-                BLAS_LIBRARY_DIRS.append(
-                    path.join(path.dirname(MKL_ROOT), 'lib', 'ia32'))
+        BLAS_LIBRARIES = ['mkl_intel_lp64'] if IS_64_BIT else ['mkl_intel']
+        if MKL_THREADING in ('intel', 'iomp'):
+            BLAS_LIBRARIES += ['mkl_intel_thread', 'iomp5']
+        elif MKL_THREADING in ('gnu', 'gomp'):
+            BLAS_LIBRARIES += ['mkl_gnu_thread', 'gomp']
+        elif MKL_THREADING == 'tbb':
+            BLAS_LIBRARIES.append('mkl_tbb_thread')
+        elif MKL_THREADING == 'sequential':
+            BLAS_LIBRARIES.append('mkl_sequential')
         else:
-            raise Exception('MKLROOT set, but could not find library dir')
-    if MKL_THREADING in ('intel', 'iomp'):
-        BLAS_LIBRARIES.append('mkl_intel_thread')
-        BLAS_LIBRARIES.append('iomp5')
-    elif MKL_THREADING in ('gnu', 'gomp'):
-        BLAS_LIBRARIES.append('mkl_gnu_thread')
-        BLAS_LIBRARIES.append('gomp')
-    elif MKL_THREADING == 'sequential':
-        BLAS_LIBRARIES.append('mkl_sequential')
-    else:
-        raise ValueError('Invalid MKL_THREADING setting')
-    BLAS_LIBRARIES.append('mkl_core')
+            raise Exception(
+                'Invalid MKL_THREADING_TYPE: {}'.format(MKL_THREADING))
+        BLAS_LIBRARIES.append('mkl_core')
+    if not all(FOUND_MKL_LIBS[lib] for lib in BLAS_LIBRARIES):
+        raise Exception('MKL_THREADING_TYPE=={} requires {} libs'.format(
+            MKL_THREADING, BLAS_LIBRARIES))
     LD_FLAGS.append('-Wl,--no-as-needed')
     DEFINES.append(('HAVE_MKL', None))
 elif 'OPENBLASROOT' in environ:

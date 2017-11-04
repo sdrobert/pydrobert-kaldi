@@ -16,9 +16,11 @@ install:
   - conda config --add channels anaconda
   - conda update -q --all
   - conda info -a
-  - conda install conda-build pytest
+  - conda install conda-build
   - export CONDA_PY=${TRAVIS_PYTHON_VERSION}
   - conda build . --no-test
+  - conda create -n test python=${TRAVIS_PYTHON_VERSION} pytest -y
+  - source activate test
   - conda install pydrobert-kaldi --use-local
 script: 
   - pytest

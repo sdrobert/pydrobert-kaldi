@@ -103,7 +103,7 @@ namespace kaldi {
                  const kaldi::BaseFloat *matrix_in,
                  const kaldi::MatrixIndexT dim_row,
                  const kaldi::MatrixIndexT dim_col) const {
-    if (!(dim_row * dim_col)) {
+    if (!(dim_row && dim_col)) {
       PyErr_SetString(PyExc_ValueError, "Cannot write an empty wave file");
       return;
     }
