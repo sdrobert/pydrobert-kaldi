@@ -27,6 +27,139 @@ from sys import maxsize
 from sys import stderr
 from sys import version_info
 
+IS_64_BIT = maxsize > 2 ** 32
+
+def mkl_setup(mkl_root, mkl_threading=None):
+    mkl_root = path.abspath(mkl_root)
+    found_mkl_libs = {
+        'mkl_rt': False,
+        'mkl_intel': False,
+        'mkl_intel_lp64': False,
+        'mkl_intel_thread': False,
+        'mkl_gnu_thread': False,
+        'mkl_sequential': False,
+        'mkl_tbb_thread': False,
+    }
+    blas_library_dirs = set()
+    blas_includes = set()
+    for root_name, _, base_names in walk(mkl_root):
+        for base_name in base_names:
+            library_name = base_name[3:].split('.')[0]
+            if library_name in found_mkl_libs:
+                found_mkl_libs[library_name] = True
+                blas_library_dirs.add(root_name)
+            elif base_name == 'mkl.h':
+                blas_includes.add(root_name)
+    if not blas_includes:
+        raise Exception('Could not find mkl.h')
+    blas_library_dirs = list(blas_library_dirs)
+    blas_includes = list(blas_includes)
+    if mkl_threading is None:
+        if found_mkl_libs['mkl_rt']:
+            mkl_threading = 'dynamic'
+        elif found_mkl_libs['mkl_intel_thread']:
+            mkl_threading = 'intel'
+        elif found_mkl_libs['mkl_tbb_thread']:
+            mkl_threading = 'tbb'
+        elif found_mkl_libs['mkl_sequential']:
+            mkl_threading = 'sequential'
+        elif found_mkl_libs['mkl_gnu_thread']:
+            mkl_threading = 'gnu'
+        else:
+            raise Exception('Could not find a threading library for MKL')
+    if mkl_threading == 'dynamic':
+        blas_libraries = ['mkl_rt']
+    else:
+        blas_libraries = ['mkl_intel_lp64'] if IS_64_BIT else ['mkl_intel']
+        if mkl_threading in ('intel', 'iomp'):
+            blas_libraries += ['mkl_intel_thread', 'iomp5']
+        elif mkl_threading in ('gnu', 'gomp'):
+            blas_libraries += ['mkl_gnu_thread', 'gomp']
+        elif mkl_threading == 'tbb':
+            blas_libraries.append('mkl_tbb_thread')
+        elif mkl_threading == 'sequential':
+            blas_libraries.append('mkl_sequential')
+        else:
+            raise Exception(
+                'Invalid MKL_THREADING_TYPE: {}'.format(mkl_threading))
+        blas_libraries.append('mkl_core')
+    if not all(found_mkl_libs[lib] for lib in blas_libraries):
+        raise Exception('MKL_THREADING_TYPE=={} requires {} libs'.format(
+            mkl_threading, blas_libraries))
+    return {
+        'BLAS_LIBRARIES': blas_libraries,
+        'BLAS_LIBRARY_DIRS': blas_library_dirs,
+        'BLAS_INCLUDES': blas_includes,
+        'LD_FLAGS': ['-Wl,--no-as-needed'],
+        'DEFINES': [('HAVE_MKL', None)],
+    }
+
+def openblas_setup(openblas_root):
+    openblas_root = path.abspath(openblas_root)
+    blas_library_dirs = set()
+    blas_includes = set()
+    found_openblas, found_cblas_h, found_lapacke_h = False, False, False
+    for root_name, _, base_names in walk(mkl_root):
+        for base_name in base_names:
+            library_name = base_name[3:].split('.')[0]
+            if library_name == 'openblas':
+                found_openblas = True
+                blas_library_dirs.add(root_name)
+            elif base_name == 'cblas.h':
+                found_cblas_h = True
+                blas_includes.add(root_name)
+            elif base_name == 'lapacke.h':
+                found_lapacke_h = True
+                blas_includes.add(root_name)
+    if not (found_cblas_h and found_lapacke_h):
+        raise Exception('Could not find openblas headers')
+    if not found_openblas:
+        raise Exception('Could not find openblas library')
+    blas_library_dirs = list(blas_library_dirs)
+    blas_includes = list(blas_includes)
+    return {
+        'BLAS_LIBRARIES': ['openblas'],
+        'BLAS_LIBRARY_DIRS': blas_library_dirs,
+        'BLAS_INCLUDES': blas_includes,
+        'DEFINES': [('HAVE_OPENBLAS', None)],
+    }
+
+def atlas_setup(atlas_root):
+    atlas_root = path.abspath(atlas_root)
+    blas_library_dirs = set()
+    blas_includes = set()
+    found_atlas, found_cblas_h, found_clapack_h = False, False, False
+    for root_name, _, base_names in walk(mkl_root):
+        for base_name in base_names:
+            library_name = base_name[3:].split('.')[0]
+            if library_name == 'atlas':
+                found_atlas = True
+                blas_library_dirs.add(root_name)
+            elif base_name == 'cblas.h':
+                found_cblas_h = True
+                blas_includes.add(root_name)
+            elif base_name == 'clapack.h':
+                found_clapack_h = True
+                blas_includes.add(root_name)
+    if not (found_cblas_h and found_clapack_h):
+        raise Exception('Could not find atlas headers')
+    if not found_atlas:
+        raise Exception('Could not find atlas library')
+    blas_library_dirs = list(blas_library_dirs)
+    blas_includes = list(blas_includes)
+    return {
+        'BLAS_LIBRARIES': ['atlas'],
+        'BLAS_LIBRARY_DIRS': blas_library_dirs,
+        'BLAS_INCLUDES': blas_includes,
+        'DEFINES': [('HAVE_ATLAS', None)],
+    }
+
+def accelerate_setup():
+    return {
+        'DEFINES': [('HAVE_CLAPACK', None)],
+        'LD_FLAGS': ['-framework', 'Accelerate'],
+    }
+
 PWD = path.abspath(path.dirname(__file__))
 PYTHON_DIR = path.join(PWD, 'python')
 SRC_DIR = path.join(PWD, 'src')
@@ -37,112 +170,33 @@ DEFINES = [
     ('HAVE_EXECINFO_H', '1'),
     ('HAVE_CXXABI_H', None),
 ]
-IS_64_BIT = maxsize > 2 ** 32
 FLAGS = ['-std=c++11', '-m64' if IS_64_BIT else '-m32', '-msse', '-msse2']
 FLAGS += ['-pthread', '-fPIC']
 LD_FLAGS = []
-    
-if 'MKLROOT' in environ:
-    # IMPORTANT: make sure that BLAS_LIBRARIES stays in this order,
-    # or you'll get failed symbol lookups
-    MKL_ROOT = path.abspath(environ['MKLROOT'])
-    MKL_THREADING = environ.get('MKL_THREADING_TYPE', None)
-    FOUND_MKL_LIBS = {
-        'mkl_rt': False,
-        'mkl_intel': False,
-        'mkl_intel_lp64': False,
-        'mkl_intel_thread': False,
-        'mkl_gnu_thread': False,
-        'mkl_sequential': False,
-        'mkl_tbb_thread': False,
-    }
-    BLAS_LIBRARY_DIRS = set()
-    BLAS_INCLUDES = None
-    for root_name, _, base_names in walk(MKL_ROOT):
-        for base_name in base_names:
-            library_name = base_name[3:].split('.')[0]
-            if library_name in FOUND_MKL_LIBS:
-                FOUND_MKL_LIBS[library_name] = True
-                BLAS_LIBRARY_DIRS.add(root_name)
-            if base_name == 'mkl.h':
-                BLAS_INCLUDES = [root_name]
-    if not BLAS_INCLUDES:
-        raise Exception('Could not find mkl.h')
-    BLAS_LIBRARY_DIRS = list(BLAS_LIBRARY_DIRS)
-    if MKL_THREADING is None:
-        if FOUND_MKL_LIBS['mkl_rt']:
-            MKL_THREADING = 'dynamic'
-        elif FOUND_MKL_LIBS['mkl_intel_thread']:
-            MKL_THREADING = 'intel'
-        elif FOUND_MKL_LIBS['mkl_tbb_thread']:
-            MKL_THREADING = 'tbb'
-        elif FOUND_MKL_LIBS['mkl_sequential']:
-            MKL_THREADING = 'sequential'
-        elif FOUND_MKL_LIBS['mkl_gnu_thread']:
-            MKL_THREADING = 'gnu'
-        else:
-            raise Exception('Could not find a threading library for MKL')
-    if MKL_THREADING == 'dynamic':
-        BLAS_LIBRARIES = ['mkl_rt']
+
+MKL_ROOT = environ.get('MKLROOT', None)
+OPENBLAS_ROOT = environ.get('OPENBLASROOT', None)
+ATLAS_ROOT = environ.get('ATLASROOT', None)
+if MKL_ROOT or OPENBLAS_ROOT or ATLAS_ROOT:
+    if sum(x is None for x in (MKL_ROOT, OPENBLAS_ROOT, ATLAS_ROOT)) != 2:
+        raise Exception(
+            'Only one of MKLROOT, ATLASROOT, or OPENBLASROOT should be set')
+    if MKL_ROOT:
+        BLAS_DICT = mkl_setup(MKL_ROOT, environ.get('MKL_THREADING_TYPE', None))
+    elif OPENBLAS_ROOT:
+        BLAS_DICT = openblas_setup(OPENBLAS_ROOT)
     else:
-        BLAS_LIBRARIES = ['mkl_intel_lp64'] if IS_64_BIT else ['mkl_intel']
-        if MKL_THREADING in ('intel', 'iomp'):
-            BLAS_LIBRARIES += ['mkl_intel_thread', 'iomp5']
-        elif MKL_THREADING in ('gnu', 'gomp'):
-            BLAS_LIBRARIES += ['mkl_gnu_thread', 'gomp']
-        elif MKL_THREADING == 'tbb':
-            BLAS_LIBRARIES.append('mkl_tbb_thread')
-        elif MKL_THREADING == 'sequential':
-            BLAS_LIBRARIES.append('mkl_sequential')
-        else:
-            raise Exception(
-                'Invalid MKL_THREADING_TYPE: {}'.format(MKL_THREADING))
-        BLAS_LIBRARIES.append('mkl_core')
-    if not all(FOUND_MKL_LIBS[lib] for lib in BLAS_LIBRARIES):
-        raise Exception('MKL_THREADING_TYPE=={} requires {} libs'.format(
-            MKL_THREADING, BLAS_LIBRARIES))
-    LD_FLAGS.append('-Wl,--no-as-needed')
-    DEFINES.append(('HAVE_MKL', None))
-elif 'OPENBLASROOT' in environ:
-    OPENBLAS_ROOT = path.abspath(environ['OPENBLASROOT'])
-    if path.isdir(path.join(OPENBLAS_ROOT, 'include')):
-        BLAS_INCLUDES = [path.join(OPENBLAS_ROOT, 'include')]
-    else:
-        raise Exception('OPENBLASROOT set, but could not find include dir')
-    BLAS_LIBRARY_DIRS = []
-    if path.isdir(path.join(OPENBLAS_ROOT, 'lib64')):
-        BLAS_LIBRARY_DIRS.append(path.join(OPENBLAS_ROOT, 'lib64'))
-    if path.isdir(path.join(OPENBLAS_ROOT, 'lib')):
-        BLAS_LIBRARY_DIRS.append(path.join(OPENBLAS_ROOT, 'lib'))
-    if not BLAS_LIBRARY_DIRS:
-        raise Exception('OPENBLASROOT set, but could not find library dir')
-    BLAS_LIBRARIES = ['openblas']
-    DEFINES.append(('HAVE_OPENBLAS', None))
-elif 'ATLASROOT' in environ:
-    ATLAS_ROOT = path.abspath(environ['ATLASROOT'])
-    if path.isdir(path.join(ATLAS_ROOT, 'include')):
-        BLAS_INCLUDES = [path.join(ATLAS_ROOT, 'include')]
-        if path.isdir(path.join(BLAS_INCLUDES[0], 'atlas')):
-            BLAS_INCLUDES.append(path.join(BLAS_INCLUDES[0], 'atlas'))
-    else:
-        raise Exception('ATLASROOT set, but could not find include dir')
-    BLAS_LIBRARY_DIRS = []
-    if path.isdir(path.join(ATLAS_ROOT, 'lib64')):
-        BLAS_LIBRARY_DIRS.append(path.join(ATLAS_ROOT, 'lib64'))
-    if path.isdir(path.join(ATLAS_ROOT, 'lib')):
-        BLAS_LIBRARY_DIRS.append(path.join(ATLAS_ROOT, 'lib'))
-    if not BLAS_LIBRARY_DIRS:
-        raise Exception('ATLASROOT set, but could not find library dir')
-    BLAS_LIBRARIES = ['atlas']
-    DEFINES.append(('HAVE_ATLAS', None))
+        BLAS_DICT = atlas_setup(ATLAS_ROOT)
 elif platform.system() == 'Darwin':
-    DEFINES.append(('HAVE_CLAPACK', None))
-    BLAS_LIBRARIES = []
-    BLAS_LIBRARY_DIRS = []
-    BLAS_INCLUDES = []
-    LD_FLAGS += ['-framework', 'Accelerate']
+    BLAS_DICT = accelerate_setup()
 else:
-    raise Exception('No blas libary found')
+    raise Exception('No blas library found')
+
+BLAS_LIBRARIES = BLAS_DICT.get('BLAS_LIBRARIES', [])
+BLAS_LIBRARY_DIRS = BLAS_DICT.get('BLAS_LIBRARY_DIRS', [])
+BLAS_INCLUDES = BLAS_DICT.get('BLAS_INCLUDES', [])
+LD_FLAGS += BLAS_DICT.get('LD_FLAGS', [])
+DEFINES += BLAS_DICT.get('DEFINES', [])
 
 if platform.system() == 'Darwin':
     FLAGS += ['-flax-vector-conversions', '-stdlib=libc++']
