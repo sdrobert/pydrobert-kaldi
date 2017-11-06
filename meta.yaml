@@ -20,12 +20,13 @@ requirements:
     - {{ compiler('cxx') }}
   run:
     - python
-    - numpy
+    - {{ pin_compatible('numpy', max_pin='x.x') }}
     - future
     - six
     - enum34                               [py2k]
 
 build:
+  skip: True                               [win]
   detect_binary_files_with_prefix: False
   features:
     - nomkl                                [nomkl]

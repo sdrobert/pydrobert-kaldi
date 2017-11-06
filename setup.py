@@ -94,65 +94,48 @@ def mkl_setup(mkl_root, mkl_threading=None):
         'DEFINES': [('HAVE_MKL', None)],
     }
 
-def openblas_setup(openblas_root):
-    openblas_root = path.abspath(openblas_root)
-    blas_library_dirs = set()
-    blas_includes = set()
-    found_openblas, found_cblas_h, found_lapacke_h = False, False, False
-    for root_name, _, base_names in walk(mkl_root):
+def blas_setup(root, library_names, headers, extra_entries_on_success):
+    root = path.abspath(root)
+    library_names = dict((lib, False) for lib in library_names)
+    headers = dict((header, False) for header in headers)
+    library_dirs = set()
+    include_dirs = set()
+    for root_name, _, base_names in walk(root):
         for base_name in base_names:
             library_name = base_name[3:].split('.')[0]
-            if library_name == 'openblas':
-                found_openblas = True
-                blas_library_dirs.add(root_name)
-            elif base_name == 'cblas.h':
-                found_cblas_h = True
-                blas_includes.add(root_name)
-            elif base_name == 'lapacke.h':
-                found_lapacke_h = True
-                blas_includes.add(root_name)
-    if not (found_cblas_h and found_lapacke_h):
-        raise Exception('Could not find openblas headers')
-    if not found_openblas:
-        raise Exception('Could not find openblas library')
-    blas_library_dirs = list(blas_library_dirs)
-    blas_includes = list(blas_includes)
-    return {
-        'BLAS_LIBRARIES': ['openblas'],
-        'BLAS_LIBRARY_DIRS': blas_library_dirs,
-        'BLAS_INCLUDES': blas_includes,
-        'DEFINES': [('HAVE_OPENBLAS', None)],
-    }
+            if library_name in library_names:
+                library_names[library_name] = True
+                library_dirs.add(root_name)
+            elif base_name in headers:
+                headers[base_name] = True
+                include_dirs.add(root_name)
+    if not all(library_dirs.values()):
+        raise Exception('Could not find {}'.format(
+            tuple(key for key, val in library_dirs.items() if not val)))
+    if not all(headers.values()):
+        raise Exception('Could not find {}'.format(
+            tuple(key for key, val in headers.items() if not val)))
+    ret = dict(extra_entries_on_success)
+    ret['BLAS_LIBRARIES'] = library_names
+    ret['BLAS_LIBRARY_DIRS'] = list(library_dirs)
+    ret['BLAS_INCLUDES'] = list(include_dirs)
+    return ret
+
+def openblas_setup(openblas_root):
+    return blas_setup(
+        openblas_root,
+        ('openblas',),
+        ('cblas.h', 'lapacke.h',),
+        {'DEFINES': [('HAVE_OPENBLAS', None)]},
+    )
 
 def atlas_setup(atlas_root):
-    atlas_root = path.abspath(atlas_root)
-    blas_library_dirs = set()
-    blas_includes = set()
-    found_atlas, found_cblas_h, found_clapack_h = False, False, False
-    for root_name, _, base_names in walk(mkl_root):
-        for base_name in base_names:
-            library_name = base_name[3:].split('.')[0]
-            if library_name == 'atlas':
-                found_atlas = True
-                blas_library_dirs.add(root_name)
-            elif base_name == 'cblas.h':
-                found_cblas_h = True
-                blas_includes.add(root_name)
-            elif base_name == 'clapack.h':
-                found_clapack_h = True
-                blas_includes.add(root_name)
-    if not (found_cblas_h and found_clapack_h):
-        raise Exception('Could not find atlas headers')
-    if not found_atlas:
-        raise Exception('Could not find atlas library')
-    blas_library_dirs = list(blas_library_dirs)
-    blas_includes = list(blas_includes)
-    return {
-        'BLAS_LIBRARIES': ['atlas'],
-        'BLAS_LIBRARY_DIRS': blas_library_dirs,
-        'BLAS_INCLUDES': blas_includes,
-        'DEFINES': [('HAVE_ATLAS', None)],
-    }
+    return atlas_setup(
+        atlas_root,
+        ('atlas',),
+        ('cblas.h', 'clapack.h',),
+        {'DEFINES': [('HAVE_ATLAS', None)]},
+    )
 
 def accelerate_setup():
     return {
@@ -188,9 +171,12 @@ if MKL_ROOT or OPENBLAS_ROOT or ATLAS_ROOT:
     else:
         BLAS_DICT = atlas_setup(ATLAS_ROOT)
 elif platform.system() == 'Darwin':
+    print('Installing with accelerate')
     BLAS_DICT = accelerate_setup()
 else:
-    raise Exception('No blas library found')
+    print(
+'No BLAS library specified at command line. Will look via numpy. If you have '
+'problems with linking, please specify BLAS via command line.')
 
 BLAS_LIBRARIES = BLAS_DICT.get('BLAS_LIBRARIES', [])
 BLAS_LIBRARY_DIRS = BLAS_DICT.get('BLAS_LIBRARY_DIRS', [])
@@ -213,9 +199,52 @@ for base_dir, _, files in walk(SRC_DIR):
 # https://stackoverflow.com/questions/2379898/
 # make-distutils-look-for-numpy-header-files-in-the-correct-place
 class CustomBuildExtCommand(build_ext):
+    def look_for_blas(self):
+        '''Look for blas libraries through numpy'''
+        from numpy.distutils import system_info
+        found_blas = False
+        for info_name, define, setup_func in (
+                ('mkl', 'HAVE_MKL', setup_mkl),
+                ('openblas', 'HAVE_OPENBLAS', setup_openblas),
+                ('atlas', 'HAVE_ATLAS', setup_atlas),
+                ('accelerate', 'HAVE_CLAPACK', setup_accelerate)):
+            info = system_info.get_info(info_name)
+            if not info:
+                continue
+            if info_name == 'accelerate' or 'include_dirs' in info:
+                # should be sufficient
+                for key, value in info.items():
+                    setattr(self, key, getattr(self, key) + value)
+                self.define_macros.append((define, None))
+                print('Using {}'.format(info_name))
+                found_blas = True
+                break
+            elif 'library_dirs' not in info:
+                continue
+            # otherwise we try setting up in the library dirs, then in the
+            # directories above them.
+            lib_dirs = list(info['library_dirs'])
+            lib_dirs += [path.abspath(path.join(x, '..')) for x in lib_dirs]
+            for lib_dir in lib_dirs:
+                try:
+                    blas_dict = setup_func(lib_dir)
+                except:
+                    continue
+                self.libraries += blas_dict.get('BLAS_LIBRARIES', [])
+                self.runtime_library_dirs += blas_dict.get('BLAS_LIBRARY_DIRS', [])
+                self.include_dirs += blas_dict.get('BLAS_INCLUDES', [])
+                self.extra_link_args += blas_dict.get('LD_FLAGS', [])
+                self.define_macros += blas_dict.get('DEFINES', [])
+                print('Using {}'.format(info_name))
+                found_blas = True
+        if not found_blas:
+            raise Exception('Unable to find BLAS library via numpy')
+
     def run(self):
         import numpy
         self.include_dirs.append(numpy.get_include())
+        if not len(BLAS_DICT):
+            self.look_for_blas()
         build_ext.run(self)
 
 INSTALL_REQUIRES = ['numpy', 'six', 'future']
