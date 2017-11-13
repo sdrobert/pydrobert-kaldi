@@ -6,7 +6,7 @@ python:
 before_install:
   - sudo apt-get install libopenblas-dev
   - ls /usr
-  - ls /usr/lib
+  - ls /usr/lib/openblas-base
   - ls /usr/include
 install:
   - pip install .

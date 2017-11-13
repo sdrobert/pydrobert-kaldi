@@ -109,9 +109,9 @@ def blas_setup(root, library_names, headers, extra_entries_on_success):
             elif base_name in headers:
                 headers[base_name] = True
                 include_dirs.add(root_name)
-    if not all(library_dirs.values()):
+    if not all(library_names.values()):
         raise Exception('Could not find {}'.format(
-            tuple(key for key, val in library_dirs.items() if not val)))
+            tuple(key for key, val in library_names.items() if not val)))
     if not all(headers.values()):
         raise Exception('Could not find {}'.format(
             tuple(key for key, val in headers.items() if not val)))
