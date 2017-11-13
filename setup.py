@@ -313,6 +313,7 @@ class CustomBuildExtCommand(build_ext):
             for key, value in blas_dict.items():
                 obj, attribute = injection_lookup[key]
                 past_attr = getattr(obj, attribute)
+                print(obj, attribute, past_attr)
                 if past_attr is None:
                     setattr(obj, attribute, value)
                 else:
