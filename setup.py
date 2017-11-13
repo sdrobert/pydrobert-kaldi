@@ -288,15 +288,12 @@ class CustomBuildExtCommand(build_ext):
         if not found_blas:
             raise Exception('Unable to find BLAS library via numpy')
 
-    def check_extensions_list(self, extensions):
-        return super(CustomBuildExtCommand, self).check_extensions_list(
-            extensions)
-
     def finalize_options(self):
         import numpy
         if not len(BLAS_DICT):
             self.look_for_blas()
-        super(CustomBuildExtCommand, self).finalize_options()
+        # no super for python 2.7 compatibility
+        build_ext.finalize_options()
         self.include_dirs.append(numpy.get_include())
 
 setup(
