@@ -181,8 +181,9 @@ if MKL_ROOT or OPENBLAS_ROOT or ATLAS_ROOT or USE_ACCELERATE:
         raise Exception('Accelerate is only available on OSX')
 else:
     print(
-'No BLAS library specified at command line. Will look via numpy. If you have '
-'problems with linking, please specify BLAS via command line.')
+        'No BLAS library specified at command line. Will look via numpy. If '
+        'you have problems with linking, please specify BLAS via command line.'
+    )
     BLAS_DICT = dict()
 
 LIBRARIES = BLAS_DICT.get('BLAS_LIBRARIES', []) + ['pthread', 'm', 'dl']
@@ -254,7 +255,6 @@ class CustomBuildExtCommand(build_ext):
                 ('accelerate', 'HAVE_CLAPACK', accelerate_setup))
         for info_name, define, setup_func in blas_to_check:
             info = system_info.get_info(info_name)
-            print(info)
             if not info:
                 continue
             if info_name == 'accelerate' or 'include_dirs' in info:

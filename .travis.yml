@@ -5,9 +5,8 @@ python:
   - nightly
 before_install:
   - sudo apt-get install libopenblas-dev
-  - ls /usr
-  - ls /usr/lib/openblas-base
-  - ls /usr/include
+  - cat /usr/include/openblas/cblas.h
+  - cat /usr/include/openblas/f77blas.h
 install:
   - pip install .
 script:
