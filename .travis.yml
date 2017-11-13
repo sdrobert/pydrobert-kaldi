@@ -1,10 +1,23 @@
 language: python
+matrix:
+  include:
+    - os: linux
+          addons:
+            apt:
+              sources:
+                - ubuntu-toolchain-r-test
+              packages:
+                - g++-5
+                - libblas-dev
+                - liblapacke-dev
+          env:
+             - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
 python:
   - 2.7
   - 3.5
   - nightly
-before_install:
-  - sudo apt-get install libblas-dev liblapacke-dev swig
+# before_install:
+#   - sudo apt-get install libblas-dev liblapacke-dev swig
 install:
   - pip install .
 script:

@@ -42,7 +42,7 @@ def mkl_setup(roots, mkl_threading=None):
     blas_includes = set()
     for root in roots:
         root = path.abspath(root)
-        for root_name, _, base_names in walk(mkl_root):
+        for root_name, _, base_names in walk(root):
             for base_name in base_names:
                 library_name = base_name[3:].split('.')[0]
                 if library_name in found_mkl_libs and \
