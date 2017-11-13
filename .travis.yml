@@ -4,8 +4,7 @@ python:
   - 3.5
   - nightly
 before_install:
-  - sudo apt-get install libopenblas-dev liblapacke-dev
-
+  - sudo apt-get install libatlas-dev
 install:
   - pip install .
 script:
