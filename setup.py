@@ -90,7 +90,7 @@ def mkl_setup(mkl_root, mkl_threading=None):
         'BLAS_LIBRARIES': blas_libraries,
         'BLAS_LIBRARY_DIRS': blas_library_dirs,
         'BLAS_INCLUDES': blas_includes,
-        'LD_FLAGS': ['-Wl,--no-as-needed'],
+        # 'LD_FLAGS': ['-Wl,--no-as-needed'],
         'DEFINES': [('HAVE_MKL', None)],
     }
 
@@ -130,7 +130,7 @@ def openblas_setup(openblas_root):
     )
 
 def atlas_setup(atlas_root):
-    return atlas_setup(
+    return blas_setup(
         atlas_root,
         ('atlas',),
         ('cblas.h', 'clapack.h',),
@@ -140,7 +140,7 @@ def atlas_setup(atlas_root):
 def accelerate_setup():
     return {
         'DEFINES': [('HAVE_CLAPACK', None)],
-        'LD_FLAGS': ['-framework', 'Accelerate'],
+        'LD_FLAGS': ['-Wl,framework', '-Wl,Accelerate'],
     }
 
 PWD = path.abspath(path.dirname(__file__))
@@ -160,29 +160,37 @@ LD_FLAGS = []
 MKL_ROOT = environ.get('MKLROOT', None)
 OPENBLAS_ROOT = environ.get('OPENBLASROOT', None)
 ATLAS_ROOT = environ.get('ATLASROOT', None)
-if MKL_ROOT or OPENBLAS_ROOT or ATLAS_ROOT:
-    if sum(x is None for x in (MKL_ROOT, OPENBLAS_ROOT, ATLAS_ROOT)) != 2:
+USE_ACCELERATE = environ.get('ACCELERATE', None)
+if MKL_ROOT or OPENBLAS_ROOT or ATLAS_ROOT or USE_ACCELERATE:
+    if sum(
+            x is None for x in
+            (MKL_ROOT, OPENBLAS_ROOT, ATLAS_ROOT, USE_ACCELERATE)) != 3:
         raise Exception(
-            'Only one of MKLROOT, ATLASROOT, or OPENBLASROOT should be set')
+            'Only one of MKLROOT, ATLASROOT, ACCELERATE, or '
+            'OPENBLASROOT should be set')
     if MKL_ROOT:
-        BLAS_DICT = mkl_setup(MKL_ROOT, environ.get('MKL_THREADING_TYPE', None))
+        BLAS_DICT = mkl_setup(
+            MKL_ROOT, environ.get('MKL_THREADING_TYPE', None))
     elif OPENBLAS_ROOT:
         BLAS_DICT = openblas_setup(OPENBLAS_ROOT)
-    else:
+    elif ATLAS_ROOT:
         BLAS_DICT = atlas_setup(ATLAS_ROOT)
-elif platform.system() == 'Darwin':
-    print('Installing with accelerate')
-    BLAS_DICT = accelerate_setup()
+    elif platform.system() == 'Darwin':
+        BLAS_DICT = accelerate_setup()
+    else:
+        raise Exception('Accelerate is only available on OSX')
 else:
     print(
 'No BLAS library specified at command line. Will look via numpy. If you have '
 'problems with linking, please specify BLAS via command line.')
+    BLAS_DICT = dict()
 
-BLAS_LIBRARIES = BLAS_DICT.get('BLAS_LIBRARIES', [])
-BLAS_LIBRARY_DIRS = BLAS_DICT.get('BLAS_LIBRARY_DIRS', [])
-BLAS_INCLUDES = BLAS_DICT.get('BLAS_INCLUDES', [])
+LIBRARIES = BLAS_DICT.get('BLAS_LIBRARIES', []) + ['pthread', 'm', 'dl']
+LIBRARY_DIRS = BLAS_DICT.get('BLAS_LIBRARY_DIRS', [])
+INCLUDE_DIRS = BLAS_DICT.get('BLAS_INCLUDES', []) + [SRC_DIR]
 LD_FLAGS += BLAS_DICT.get('LD_FLAGS', [])
 DEFINES += BLAS_DICT.get('DEFINES', [])
+FLAGS += BLAS_DICT.get('FLAGS', [])
 
 if platform.system() == 'Darwin':
     FLAGS += ['-flax-vector-conversions', '-stdlib=libc++']
@@ -196,26 +204,66 @@ SRC_FILES = [path.join(SWIG_DIR, 'pydrobert', 'kaldi.i')]
 for base_dir, _, files in walk(SRC_DIR):
     SRC_FILES += [path.join(base_dir, f) for f in files if f.endswith('.cc')]
 
+INSTALL_REQUIRES = ['numpy', 'six', 'future']
+if version_info < (3, 0):
+    INSTALL_REQUIRES.append('enum34')
+SETUP_REQUIRES = ['pytest-runner', 'setuptools_scm']
+TESTS_REQUIRE = ['pytest']
+
+KALDI_LIBRARY = Extension(
+    'pydrobert.kaldi._internal',
+    sources=SRC_FILES,
+    libraries=LIBRARIES,
+    runtime_library_dirs=LIBRARY_DIRS,
+    include_dirs=INCLUDE_DIRS,
+    extra_compile_args=FLAGS,
+    extra_link_args=LD_FLAGS,
+    define_macros=DEFINES,
+    swig_opts=['-c++', '-builtin', '-Wall', '-I{}'.format(SWIG_DIR)],
+    language='c++',
+)
+
 # https://stackoverflow.com/questions/2379898/
 # make-distutils-look-for-numpy-header-files-in-the-correct-place
 class CustomBuildExtCommand(build_ext):
+
     def look_for_blas(self):
         '''Look for blas libraries through numpy'''
+        injection_lookup = {
+            'BLAS_LIBRARIES' : KALDI_LIBRARY.libraries,
+            'BLAS_LIBRARY_DIRS' : KALDI_LIBRARY.runtime_library_dirs,
+            'BLAS_INCLUDES' : KALDI_LIBRARY.include_dirs,
+            'LD_FLAGS' : KALDI_LIBRARY.extra_link_args,
+            'DEFINES' : KALDI_LIBRARY.define_macros,
+            'libraries' : KALDI_LIBRARY.libraries,
+            'library_dirs': KALDI_LIBRARY.runtime_library_dirs,
+            'include_dirs': self.include_dirs,
+            'define_macros': KALDI_LIBRARY.define_macros,
+            'extra_compile_args': KALDI_LIBRARY.extra_compile_args,
+            'extra_link_args': KALDI_LIBRARY.extra_link_args,
+        }
         from numpy.distutils import system_info
         found_blas = False
-        for info_name, define, setup_func in (
-                ('mkl', 'HAVE_MKL', setup_mkl),
-                ('openblas', 'HAVE_OPENBLAS', setup_openblas),
-                ('atlas', 'HAVE_ATLAS', setup_atlas),
-                ('accelerate', 'HAVE_CLAPACK', setup_accelerate)):
+        blas_to_check = [
+            ('mkl', 'HAVE_MKL', mkl_setup),
+            ('openblas', 'HAVE_OPENBLAS', openblas_setup),
+            ('atlas', 'HAVE_ATLAS', atlas_setup)
+        ]
+        if platform.system() == 'Darwin':
+            blas_to_check.append(
+                ('accelerate', 'HAVE_CLAPACK', accelerate_setup))
+        for info_name, define, setup_func in blas_to_check:
             info = system_info.get_info(info_name)
             if not info:
                 continue
             if info_name == 'accelerate' or 'include_dirs' in info:
                 # should be sufficient
                 for key, value in info.items():
-                    setattr(self, key, getattr(self, key) + value)
-                self.define_macros.append((define, None))
+                    if injection_lookup[key] is None:
+                        injection_lookup[key] = value
+                    else:
+                        injection_lookup[key] += value
+                KALDI_LIBRARY.define_macros.append((define, None))
                 print('Using {}'.format(info_name))
                 found_blas = True
                 break
@@ -230,41 +278,26 @@ class CustomBuildExtCommand(build_ext):
                     blas_dict = setup_func(lib_dir)
                 except:
                     continue
-                self.libraries += blas_dict.get('BLAS_LIBRARIES', [])
-                self.runtime_library_dirs += blas_dict.get('BLAS_LIBRARY_DIRS', [])
-                self.include_dirs += blas_dict.get('BLAS_INCLUDES', [])
-                self.extra_link_args += blas_dict.get('LD_FLAGS', [])
-                self.define_macros += blas_dict.get('DEFINES', [])
+                for key, value in blas_dict.items():
+                    if injection_lookup[key] is None:
+                        injection_lookup[key] = value
+                    else:
+                        injection_lookup[key] += value
                 print('Using {}'.format(info_name))
                 found_blas = True
         if not found_blas:
             raise Exception('Unable to find BLAS library via numpy')
 
-    def run(self):
+    def check_extensions_list(self, extensions):
+        return super(CustomBuildExtCommand, self).check_extensions_list(
+            extensions)
+
+    def finalize_options(self):
         import numpy
-        self.include_dirs.append(numpy.get_include())
         if not len(BLAS_DICT):
             self.look_for_blas()
-        build_ext.run(self)
-
-INSTALL_REQUIRES = ['numpy', 'six', 'future']
-if version_info < (3, 0):
-    INSTALL_REQUIRES.append('enum34')
-SETUP_REQUIRES = ['pytest-runner', 'setuptools_scm']
-TESTS_REQUIRE = ['pytest']
-
-KALDI_LIBRARY = Extension(
-    'pydrobert.kaldi._internal',
-    sources=SRC_FILES,
-    libraries=['pthread', 'm', 'dl'] + BLAS_LIBRARIES,
-    runtime_library_dirs=BLAS_LIBRARY_DIRS,
-    include_dirs=[SRC_DIR] + BLAS_INCLUDES,
-    extra_compile_args=FLAGS,
-    extra_link_args=LD_FLAGS,
-    define_macros=DEFINES,
-    swig_opts=['-c++', '-builtin', '-Wall', '-I{}'.format(SWIG_DIR)],
-    language='c++',
-)
+        super(CustomBuildExtCommand, self).finalize_options()
+        self.include_dirs.append(numpy.get_include())
 
 setup(
     name='pydrobert-kaldi',

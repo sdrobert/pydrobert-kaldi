@@ -15,10 +15,11 @@ requirements:
     - pytest-runner
     - mkl                                  [not nomkl]
     - mkl-include                          [not nomkl]
-    - openblas                             [nomkl]
+    - openblas                             [nomkl and linux]
   build:
     - {{ compiler('cxx') }}
   run:
+    # let link libraries be downstream deps
     - python
     - {{ pin_compatible('numpy', max_pin='x.x') }}
     - future

@@ -13,7 +13,11 @@
 # limitations under the License.
 
 if [ ! -z "${NOMKL}" ] && [ ${NOMKL} = 1 ]; then
-  export OPENBLASROOT="${CONDA_PREFIX}"
+  if [ `uname` = "Darwin" ]; then
+    export ACCELERATE=1
+  else
+    export OPENBLASROOT="${CONDA_PREFIX}"
+  fi
 else
   export MKLROOT="${CONDA_PREFIX}"
 fi
