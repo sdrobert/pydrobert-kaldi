@@ -119,7 +119,7 @@ def blas_setup(roots, library_names, headers, extra_entries_on_success):
         raise Exception('Could not find {}'.format(
             tuple(key for key, val in headers.items() if not val)))
     ret = dict(extra_entries_on_success)
-    ret['BLAS_LIBRARIES'] = library_names
+    ret['BLAS_LIBRARIES'] = list(library_names)
     ret['BLAS_LIBRARY_DIRS'] = list(library_dirs)
     ret['BLAS_INCLUDES'] = list(include_dirs)
     return ret
