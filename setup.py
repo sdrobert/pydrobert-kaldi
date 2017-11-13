@@ -272,6 +272,8 @@ class CustomBuildExtCommand(build_ext):
             ('mkl', 'HAVE_MKL', mkl_setup),
             ('openblas_lapack', 'HAVE_OPENBLAS', openblas_setup),
             ('atlas', 'HAVE_ATLAS', atlas_setup),
+            # numpy only cares about lapack, not c wrappers. It uses
+            # f77blas, after all
             ('blas_opt', 'HAVE_LAPACKE', blas_lapacke_setup),
             ('blas_opt', 'HAVE_CLAPACK', blas_clapack_setup),
         ]
@@ -287,7 +289,7 @@ class CustomBuildExtCommand(build_ext):
                 # should be sufficient
                 for key, value in info.items():
                     if key in injection_lookup:
-                        obj, attribute = value
+                        obj, attribute = injection_lookup[key]
                         past_attr = getattr(obj, attribute)
                         if past_attr is None:
                             setattr(obj, attribute, value)
@@ -309,7 +311,7 @@ class CustomBuildExtCommand(build_ext):
             except:
                 continue
             for key, value in blas_dict.items():
-                obj, attribute = value
+                obj, attribute = injection_lookup[key]
                 past_attr = getattr(obj, attribute)
                 if past_attr is None:
                     setattr(obj, attribute, value)
