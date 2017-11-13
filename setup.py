@@ -145,7 +145,7 @@ def blas_lapacke_setup(roots):
         roots,
         ('blas', 'lapacke'),
         ('cblas.h', 'lapacke.h'),
-        {'DEFINES': [('HAVE_NETLIB', None)]},
+        {'DEFINES': [('HAVE_LAPACKE', None)]},
     )
 
 def blas_clapack_setup(roots):
