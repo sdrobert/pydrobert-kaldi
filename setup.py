@@ -24,13 +24,11 @@ from setuptools import setup
 from setuptools.command.build_ext import build_ext
 from setuptools.extension import Extension
 from sys import maxsize
-from sys import stderr
 from sys import version_info
 
 IS_64_BIT = maxsize > 2 ** 32
 
-def mkl_setup(mkl_root, mkl_threading=None):
-    mkl_root = path.abspath(mkl_root)
+def mkl_setup(roots, mkl_threading=None):
     found_mkl_libs = {
         'mkl_rt': False,
         'mkl_intel': False,
@@ -42,14 +40,17 @@ def mkl_setup(mkl_root, mkl_threading=None):
     }
     blas_library_dirs = set()
     blas_includes = set()
-    for root_name, _, base_names in walk(mkl_root):
-        for base_name in base_names:
-            library_name = base_name[3:].split('.')[0]
-            if library_name in found_mkl_libs:
-                found_mkl_libs[library_name] = True
-                blas_library_dirs.add(root_name)
-            elif base_name == 'mkl.h':
-                blas_includes.add(root_name)
+    for root in roots:
+        root = path.abspath(root)
+        for root_name, _, base_names in walk(mkl_root):
+            for base_name in base_names:
+                library_name = base_name[3:].split('.')[0]
+                if library_name in found_mkl_libs and \
+                        not found_mkl_libs[library_name]:
+                    found_mkl_libs[library_name] = True
+                    blas_library_dirs.add(root_name)
+                elif base_name == 'mkl.h' and not blas_includes:
+                    blas_includes.add(root_name)
     if not blas_includes:
         raise Exception('Could not find mkl.h')
     blas_library_dirs = list(blas_library_dirs)
@@ -94,21 +95,23 @@ def mkl_setup(mkl_root, mkl_threading=None):
         'DEFINES': [('HAVE_MKL', None)],
     }
 
-def blas_setup(root, library_names, headers, extra_entries_on_success):
-    root = path.abspath(root)
+def blas_setup(roots, library_names, headers, extra_entries_on_success):
     library_names = dict((lib, False) for lib in library_names)
     headers = dict((header, False) for header in headers)
     library_dirs = set()
     include_dirs = set()
-    for root_name, _, base_names in walk(root):
-        for base_name in base_names:
-            library_name = base_name[3:].split('.')[0]
-            if library_name in library_names:
-                library_names[library_name] = True
-                library_dirs.add(root_name)
-            elif base_name in headers:
-                headers[base_name] = True
-                include_dirs.add(root_name)
+    for root in roots:
+        root = path.abspath(root)
+        for root_name, _, base_names in walk(root):
+            for base_name in base_names:
+                library_name = base_name[3:].split('.')[0]
+                if library_name in library_names and \
+                        not library_names[library_name]:
+                    library_names[library_name] = True
+                    library_dirs.add(root_name)
+                elif base_name in headers and not headers[base_name]:
+                    headers[base_name] = True
+                    include_dirs.add(root_name)
     if not all(library_names.values()):
         raise Exception('Could not find {}'.format(
             tuple(key for key, val in library_names.items() if not val)))
@@ -121,20 +124,36 @@ def blas_setup(root, library_names, headers, extra_entries_on_success):
     ret['BLAS_INCLUDES'] = list(include_dirs)
     return ret
 
-def openblas_setup(openblas_root):
+def openblas_setup(roots):
     return blas_setup(
-        openblas_root,
+        roots,
         ('openblas',),
         ('cblas.h', 'lapacke.h',),
         {'DEFINES': [('HAVE_OPENBLAS', None)]},
     )
 
-def atlas_setup(atlas_root):
+def atlas_setup(roots):
     return blas_setup(
-        atlas_root,
+        roots,
         ('atlas',),
         ('cblas.h', 'clapack.h',),
         {'DEFINES': [('HAVE_ATLAS', None)]},
+    )
+
+def blas_lapacke_setup(roots):
+    return blas_setup(
+        roots,
+        ('blas', 'lapacke'),
+        ('cblas.h', 'lapacke.h'),
+        {'DEFINES': [('HAVE_NETLIB', None)]},
+    )
+
+def blas_clapack_setup(roots):
+    return blas_setup(
+        roots,
+        ('blas', 'clapack'),
+        ('cblas.h', 'f2c.h', 'clapack.h'),
+        {'DEFINES': [('HAVE_CLAPACK', None)]},
     )
 
 def accelerate_setup():
@@ -160,21 +179,25 @@ LD_FLAGS = []
 MKL_ROOT = environ.get('MKLROOT', None)
 OPENBLAS_ROOT = environ.get('OPENBLASROOT', None)
 ATLAS_ROOT = environ.get('ATLASROOT', None)
+CLAPACK_ROOT = environ.get('CLAPACKROOT', None)
+LAPACKE_ROOT = environ.get('LAPACKEROOT', None)
 USE_ACCELERATE = environ.get('ACCELERATE', None)
 if MKL_ROOT or OPENBLAS_ROOT or ATLAS_ROOT or USE_ACCELERATE:
     if sum(
-            x is None for x in
-            (MKL_ROOT, OPENBLAS_ROOT, ATLAS_ROOT, USE_ACCELERATE)) != 3:
+            x is None for x in (
+                MKL_ROOT, OPENBLAS_ROOT, ATLAS_ROOT, USE_ACCELERATE,
+                CLAPACK_ROOT, LAPACKE_ROOT
+            )) != 5:
         raise Exception(
             'Only one of MKLROOT, ATLASROOT, ACCELERATE, or '
             'OPENBLASROOT should be set')
     if MKL_ROOT:
         BLAS_DICT = mkl_setup(
-            MKL_ROOT, environ.get('MKL_THREADING_TYPE', None))
+            [MKL_ROOT], environ.get('MKL_THREADING_TYPE', None))
     elif OPENBLAS_ROOT:
-        BLAS_DICT = openblas_setup(OPENBLAS_ROOT)
+        BLAS_DICT = openblas_setup([OPENBLAS_ROOT])
     elif ATLAS_ROOT:
-        BLAS_DICT = atlas_setup(ATLAS_ROOT)
+        BLAS_DICT = atlas_setup([ATLAS_ROOT])
     elif platform.system() == 'Darwin':
         BLAS_DICT = accelerate_setup()
     else:
@@ -231,24 +254,26 @@ class CustomBuildExtCommand(build_ext):
     def look_for_blas(self):
         '''Look for blas libraries through numpy'''
         injection_lookup = {
-            'BLAS_LIBRARIES' : KALDI_LIBRARY.libraries,
-            'BLAS_LIBRARY_DIRS' : KALDI_LIBRARY.runtime_library_dirs,
-            'BLAS_INCLUDES' : KALDI_LIBRARY.include_dirs,
-            'LD_FLAGS' : KALDI_LIBRARY.extra_link_args,
-            'DEFINES' : KALDI_LIBRARY.define_macros,
-            'libraries' : KALDI_LIBRARY.libraries,
-            'library_dirs': KALDI_LIBRARY.runtime_library_dirs,
-            'include_dirs': self.include_dirs,
-            'define_macros': KALDI_LIBRARY.define_macros,
-            'extra_compile_args': KALDI_LIBRARY.extra_compile_args,
-            'extra_link_args': KALDI_LIBRARY.extra_link_args,
+            'BLAS_LIBRARIES' : (KALDI_LIBRARY, 'libraries'),
+            'BLAS_LIBRARY_DIRS' : (KALDI_LIBRARY, 'runtime_library_dirs'),
+            'BLAS_INCLUDES' : (KALDI_LIBRARY, 'include_dirs'),
+            'LD_FLAGS' : (KALDI_LIBRARY, 'extra_link_args'),
+            'DEFINES' : (KALDI_LIBRARY, 'define_macros'),
+            'libraries' : (KALDI_LIBRARY, 'libraries'),
+            'library_dirs': (KALDI_LIBRARY, 'runtime_library_dirs'),
+            'include_dirs': (self, 'include_dirs'),
+            'define_macros': (KALDI_LIBRARY, 'define_macros'),
+            'extra_compile_args': (KALDI_LIBRARY, 'extra_compile_args'),
+            'extra_link_args': (KALDI_LIBRARY, 'extra_link_args'),
         }
         from numpy.distutils import system_info
         found_blas = False
         blas_to_check = [
             ('mkl', 'HAVE_MKL', mkl_setup),
             ('openblas', 'HAVE_OPENBLAS', openblas_setup),
-            ('atlas', 'HAVE_ATLAS', atlas_setup)
+            ('atlas', 'HAVE_ATLAS', atlas_setup),
+            ('lapacke', 'HAVE_LAPACKE', blas_lapacke_setup),
+            ('clapack', 'HAVE_CLAPACK', blas_clapack_setup),
         ]
         if platform.system() == 'Darwin':
             blas_to_check.append(
@@ -261,10 +286,13 @@ class CustomBuildExtCommand(build_ext):
             if info_name == 'accelerate' or 'include_dirs' in info:
                 # should be sufficient
                 for key, value in info.items():
-                    if injection_lookup[key] is None:
-                        injection_lookup[key] = value
-                    else:
-                        injection_lookup[key] += value
+                    if key in injection_lookup:
+                        obj, attribute = value
+                        past_attr = getattr(obj, attribute)
+                        if past_attr is None:
+                            setattr(obj, attribute, value)
+                        else:
+                            setattr(obj, attribute, past_attr + value)
                 KALDI_LIBRARY.define_macros.append((define, None))
                 print('Using {}'.format(info_name))
                 found_blas = True
@@ -273,20 +301,21 @@ class CustomBuildExtCommand(build_ext):
                 continue
             # otherwise we try setting up in the library dirs, then in the
             # directories above them.
-            lib_dirs = list(info['library_dirs'])
-            lib_dirs += [path.abspath(path.join(x, '..')) for x in lib_dirs]
-            for lib_dir in lib_dirs:
-                try:
-                    blas_dict = setup_func(lib_dir)
-                except:
-                    continue
-                for key, value in blas_dict.items():
-                    if injection_lookup[key] is None:
-                        injection_lookup[key] = value
-                    else:
-                        injection_lookup[key] += value
-                print('Using {}'.format(info_name))
-                found_blas = True
+            check_dirs = list(info['library_dirs'])
+            check_dirs += [path.abspath(path.join(x, '..')) for x in check_dirs]
+            try:
+                blas_dict = setup_func(check_dirs)
+            except:
+                continue
+            for key, value in blas_dict.items():
+                obj, attribute = value
+                past_attr = getattr(obj, attribute)
+                if past_attr is None:
+                    setattr(obj, attribute, value)
+                else:
+                    setattr(obj, attribute, past_attr + value)
+            print('Using {}'.format(info_name))
+            found_blas = True
         if not found_blas:
             raise Exception('Unable to find BLAS library via numpy')
 

@@ -40,14 +40,6 @@
 // so we define HAVE_Svd to be zero and this directs our implementation to
 // supply its own "by hand" implementation which is based on TNT code.
 
-
-
-
-#if (defined(HAVE_CLAPACK) && (defined(HAVE_ATLAS) || defined(HAVE_MKL))) \
-    || (defined(HAVE_ATLAS) && defined(HAVE_MKL))
-#error "Do not define more than one of HAVE_CLAPACK, HAVE_ATLAS and HAVE_MKL"
-#endif
-
 #ifdef HAVE_ATLAS
   extern "C" {
     #include <cblas.h>
@@ -109,6 +101,10 @@
   #undef bit_test
   #undef bit_clear
   #undef bit_set
+#elif defined(HAVE_LAPACKE)
+  // have netlib interface of lapacke and blas
+  #include <cblas.h>
+  #include <lapacke.h>
 #else
   #error "You need to define (using the preprocessor) either HAVE_CLAPACK or HAVE_ATLAS or HAVE_MKL (but not more than one)"  
 #endif
@@ -118,6 +114,9 @@ typedef int KaldiBlasInt; // try int.
 #endif
 #ifdef HAVE_CLAPACK
 typedef integer KaldiBlasInt;
+#endif
+#ifdef HAVE_LAPACKE
+typedef lapack_int KaldiBlasInt;
 #endif
 #ifdef HAVE_MKL
 typedef MKL_INT KaldiBlasInt;
