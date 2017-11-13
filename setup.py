@@ -328,7 +328,7 @@ class CustomBuildExtCommand(build_ext):
         if not len(BLAS_DICT):
             self.look_for_blas()
         # no super for python 2.7 compatibility
-        build_ext.finalize_options()
+        build_ext.finalize_options(self)
         self.include_dirs.append(numpy.get_include())
 
 setup(
