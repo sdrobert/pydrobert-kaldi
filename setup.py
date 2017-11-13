@@ -282,7 +282,6 @@ class CustomBuildExtCommand(build_ext):
                 ('accelerate', 'HAVE_CLAPACK', accelerate_setup))
         for info_name, define, setup_func in blas_to_check:
             info = system_info.get_info(info_name)
-            print(info)
             if not info:
                 continue
             if info_name == 'accelerate':
@@ -313,7 +312,6 @@ class CustomBuildExtCommand(build_ext):
             for key, value in blas_dict.items():
                 obj, attribute = injection_lookup[key]
                 past_attr = getattr(obj, attribute)
-                print(obj, attribute, past_attr, key, value)
                 if past_attr is None:
                     setattr(obj, attribute, value)
                 else:
