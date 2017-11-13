@@ -254,6 +254,7 @@ class CustomBuildExtCommand(build_ext):
                 ('accelerate', 'HAVE_CLAPACK', accelerate_setup))
         for info_name, define, setup_func in blas_to_check:
             info = system_info.get_info(info_name)
+            print(info)
             if not info:
                 continue
             if info_name == 'accelerate' or 'include_dirs' in info:
