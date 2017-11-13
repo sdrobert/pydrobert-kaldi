@@ -3,7 +3,7 @@ python:
   - 2.7
   - 3.5
   - nightly
-pre_install:
+before_install:
   - sudo apt-get install libopenblas-dev
 install:
   - pip install .
