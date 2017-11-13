@@ -270,10 +270,10 @@ class CustomBuildExtCommand(build_ext):
         found_blas = False
         blas_to_check = [
             ('mkl', 'HAVE_MKL', mkl_setup),
-            ('openblas', 'HAVE_OPENBLAS', openblas_setup),
+            ('openblas_lapack', 'HAVE_OPENBLAS', openblas_setup),
             ('atlas', 'HAVE_ATLAS', atlas_setup),
-            ('lapacke', 'HAVE_LAPACKE', blas_lapacke_setup),
-            ('clapack', 'HAVE_CLAPACK', blas_clapack_setup),
+            ('blas_opt', 'HAVE_LAPACKE', blas_lapacke_setup),
+            ('blas_opt', 'HAVE_CLAPACK', blas_clapack_setup),
         ]
         if platform.system() == 'Darwin':
             blas_to_check.append(
@@ -283,7 +283,7 @@ class CustomBuildExtCommand(build_ext):
             print(info)
             if not info:
                 continue
-            if info_name == 'accelerate' or 'include_dirs' in info:
+            if info_name == 'accelerate':
                 # should be sufficient
                 for key, value in info.items():
                     if key in injection_lookup:
@@ -303,6 +303,7 @@ class CustomBuildExtCommand(build_ext):
             # directories above them.
             check_dirs = list(info['library_dirs'])
             check_dirs += [path.abspath(path.join(x, '..')) for x in check_dirs]
+            check_dirs = list(info.get('include_dirs', [])) + check_dirs
             try:
                 blas_dict = setup_func(check_dirs)
             except:
