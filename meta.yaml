@@ -11,7 +11,7 @@ requirements:
     - numpy
     - setuptools
     - setuptools_scm
-    - swig >=3.0
+    - swig >=3.0.8
     - pytest-runner
     - mkl                                  [not nomkl]
     - mkl-include                          [not nomkl]
