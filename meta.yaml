@@ -27,6 +27,7 @@ requirements:
     - enum34                               [py2k]
 
 build:
+  number: {{ environ.get('TRAVIS_BUILD_NUMBER', 0) }}
   skip: True                               [win]
   detect_binary_files_with_prefix: False
   features:
