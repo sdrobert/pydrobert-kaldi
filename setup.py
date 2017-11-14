@@ -187,7 +187,7 @@ if MKL_ROOT or OPENBLAS_ROOT or ATLAS_ROOT or USE_ACCELERATE:
             x is None for x in (
                 MKL_ROOT, OPENBLAS_ROOT, ATLAS_ROOT, USE_ACCELERATE,
                 CLAPACK_ROOT, #LAPACKE_ROOT
-            )) != 5:
+            )) != 4:
         raise Exception(
             'Only one of MKLROOT, ATLASROOT, ACCELERATE, or '
             'OPENBLASROOT should be set')
