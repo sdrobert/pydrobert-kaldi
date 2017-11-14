@@ -274,7 +274,7 @@ class CustomBuildExtCommand(build_ext):
             ('atlas', 'HAVE_ATLAS', atlas_setup),
             # numpy only cares about lapack, not c wrappers. It uses
             # f77blas, after all
-            # ('blas_opt', 'HAVE_LAPACKE', blas_lapacke_setup),
+            ('blas_opt', 'HAVE_LAPACKE', blas_lapacke_setup),
             ('blas_opt', 'HAVE_CLAPACK', blas_clapack_setup),
         ]
         if platform.system() == 'Darwin':
