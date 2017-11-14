@@ -9,6 +9,7 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - libblas-dev
+      - liblapack-dev
       - liblapacke-dev
       - swig3.0
 before_install:
