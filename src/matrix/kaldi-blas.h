@@ -118,7 +118,7 @@ typedef int KaldiBlasInt; // try int.
 typedef integer KaldiBlasInt;
 #endif
 #ifdef HAVE_LAPACKE
-typedef lapack_int KaldiBlasInt;
+typedef int KaldiBlasInt;
 #endif
 #ifdef HAVE_MKL
 typedef MKL_INT KaldiBlasInt;
