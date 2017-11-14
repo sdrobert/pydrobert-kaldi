@@ -1,8 +1,6 @@
 language: python
 python:
   - 2.7
-  - 3.4
-  - 3.5
   - 3.6
 before_install:
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
@@ -16,17 +14,16 @@ before_install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
   - conda install conda-build anaconda-client
-  - export CONDA_PY=${TRAVIS_PYTHON_VERSION}
   - conda create -n test python=${TRAVIS_PYTHON_VERSION} pytest
 install:
-  - conda build . --no-test
+  - conda build recipe --no-test --python ${TRAVIS_PYTHON_VERSION}
   - source activate test
   - conda install pydrobert-kaldi --use-local
 script:
   - pytest
 deploy:
   - provider: script
-    script: anaconda -t ${ANACONDA_TOKEN} upload ${HOME}/miniconda/conda-bld/pydrobert-kaldi-*.tar.bz2
+    script: source recipe/anaconda_deploy.sh
     on:
       tags: true
     skip_cleanup: true

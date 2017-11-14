@@ -1,0 +1,8 @@
+python:
+  - 3.4
+  - 3.5
+  - 3.6
+blas_impl:
+  - mkl
+  - openblas   [linux]
+  - accelerate [osx]

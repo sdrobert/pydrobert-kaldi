@@ -22,6 +22,6 @@ else
   export MKLROOT="${CONDA_PREFIX}"
 fi
 
-${PYTHON} "${RECIPE_DIR}/setup.py" install \
+${PYTHON} setup.py install \
   --single-version-externally-managed \
   --record=record.txt || exit 1
