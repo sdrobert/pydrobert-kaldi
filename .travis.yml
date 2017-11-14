@@ -10,7 +10,9 @@ addons:
     packages:
       - libblas-dev
       - liblapacke-dev
-      - swig
+      - swig3.0
+before_install:
+  - alias swig=swig3.0
 install:
   - pip install .
 script:
