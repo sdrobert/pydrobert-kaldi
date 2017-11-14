@@ -11,9 +11,8 @@ addons:
       - libblas-dev
       - liblapacke-dev
       - swig3.0
-before_install:
-  - alias swig=swig3.0
 install:
+  - alias swig=swig3.0
   - pip install .
 script:
   - pytest
