@@ -12,7 +12,7 @@ addons:
       - liblapacke-dev
       - swig3.0
 install:
-  - alias swig=swig3.0
+  - swig
   - pip install .
 script:
   - pytest
