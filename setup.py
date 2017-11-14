@@ -180,7 +180,7 @@ MKL_ROOT = environ.get('MKLROOT', None)
 OPENBLAS_ROOT = environ.get('OPENBLASROOT', None)
 ATLAS_ROOT = environ.get('ATLASROOT', None)
 CLAPACK_ROOT = environ.get('CLAPACKROOT', None)
-LAPACKE_ROOT = environ.get('LAPACKEROOT', None)
+# LAPACKE_ROOT = environ.get('LAPACKEROOT', None)
 USE_ACCELERATE = environ.get('ACCELERATE', None)
 if MKL_ROOT or OPENBLAS_ROOT or ATLAS_ROOT or USE_ACCELERATE:
     if sum(
@@ -274,7 +274,7 @@ class CustomBuildExtCommand(build_ext):
             ('atlas', 'HAVE_ATLAS', atlas_setup),
             # numpy only cares about lapack, not c wrappers. It uses
             # f77blas, after all
-            ('blas_opt', 'HAVE_LAPACKE', blas_lapacke_setup),
+            # ('blas_opt', 'HAVE_LAPACKE', blas_lapacke_setup),
             ('blas_opt', 'HAVE_CLAPACK', blas_clapack_setup),
         ]
         if platform.system() == 'Darwin':

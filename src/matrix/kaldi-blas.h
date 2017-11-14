@@ -101,12 +101,6 @@
   #undef bit_test
   #undef bit_clear
   #undef bit_set
-#elif defined(HAVE_LAPACKE)
-  // have netlib interface of lapacke and blas
-  extern "C" {
-    #include <cblas.h>
-    #include <lapacke.h>
-  }
 #else
   #error "You need to define (using the preprocessor) either HAVE_CLAPACK or HAVE_ATLAS or HAVE_MKL (but not more than one)"  
 #endif
@@ -116,9 +110,6 @@ typedef int KaldiBlasInt; // try int.
 #endif
 #ifdef HAVE_CLAPACK
 typedef integer KaldiBlasInt;
-#endif
-#ifdef HAVE_LAPACKE
-typedef int KaldiBlasInt;
 #endif
 #ifdef HAVE_MKL
 typedef MKL_INT KaldiBlasInt;
