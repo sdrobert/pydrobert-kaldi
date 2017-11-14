@@ -12,38 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'''Submodule for 'basic' reading and writing, like (un)packing c structs'''
+'''Submodule for reading and writing one-by-one, like (un)packing c structs'''
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import abc
-
 from builtins import str as text
 from future.utils import raise_from
-from six import with_metaclass
 
 from pydrobert.kaldi import _internal as _i
+from pydrobert.kaldi.io import KaldiIOBase
 from pydrobert.kaldi.io.enums import KaldiDataType
 from pydrobert.kaldi.io.util import infer_kaldi_data_type
-from pydrobert.kaldi.io.util import parse_kaldi_input_path
-from pydrobert.kaldi.io.util import parse_kaldi_output_path
 
 __all__ = [
-    'KaldiIOBase',
     'KaldiInput',
     'KaldiOutput',
 ]
 
-def open_basic(path, mode='r', header=True):
-    '''Open a basic stream
 
-    Basic streams provide an interface for reading or writing kaldi
+def open_duck_stream(path, mode='r', header=True):
+    '''Open a "duck" stream
+
+    "Duck" streams provide an interface for reading or writing kaldi
     objects, one at a time. Essentially: remember the order things go
     in, then pull them out in the same order.
 
-    Basic streams can read/write binary or text data. It is mostly up
+    Duck streams can read/write binary or text data. It is mostly up
     to the user how to read or write data, though the following rules
     establish the default:
 
@@ -85,95 +81,6 @@ def open_basic(path, mode='r', header=True):
             'Invalid Kaldi I/O mode "{}" (should be one of "r","r+","w")'
             ''.format(mode))
 
-class KaldiIOBase(object, with_metaclass(abc.ABCMeta)):
-    '''IOBase for kaldi readers and writers
-
-    Similar to `io.IOBase`, but without a lot of the assumed
-    functionality.
-
-    Arguments
-    ---------
-    path : str
-        The path passed to `pydrobert.kaldi.io.open`
-
-    Attributes
-    ----------
-    path : str
-    table_type : pydrobert.kaldi.io.enums.TableType
-    xfilenames : str or tuple
-    xtypes : pydrobert.kaldi.io.enums.{RxfilenameType, WxfilenameType}
-             or tuple
-    binary : bool
-        Whether this stream should use binary data (True) or text
-
-        .. warning:: a stream is under no obligation to encode data in
-           this way, though, in normal situations, it will
-    closed : bool
-        True if this stream is closed
-
-    The following attributes exist for tables only
-
-    permissive : bool
-        True if invalid values will be treated as non-existent
-
-    The following attributes exist when the object is a table and is
-    readable:
-
-    once : bool
-        True if each entry will only be read once (you must guarantee
-        this!)
-    sorted : bool
-        True if keys are sorted
-    called_sorted : bool
-        True if entries will be read in sorted order (you must guarantee
-        this!)
-    background : bool
-        True if reading is not being performed on the main thread
-
-    The following attributes exist when the object is a table and
-    writable:
-
-    flush : bool
-        True if the stream is flushed after each write operation
-    '''
-
-    def __init__(self, path):
-        self.path = path
-        self.closed = False
-        if self.readable():
-            self._table_type, self._xfilenames, self._xtypes, options = \
-                parse_kaldi_input_path(path)
-        else:
-            self._table_type, self._xfilenames, self._xtypes, options = \
-                parse_kaldi_output_path(path)
-        self.binary = True
-        for key, value in options.items():
-            setattr(self, key, value)
-        super(KaldiIOBase, self).__init__()
-
-    @abc.abstractmethod
-    def close(self):
-        '''Close and flush the underlying IO object
-
-        This method has no effect if the file is already closed
-        '''
-        pass
-
-    @abc.abstractmethod
-    def readable(self):
-        '''Return whether this object was opened for reading'''
-        pass
-
-    @abc.abstractmethod
-    def writable(self):
-        '''Return whether this object was opened for writing'''
-        pass
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exception_type, exception_val, trace):
-        self.close()
 
 class KaldiInput(KaldiIOBase):
     '''A kaldi input stream from which objects can be read one at a time
@@ -244,7 +151,7 @@ class KaldiInput(KaldiIOBase):
                     raise ValueError(
                         'value_style must be a combination of "b", "s",'
                         ' and "d"')
-                tup = self._internal.ReadWaveData() # (data, samp_freq)
+                tup = self._internal.ReadWaveData()  # (data, samp_freq)
                 ret = []
                 for code in value_style:
                     if code == 'b':
@@ -296,6 +203,7 @@ class KaldiInput(KaldiIOBase):
         if not self.closed:
             self._internal.Close()
         self.closed = True
+
 
 class KaldiOutput(KaldiIOBase):
     '''A kaldi output stream from which objects can be written one at a time
@@ -409,4 +317,3 @@ class KaldiOutput(KaldiIOBase):
         if not self.closed:
             self._internal.Close()
         self.closed = True
-

@@ -159,7 +159,7 @@ def blas_clapack_setup(roots):
 def accelerate_setup():
     return {
         'DEFINES': [('HAVE_CLAPACK', None)],
-        'LD_FLAGS': ['-Wl,framework', '-Wl,Accelerate'],
+        'LD_FLAGS': ['-framework', 'Accelerate'],
     }
 
 PWD = path.abspath(path.dirname(__file__))

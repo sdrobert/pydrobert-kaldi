@@ -22,6 +22,8 @@
   #define SWIG_PYTHON_2_UNICODE
 %}
 
+#include "base/version.h"
+
 %include "typemaps.i"
 // %include "stdint.i" // causes weird mapping issues in vectors
 %include "std_string.i"
@@ -84,4 +86,4 @@ namespace kaldi {
 %include "pydrobert/error.i"
 %include "pydrobert/io/util.i"
 %include "pydrobert/io/tables/tables.i"
-%include "pydrobert/io/basic.i"
+%include "pydrobert/io/duck.i"

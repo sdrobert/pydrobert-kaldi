@@ -1,42 +1,51 @@
 {% if environ.get('TRAVIS', False) %}
 # travis build. Use info from there
+  {% set version = environ['TRAVIS_BRANCH'] %}
+  {% set build_num = environ['TRAVIS_BUILD_NUMBER'] %}
 {% else %}
+  {% set version = environ.get('GIT_DESCRIBE_TAG', '0.0.0') %}
+  {% set build_num = environ.get('GIT_DESCRIBE_NUMBER', 0) %}
 {% endif %}
 
 package:
   name: pydrobert-kaldi
-  version: {{ environ.get('GIT_DESCRIBE_TAG', 'v0.0.0') }}
+  version: {{ version }}
 
 source:
-  path: ../
+  git_url: ../
 
 requirements:
   host:
-    - python
+    - python {{ python }}
     - numpy
     - setuptools
     - setuptools_scm
     - swig >=3.0.8
     - pytest-runner
-    - mkl                                  [not nomkl]
-    - mkl-include                          [not nomkl]
-    - openblas                             [nomkl and linux]
+{% if blas_impl == 'mkl' %}
+    - mkl
+    - mkl-include
+{% elif blas_impl == 'openblas' %}
+    - openblas
+{% endif %}
   build:
     - {{ compiler('cxx') }}
   run:
     # let link libraries be downstream deps
-    - python
+    - python {{ python }}
     - {{ pin_compatible('numpy', max_pin='x.x') }}
     - future
     - six
     - enum34                               [py2k]
 
 build:
-  number: {{ environ.get('TRAVIS_BUILD_NUMBER', 0) }}
+  number: {{ build_num }}
   skip: True                               [win]
   detect_binary_files_with_prefix: False
+{% if blas_impl != 'mkl' %}
   features:
-    - nomkl                                [nomkl]
+    - nomkl
+{% endif %}
 
 test:
   source_files:
@@ -47,6 +56,8 @@ test:
   imports:
     - pydrobert
     - pydrobert.kaldi
+  commands:
+    - pytest
 
 about:
   home: https://github.com/sdrobert/pydrobert-kaldi

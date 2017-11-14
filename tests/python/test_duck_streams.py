@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'''Tests for `pydrobert.kaldi.io.basic`'''
+'''Tests for `pydrobert.kaldi.io.duck_streams`'''
 
 from __future__ import absolute_import
 from __future__ import division

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Pytests for `pydrobert.kaldi.io.tables`"""
+"""Pytests for `pydrobert.kaldi.io.table_streams`"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -24,7 +24,7 @@ import numpy as np
 import pytest
 
 from pydrobert.kaldi.io import open as io_open
-from pydrobert.kaldi.io import tables
+from pydrobert.kaldi.io import table_streams
 
 @pytest.mark.parametrize('dtype,value', [
     ('bv', []),
@@ -192,35 +192,35 @@ def test_read_write_pipe_posix(temp_file_1_name):
 def test_context_open(temp_file_1_name):
     specifier = 'ark:{}'.format(temp_file_1_name)
     with io_open(specifier, 'bm', mode='w') as kaldi_io:
-        assert isinstance(kaldi_io, tables.KaldiTable)
-        assert isinstance(kaldi_io, tables.KaldiWriter)
+        assert isinstance(kaldi_io, table_streams.KaldiTable)
+        assert isinstance(kaldi_io, table_streams.KaldiWriter)
     with io_open(specifier, 'bm') as kaldi_io:
-        assert isinstance(kaldi_io, tables.KaldiSequentialReader)
+        assert isinstance(kaldi_io, table_streams.KaldiSequentialReader)
     with io_open(specifier, 'bm', mode='r') as kaldi_io:
-        assert isinstance(kaldi_io, tables.KaldiSequentialReader)
+        assert isinstance(kaldi_io, table_streams.KaldiSequentialReader)
     with io_open(specifier, 'bm', mode='r+') as kaldi_io:
-        assert isinstance(kaldi_io, tables.KaldiRandomAccessReader)
+        assert isinstance(kaldi_io, table_streams.KaldiRandomAccessReader)
 
 def test_filehandle_open(temp_file_1_name):
     specifier = 'ark:{}'.format(temp_file_1_name)
     kaldi_io = io_open(specifier, 'bm', mode='w')
-    assert isinstance(kaldi_io, tables.KaldiTable)
-    assert isinstance(kaldi_io, tables.KaldiWriter)
+    assert isinstance(kaldi_io, table_streams.KaldiTable)
+    assert isinstance(kaldi_io, table_streams.KaldiWriter)
     kaldi_io = io_open(specifier, 'bm')
-    assert isinstance(kaldi_io, tables.KaldiSequentialReader)
+    assert isinstance(kaldi_io, table_streams.KaldiSequentialReader)
     kaldi_io = io_open(specifier, 'bm', mode='r')
-    assert isinstance(kaldi_io, tables.KaldiSequentialReader)
+    assert isinstance(kaldi_io, table_streams.KaldiSequentialReader)
     kaldi_io = io_open(specifier, 'bm', mode='r+')
-    assert isinstance(kaldi_io, tables.KaldiRandomAccessReader)
+    assert isinstance(kaldi_io, table_streams.KaldiRandomAccessReader)
 
 def test_open_string_or_data_type(temp_file_1_name):
     specifier = 'ark:{}'.format(temp_file_1_name)
     io_open(specifier, 'bm', mode='w')
-    io_open(specifier, tables.KaldiDataType.BaseMatrix, mode='w')
+    io_open(specifier, table_streams.KaldiDataType.BaseMatrix, mode='w')
     io_open(specifier, 'bm', mode='r')
-    io_open(specifier, tables.KaldiDataType.BaseMatrix, mode='r')
+    io_open(specifier, table_streams.KaldiDataType.BaseMatrix, mode='r')
     io_open(specifier, 'bm', mode='r+')
-    io_open(specifier, tables.KaldiDataType.BaseMatrix, mode='r+')
+    io_open(specifier, table_streams.KaldiDataType.BaseMatrix, mode='r+')
 
 def test_invalid_data_type(temp_file_1_name):
     specifier = 'ark:{}'.format(temp_file_1_name)

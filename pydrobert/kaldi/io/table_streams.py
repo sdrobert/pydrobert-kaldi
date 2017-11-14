@@ -27,7 +27,7 @@ from builtins import str as text
 from future.utils import implements_iterator
 
 from pydrobert.kaldi import _internal as _i
-from pydrobert.kaldi.io.basic import KaldiIOBase
+from pydrobert.kaldi.io import KaldiIOBase
 from pydrobert.kaldi.io.enums import KaldiDataType
 
 __author__ = "Sean Robertson"
@@ -42,7 +42,8 @@ __all__ = [
     'KaldiWriter',
 ]
 
-def open_table(
+
+def open_table_stream(
         path, kaldi_dtype, mode='r', error_on_str=True,
         utt2spk='', value_style='b'):
     '''Factory function to open a kaldi table
@@ -139,6 +140,7 @@ def open_table(
             ''.format(mode))
     return table
 
+
 class KaldiTable(KaldiIOBase):
     """Base class for interacting with tables
 
@@ -167,6 +169,7 @@ class KaldiTable(KaldiIOBase):
     def __init__(self, path, kaldi_dtype):
         self.kaldi_dtype = KaldiDataType(kaldi_dtype)
         super(KaldiTable, self).__init__(path)
+
 
 @implements_iterator
 class KaldiSequentialReader(KaldiTable, Iterator):
@@ -277,6 +280,9 @@ class KaldiSequentialReader(KaldiTable, Iterator):
         self.move()
         return ret
 
+    def __iter__(self):
+        return self
+
 class KaldiRandomAccessReader(KaldiTable, Container):
     """Read-only access to values of table by key
 
@@ -339,6 +345,7 @@ class KaldiRandomAccessReader(KaldiTable, Container):
     def writable(self):
         return False
 
+
 class KaldiWriter(KaldiTable):
     """Write key-value pairs to tables
 
@@ -378,28 +385,33 @@ class KaldiWriter(KaldiTable):
     def writable(self):
         return True
 
+
 class _KaldiSequentialSimpleReader(KaldiSequentialReader):
     __doc__ = KaldiSequentialReader.__doc__
 
     _dtype_to_cls = {
-        'bm' : _i.SequentialDoubleMatrixReader \
-            if _i.kDoubleIsBase else _i.SequentialFloatMatrixReader,
-        'bv' : _i.SequentialDoubleVectorReader \
-            if _i.kDoubleIsBase else _i.SequentialFloatVectorReader,
-        'dm' : _i.SequentialDoubleMatrixReader,
-        'dv' : _i.SequentialDoubleVectorReader,
-        'fm' : _i.SequentialDoubleMatrixReader,
-        'fv' : _i.SequentialDoubleVectorReader,
-        't' : _i.SequentialTokenReader,
-        'tv' : _i.SequentialTokenVectorReader,
-        'i' : _i.SequentialInt32Reader,
-        'iv' : _i.SequentialInt32VectorReader,
-        'ivv' : _i.SequentialInt32VectorVectorReader,
-        'ipv' : _i.SequentialInt32PairVectorReader,
-        'd' : _i.SequentialDoubleReader,
-        'b' : _i.SequentialBaseFloatReader,
-        'bpv' : _i.SequentialBaseFloatPairVectorReader,
-        'B' : _i.SequentialBoolReader,
+        'bm': (
+            _i.SequentialDoubleMatrixReader
+            if _i.kDoubleIsBase else _i.SequentialFloatMatrixReader
+        ),
+        'bv': (
+            _i.SequentialDoubleVectorReader
+            if _i.kDoubleIsBase else _i.SequentialFloatVectorReader
+        ),
+        'dm': _i.SequentialDoubleMatrixReader,
+        'dv': _i.SequentialDoubleVectorReader,
+        'fm': _i.SequentialDoubleMatrixReader,
+        'fv': _i.SequentialDoubleVectorReader,
+        't': _i.SequentialTokenReader,
+        'tv': _i.SequentialTokenVectorReader,
+        'i': _i.SequentialInt32Reader,
+        'iv': _i.SequentialInt32VectorReader,
+        'ivv': _i.SequentialInt32VectorVectorReader,
+        'ipv': _i.SequentialInt32PairVectorReader,
+        'd': _i.SequentialDoubleReader,
+        'b': _i.SequentialBaseFloatReader,
+        'bpv': _i.SequentialBaseFloatPairVectorReader,
+        'B': _i.SequentialBoolReader,
     }
 
     def __init__(self, path, kaldi_dtype):
@@ -444,28 +456,33 @@ class _KaldiSequentialSimpleReader(KaldiSequentialReader):
             self._internal.Close()
         self.closed = True
 
+
 class _KaldiRandomAccessSimpleReader(KaldiRandomAccessReader):
     __doc__ = KaldiRandomAccessReader.__doc__
 
     _dtype_to_cls = {
-        'bm' : _i.RandomAccessDoubleMatrixReader \
-            if _i.kDoubleIsBase else _i.RandomAccessFloatMatrixReader,
-        'bv' : _i.RandomAccessDoubleVectorReader \
-            if _i.kDoubleIsBase else _i.RandomAccessFloatVectorReader,
-        'dm' : _i.RandomAccessDoubleMatrixReader,
-        'dv' : _i.RandomAccessDoubleVectorReader,
-        'fm' : _i.RandomAccessFloatMatrixReader,
-        'fv' : _i.RandomAccessFloatVectorReader,
-        't' : _i.RandomAccessTokenReader,
-        'tv' : _i.RandomAccessTokenVectorReader,
-        'i' : _i.RandomAccessInt32Reader,
-        'iv' : _i.RandomAccessInt32VectorReader,
-        'ivv' : _i.RandomAccessInt32VectorVectorReader,
-        'ipv' : _i.RandomAccessInt32PairVectorReader,
-        'd' : _i.RandomAccessDoubleReader,
-        'b' : _i.RandomAccessBaseFloatReader,
-        'bpv' : _i.RandomAccessBaseFloatPairVectorReader,
-        'B' : _i.RandomAccessBoolReader,
+        'bm': (
+            _i.RandomAccessDoubleMatrixReader
+            if _i.kDoubleIsBase else _i.RandomAccessFloatMatrixReader
+        ),
+        'bv': (
+            _i.RandomAccessDoubleVectorReader
+            if _i.kDoubleIsBase else _i.RandomAccessFloatVectorReader
+        ),
+        'dm': _i.RandomAccessDoubleMatrixReader,
+        'dv': _i.RandomAccessDoubleVectorReader,
+        'fm': _i.RandomAccessFloatMatrixReader,
+        'fv': _i.RandomAccessFloatVectorReader,
+        't': _i.RandomAccessTokenReader,
+        'tv': _i.RandomAccessTokenVectorReader,
+        'i': _i.RandomAccessInt32Reader,
+        'iv': _i.RandomAccessInt32VectorReader,
+        'ivv': _i.RandomAccessInt32VectorVectorReader,
+        'ipv': _i.RandomAccessInt32PairVectorReader,
+        'd': _i.RandomAccessDoubleReader,
+        'b': _i.RandomAccessBaseFloatReader,
+        'bpv': _i.RandomAccessBaseFloatPairVectorReader,
+        'B': _i.RandomAccessBoolReader,
     }
 
     def __init__(self, path, kaldi_dtype, utt2spk=''):
@@ -495,28 +512,33 @@ class _KaldiRandomAccessSimpleReader(KaldiRandomAccessReader):
             self._internal.Close()
         self.closed = True
 
+
 class _KaldiSimpleWriter(KaldiWriter):
     __doc__ = KaldiWriter.__doc__
 
     _dtype_to_cls = {
-        'bm' : _i.DoubleMatrixWriter \
-            if _i.kDoubleIsBase else _i.FloatMatrixWriter,
-        'bv' : _i.DoubleVectorWriter \
-            if _i.kDoubleIsBase else _i.FloatVectorWriter,
-        'dm' : _i.DoubleMatrixWriter,
-        'dv' : _i.DoubleVectorWriter,
-        'fm' : _i.FloatMatrixWriter,
-        'fv' : _i.FloatVectorWriter,
-        't' : _i.TokenWriter,
-        'wm' : _i.WaveWriter,
-        'i' : _i.Int32Writer,
-        'iv' : _i.Int32VectorWriter,
-        'ivv' : _i.Int32VectorVectorWriter,
-        'ipv' : _i.Int32PairVectorWriter,
-        'd' : _i.DoubleWriter,
-        'b' : _i.BaseFloatWriter,
-        'bpv' : _i.BaseFloatPairVectorWriter,
-        'B' : _i.BoolWriter,
+        'bm': (
+            _i.DoubleMatrixWriter
+            if _i.kDoubleIsBase else _i.FloatMatrixWriter
+        ),
+        'bv': (
+            _i.DoubleVectorWriter
+            if _i.kDoubleIsBase else _i.FloatVectorWriter
+        ),
+        'dm': _i.DoubleMatrixWriter,
+        'dv': _i.DoubleVectorWriter,
+        'fm': _i.FloatMatrixWriter,
+        'fv': _i.FloatVectorWriter,
+        't': _i.TokenWriter,
+        'wm': _i.WaveWriter,
+        'i': _i.Int32Writer,
+        'iv': _i.Int32VectorWriter,
+        'ivv': _i.Int32VectorVectorWriter,
+        'ipv': _i.Int32PairVectorWriter,
+        'd': _i.DoubleWriter,
+        'b': _i.BaseFloatWriter,
+        'bpv': _i.BaseFloatPairVectorWriter,
+        'B': _i.BoolWriter,
     }
 
     def __init__(self, path, kaldi_dtype):
@@ -537,6 +559,7 @@ class _KaldiSimpleWriter(KaldiWriter):
         if not self.closed:
             self._internal.Close()
         self.closed = True
+
 
 class _KaldiSequentialWaveReader(KaldiSequentialReader):
     __doc__ = KaldiSequentialReader.__doc__
@@ -600,6 +623,7 @@ class _KaldiSequentialWaveReader(KaldiSequentialReader):
             self._internal.Close()
         self.closed = True
 
+
 class _KaldiRandomAccessWaveReader(KaldiRandomAccessReader):
     __doc__ = KaldiRandomAccessReader.__doc__
 
@@ -646,6 +670,7 @@ class _KaldiRandomAccessWaveReader(KaldiRandomAccessReader):
         if not self.closed:
             self._internal.Close()
         self.closed = True
+
 
 class _KaldiTokenVectorWriter(KaldiWriter):
     __doc__ = KaldiWriter.__doc__

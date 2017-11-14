@@ -27,9 +27,9 @@ from shlex import split
 import numpy as np
 import pydrobert.kaldi.io as kaldi_io
 
-from pydrobert.kaldi.logging import KaldiLogger
 from pydrobert.kaldi.logging import kaldi_logger_decorator
 from pydrobert.kaldi.logging import kaldi_lvl_to_logging_lvl
+from pydrobert.kaldi.logging import kaldi_vlog_level_cmd_decorator
 from pydrobert.kaldi.logging import register_logger_for_kaldi
 from six.moves import cPickle as pickle
 
@@ -46,12 +46,12 @@ __all__ = [
     'kaldi_dtype_arg_type',
     'kaldi_bool_arg_type',
     'numpy_dtype_arg_type',
-    'kaldi_vlog_level_cmd_decorator',
     'KaldiVerbosityAction',
     'KaldiParser',
     'write_table_to_pickle',
     'write_pickle_to_table',
 ]
+
 
 def kaldi_rspecifier_arg_type(string):
     '''Make sure string is a valid rspecifier
@@ -65,6 +65,7 @@ def kaldi_rspecifier_arg_type(string):
         raise argparse.ArgumentTypeError('Not a valid rspecifier')
     return string
 
+
 def kaldi_wspecifier_arg_type(string):
     '''Make sure string is a valid wspecifier
 
@@ -76,6 +77,7 @@ def kaldi_wspecifier_arg_type(string):
     if table_type == kaldi_io.enums.TableType.NotATable:
         raise argparse.ArgumentTypeError('Not a valid wspecifier')
     return string
+
 
 def kaldi_rxfilename_arg_type(string):
     '''Make sure string is a valid extended readable file name
@@ -94,6 +96,7 @@ def kaldi_rxfilename_arg_type(string):
         raise argparse.ArgumentTypeError('Not a valid rxfilename')
     return string
 
+
 def kaldi_wxfilename_arg_type(string):
     '''Make sure string is a valid extended writable file name
 
@@ -111,6 +114,7 @@ def kaldi_wxfilename_arg_type(string):
         raise argparse.ArgumentTypeError('Not a valid wxfilename')
     return string
 
+
 def kaldi_dtype_arg_type(string):
     '''Make sure string refers to a KaldiDataType and return it
 
@@ -124,9 +128,10 @@ def kaldi_dtype_arg_type(string):
         raise argparse.ArgumentTypeError(
             'Invalid kaldi data type (must be one of {})'.format(
                 ','.join(
-                    "'{}'".format(x.value) for x in kaldi_io.enums.KaldiDataType
-            )))
+                    "'{}'".format(x.value)
+                    for x in kaldi_io.enums.KaldiDataType)))
     return ret
+
 
 def kaldi_bool_arg_type(string):
     '''Make sure string is either "true" or "false", return associated bool
@@ -142,6 +147,7 @@ def kaldi_bool_arg_type(string):
     else:
         raise argparse.ArgumentTypeError("Must be 'true' or 'false'")
 
+
 def numpy_dtype_arg_type(string):
     '''Make sure string refers to a numpy data type, returns that type
 
@@ -152,43 +158,9 @@ def numpy_dtype_arg_type(string):
     try:
         ret = np.dtype(string)
     except TypeError as error:
-        raise ArgumentTypeError(error.message)
+        raise argparse.ArgumentTypeError(error.message)
+    return ret
 
-def kaldi_vlog_level_cmd_decorator(func):
-    '''Decorator to rename, then revert, level names according to Kaldi [1]_
-
-    See pydrobert.kaldi for the conversion chart. After the return of
-    the function, the level names before the call are reverted. This
-    function is insensitive to renaming while the function executes
-
-    .. [1] Povey, D., et al (2011). The Kaldi Speech Recognition
-           Toolkit. ASRU
-    '''
-    def _new_cmd(*args, **kwargs):
-        __doc__ = func.__doc__
-        old_level_names = [logging.getLevelName(0)]
-        for level in range(1, 10):
-            old_level_names.append(logging.getLevelName(level))
-            logging.addLevelName(level, 'VLOG [{:d}]'.format(11 - level))
-        for level in range(10, 51):
-            old_level_names.append(logging.getLevelName(level))
-            if level // 10 == 1:
-                logging.addLevelName(level, 'VLOG [1]')
-            elif level // 10 == 2:
-                logging.addLevelName(level, 'LOG')
-            elif level // 10 == 3:
-                logging.addLevelName(level, 'WARNING')
-            elif level // 10 == 4:
-                logging.addLevelName(level, 'ERROR')
-            elif level // 10 == 5:
-                logging.addLevelName(level, 'ASSERTION_FAILED ')
-        try:
-            ret = func(*args, **kwargs)
-        finally:
-            for level, name in enumerate(old_level_names):
-                logging.addLevelName(level, name)
-        return ret
-    return _new_cmd
 
 class KaldiVerbosityAction(argparse.Action):
     '''Read kaldi-style verbosity levels, setting logger to python level
@@ -209,6 +181,7 @@ class KaldiVerbosityAction(argparse.Action):
         setattr(namespace, self.dest, logging_lvl)
         if hasattr(parser, 'logger'):
             parser.logger.setLevel(logging_lvl)
+
 
 class KaldiParser(argparse.ArgumentParser):
     '''Kaldi-compatible wrapper for argument parsing
@@ -258,8 +231,8 @@ class KaldiParser(argparse.ArgumentParser):
         Add a -h/-help option
     add_verbose : bool
         Add a -v/--verbose option. The option requires an integer argument
-        specifying a verbosiy level at the same degrees as Kaldi. The level will
-        be converted to the appropriate python level when parsed
+        specifying a verbosiy level at the same degrees as Kaldi. The level
+        will be converted to the appropriate python level when parsed
     update_formatters : bool
         If logger is set, the logger's handlers' formatters will be set to a
         kaldi-style formatter
@@ -339,6 +312,7 @@ class KaldiParser(argparse.ArgumentParser):
         return super(KaldiParser, self).parse_known_args(
             args=args, namespace=namespace)
 
+
 def _write_table_to_pickle_parse_args(args, logger):
     '''Parse args for write_table_to_pickle'''
     parser = KaldiParser(
@@ -366,6 +340,7 @@ def _write_table_to_pickle_parse_args(args, logger):
         'strings')
     options = parser.parse_args(args)
     return options
+
 
 @kaldi_vlog_level_cmd_decorator
 @kaldi_logger_decorator
@@ -406,7 +381,7 @@ def write_table_to_pickle(args=None):
                 import gzip
                 key_out = gzip.open(options.key_out, 'wt')
             else:
-                key_out = open(opitons.key_out, 'w')
+                key_out = open(options.key_out, 'w')
         else:
             key_out = None
     except IOError as error:
@@ -439,6 +414,7 @@ def write_table_to_pickle(args=None):
         logger.info("Wrote {} entries".format(num_entries))
     return 0
 
+
 def _write_pickle_to_table_parse_args(args, logger):
     '''Parse args for write_pickle_to_table'''
     parser = KaldiParser(
@@ -461,17 +437,19 @@ def _write_pickle_to_table_parse_args(args, logger):
     options = parser.parse_args(args)
     return options
 
+
 def _write_pickle_to_table_empty(wspecifier, logger):
     '''Special case when pickle file(s) was/were empty'''
     logger.info('Opening {}'.format(wspecifier))
     # doesn't matter what type we choose; we're not writing anything
     try:
         kaldi_io.open(wspecifier, 'bm', 'w')
-    except IOError:
+    except IOError as error:
         logger.error(error.message, exc_info=True)
         return 1
     logger.warn('No entries were written (pickle file(s) was/were empty)')
     return 0
+
 
 def _write_pickle_to_table_value_only(options, logger):
     '''write_pickle_to_table when only value_in has been specified'''
@@ -534,6 +512,7 @@ def _write_pickle_to_table_value_only(options, logger):
         value_in.close()
     logger.info("Wrote {} entries".format(num_entries))
     return 0
+
 
 def _write_pickle_to_table_key_value(options, logger):
     try:
@@ -600,12 +579,12 @@ def _write_pickle_to_table_key_value(options, logger):
                     try:
                         value = value.astype(np.float64, copy=False)
                     except AttributeError:
-                        pass # will happen implicitly
+                        pass  # will happen implicitly
                 else:
                     try:
                         value = value.astype(np.float32, copy=False)
                     except AttributeError:
-                        pass # will happen implicitly
+                        pass  # will happen implicitly
             writer.write(key, value)
             num_entries += 1
             if num_entries % 10 == 0:
@@ -651,6 +630,7 @@ def _write_pickle_to_table_key_value(options, logger):
         key_in.close()
     logger.info("Wrote {} entries".format(num_entries))
     return 0
+
 
 @kaldi_vlog_level_cmd_decorator
 @kaldi_logger_decorator

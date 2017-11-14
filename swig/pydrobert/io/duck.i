@@ -105,7 +105,7 @@ namespace kaldi {
                                 const kaldi::MatrixIndexT dim_col) {
     kaldi::MatrixIndexT effective_dim_row = dim_row;
     kaldi::MatrixIndexT effective_dim_col = dim_col;
-    if (!(dim_row * dim_col)) {
+    if (!(dim_row && dim_col)) {
       // numpy can pass matrices with only one zero-dimension axis, but
       // kaldi can't handle that
       effective_dim_col = 0;

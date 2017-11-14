@@ -14,8 +14,8 @@
 
 """Interfaces for Kaldi's readers and writers
 
-This subpackage contains a factory function, `open`, which is intended
-to behave similarly to python's built-in `open` factory. `open` gives
+This subpackage contains a factory function, ``open``, which is intended
+to behave similarly to python's built-in ``open`` factory. ``open`` gives
 the specifics behind Kaldi's different read/write styles. Here, they
 are described in a general way.
 
@@ -46,6 +46,103 @@ please consult `dtypes.KaldiDataTypes`.
 
 from __future__ import absolute_import
 
+import abc
+
+from six import with_metaclass
+
+from pydrobert.kaldi.io.util import parse_kaldi_input_path
+from pydrobert.kaldi.io.util import parse_kaldi_output_path
+
+class KaldiIOBase(object, with_metaclass(abc.ABCMeta)):
+    '''IOBase for kaldi readers and writers
+
+    Similar to `io.IOBase`, but without a lot of the assumed
+    functionality.
+
+    Arguments
+    ---------
+    path : str
+        The path passed to `pydrobert.kaldi.io.open`
+
+    Attributes
+    ----------
+    path : str
+    table_type : pydrobert.kaldi.io.enums.TableType
+    xfilenames : str or tuple
+    xtypes : pydrobert.kaldi.io.enums.{RxfilenameType, WxfilenameType}
+             or tuple
+    binary : bool
+        Whether this stream should use binary data (True) or text
+
+        .. warning:: a stream is under no obligation to encode data in
+           this way, though, in normal situations, it will
+    closed : bool
+        True if this stream is closed
+
+    The following attributes exist for tables only
+
+    permissive : bool
+        True if invalid values will be treated as non-existent
+
+    The following attributes exist when the object is a table and is
+    readable:
+
+    once : bool
+        True if each entry will only be read once (you must guarantee
+        this!)
+    sorted : bool
+        True if keys are sorted
+    called_sorted : bool
+        True if entries will be read in sorted order (you must guarantee
+        this!)
+    background : bool
+        True if reading is not being performed on the main thread
+
+    The following attributes exist when the object is a table and
+    writable:
+
+    flush : bool
+        True if the stream is flushed after each write operation
+    '''
+
+    def __init__(self, path):
+        self.path = path
+        self.closed = False
+        if self.readable():
+            self._table_type, self._xfilenames, self._xtypes, options = \
+                parse_kaldi_input_path(path)
+        else:
+            self._table_type, self._xfilenames, self._xtypes, options = \
+                parse_kaldi_output_path(path)
+        self.binary = True
+        for key, value in options.items():
+            setattr(self, key, value)
+        super(KaldiIOBase, self).__init__()
+
+    @abc.abstractmethod
+    def close(self):
+        '''Close and flush the underlying IO object
+
+        This method has no effect if the file is already closed
+        '''
+        pass
+
+    @abc.abstractmethod
+    def readable(self):
+        '''Return whether this object was opened for reading'''
+        pass
+
+    @abc.abstractmethod
+    def writable(self):
+        '''Return whether this object was opened for writing'''
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exception_type, exception_val, trace):
+        self.close()
+
 # We expose the functionality of 'open' directly in the io package, but
 # everything else sticks in its own submodule
 from pydrobert.kaldi.io import _open
@@ -57,7 +154,9 @@ __license__ = "Apache 2.0"
 __copyright__ = "Copyright 2017 Sean Robertson"
 
 __all__ = [
-    'tables',
+    'KaldiIOBase',
+    'duck_streams',
+    'table_streams',
     'enums',
     'util',
 ] + _open.__all__
