@@ -84,7 +84,7 @@
   extern "C" {
     #include <mkl.h>
   }
-#elif defined(HAVE_OPENBLAS)
+#elif defined(HAVE_OPENBLAS) || defined(HAVE_LAPACKE)
   // getting cblas.h and lapacke.h from <openblas-install-dir>/.
   // putting in "" not <> to search -I before system libraries.
   #include "cblas.h"
@@ -107,6 +107,9 @@
 
 #ifdef HAVE_OPENBLAS
 typedef int KaldiBlasInt; // try int.
+#endif
+#ifdef HAVE_LAPACKE
+typedef int KaldiBlasInt;
 #endif
 #ifdef HAVE_CLAPACK
 typedef integer KaldiBlasInt;

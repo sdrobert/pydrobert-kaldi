@@ -143,7 +143,7 @@ def atlas_setup(roots):
 def blas_lapacke_setup(roots):
     return blas_setup(
         roots,
-        ('blas', 'lapacke'),
+        ('blas', 'lapack', 'lapacke'),
         ('cblas.h', 'lapacke.h'),
         {'DEFINES': [('HAVE_LAPACKE', None)]},
     )
@@ -151,7 +151,7 @@ def blas_lapacke_setup(roots):
 def blas_clapack_setup(roots):
     return blas_setup(
         roots,
-        ('blas', 'clapack'),
+        ('blas', 'lapack', 'f2c', 'clapack'),
         ('cblas.h', 'f2c.h', 'clapack.h'),
         {'DEFINES': [('HAVE_CLAPACK', None)]},
     )
@@ -180,14 +180,14 @@ MKL_ROOT = environ.get('MKLROOT', None)
 OPENBLAS_ROOT = environ.get('OPENBLASROOT', None)
 ATLAS_ROOT = environ.get('ATLASROOT', None)
 CLAPACK_ROOT = environ.get('CLAPACKROOT', None)
-# LAPACKE_ROOT = environ.get('LAPACKEROOT', None)
+LAPACKE_ROOT = environ.get('LAPACKEROOT', None)
 USE_ACCELERATE = environ.get('ACCELERATE', None)
 if MKL_ROOT or OPENBLAS_ROOT or ATLAS_ROOT or USE_ACCELERATE:
     if sum(
-            x is None for x in (
+            x is not None for x in (
                 MKL_ROOT, OPENBLAS_ROOT, ATLAS_ROOT, USE_ACCELERATE,
                 CLAPACK_ROOT, #LAPACKE_ROOT
-            )) != 4:
+            )) != 1:
         raise Exception(
             'Only one of MKLROOT, ATLASROOT, ACCELERATE, or '
             'OPENBLASROOT should be set')
