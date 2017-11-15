@@ -67,9 +67,10 @@ def _handle_batch(batch_list, is_tup, axis, pad_mode, pad_kwargs):
                     pad_widths = tuple(
                         (0, y - x) for x, y in zip(sample.shape, max_shape))
                     sample = np.pad(
+                        sample,
                         pad_widths,
                         mode=pad_mode,
-                        **pad_kwargs,
+                        **pad_kwargs
                     )
                 new_sub_batch.append(sample)
             sub_batch = new_sub_batch

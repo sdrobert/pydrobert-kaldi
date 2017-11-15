@@ -85,3 +85,52 @@ def test_batch_data_tups(samples):
                         assert np.allclose(
                             exp_batch[samp_idx][sub_batch_idx],
                             act_sub_batch[sub_batch_slice])
+
+
+def test_padding():
+    samples = ([[1], [2], [3]], [[4, 5], [6, 7]], [[8], [9]])
+    l1_batches = tuple(corpus.batch_data(
+        samples, is_tup=False, batch_size=1, pad_mode='maximum'))
+    assert len(l1_batches) == 3
+    assert np.allclose(l1_batches[0], [[1], [2], [3]])
+    assert np.allclose(l1_batches[1], [[4, 5], [6, 7]])
+    assert np.allclose(l1_batches[2], [[8], [9]])
+    l2_batches = tuple(corpus.batch_data(
+        samples, is_tup=False, batch_size=2, pad_mode='maximum'))
+    assert len(l2_batches) == 2
+    assert np.allclose(
+        l2_batches[0],
+        [
+            [[1, 1], [2, 2], [3, 3]],
+            [[4, 5], [6, 7], [6, 7]],
+        ]
+    )
+    assert np.allclose(l2_batches[1], [[8], [9]])
+    l3_batches = tuple(corpus.batch_data(
+        samples, is_tup=False, batch_size=3, pad_mode='wrap'))
+    assert len(l3_batches) == 1
+    assert np.allclose(
+        l3_batches[0],
+        [
+            [[1, 1], [2, 2], [3, 3]],
+            [[4, 5], [6, 7], [4, 5]],
+            [[8, 8], [9, 9], [8, 8]],
+        ]
+    )
+
+
+@pytest.mark.parametrize('is_tup', [True, False])
+@pytest.mark.parametrize('batch_size', [0, 1])
+def test_empty_samples(is_tup, batch_size):
+    samples = []
+    batches = list(corpus.batch_data(
+        samples, is_tup=is_tup, batch_size=batch_size))
+    assert samples == batches
+
+
+@pytest.mark.parametrize('is_tup', [True, False])
+def test_zero_batch(is_tup):
+    samples = np.random.random((10, 2, 4, 100))
+    batches = list(corpus.batch_data(samples, is_tup=is_tup))
+    assert len(batches) == len(samples)
+    assert np.allclose(samples, np.stack(batches))
