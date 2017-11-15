@@ -157,7 +157,7 @@ class TrainingData(Iterable):
        dictionary to be passed as keyword arguments to the ``open``
        function
 
-    The rspecifiers are expected to refer to the same data.
+    The rspecifiers are expected to have the same reference keys.
 
     Parameters
     ----------
@@ -165,7 +165,7 @@ class TrainingData(Iterable):
     '''
 
     def __init__(
-            self, *rspec_tups, shuffle=True, batch_size=None,
+            self, shuffle=True, batch_size=None,
             batch_axis=0, rng=None, repeat=False, permissive=None,
-            **batch_kwargs):
+            add_axis_len=None, *rspec_tups, **batch_kwargs):
         pass
