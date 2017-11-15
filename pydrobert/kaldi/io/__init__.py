@@ -53,6 +53,7 @@ from six import with_metaclass
 from pydrobert.kaldi.io.util import parse_kaldi_input_path
 from pydrobert.kaldi.io.util import parse_kaldi_output_path
 
+
 class KaldiIOBase(object, with_metaclass(abc.ABCMeta)):
     '''IOBase for kaldi readers and writers
 
@@ -159,4 +160,5 @@ __all__ = [
     'table_streams',
     'enums',
     'util',
+    'corpus',
 ] + _open.__all__

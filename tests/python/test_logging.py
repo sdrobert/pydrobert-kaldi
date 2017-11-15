@@ -1,4 +1,4 @@
-# Copyright 2016 Sean Robertson
+# Copyright 2017 Sean Robertson
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ from pydrobert.kaldi.logging import KaldiLogger
 from pydrobert.kaldi.logging import deregister_logger_for_kaldi
 from pydrobert.kaldi.logging import register_logger_for_kaldi
 
+
 @pytest.fixture
 def kaldi_logger():
     logger_name = ''.join(chr(x + 97) for x in np.random.choice(26, 100))
@@ -46,6 +47,7 @@ def kaldi_logger():
     deregister_logger_for_kaldi(logger_name)
     ret_logger.removeHandler(s_stream)
 
+
 @pytest.fixture
 def registered_regular_logger():
     logger_name = ''.join(chr(x + 97) for x in np.random.choice(26, 100))
@@ -57,6 +59,7 @@ def registered_regular_logger():
     deregister_logger_for_kaldi(logger_name)
     ret_logger.removeHandler(s_stream)
 
+
 def test_kaldi_logger_basic_write(kaldi_logger):
     kaldi_logger.setLevel(logging.WARNING)
     s_stream = kaldi_logger.handlers[-1].stream
@@ -67,6 +70,7 @@ def test_kaldi_logger_basic_write(kaldi_logger):
     assert test_string + '\n' == s_stream.getvalue()
     kaldi_logger.info(test_string)
     assert test_string + '\n' == s_stream.getvalue()
+
 
 def test_callback_delivers_correct_messages(
         kaldi_logger, registered_regular_logger):
@@ -80,6 +84,7 @@ def test_callback_delivers_correct_messages(
     assert 'everyone gets this\nnot r_stream, here\n' == k_stream.getvalue()
     assert 'everyone gets this\n' == r_stream.getvalue()
 
+
 def test_do_not_callback_unregistered(kaldi_logger):
     kaldi_logger.setLevel(logging.WARNING)
     verbose_log(-1, 'should see this')
@@ -92,6 +97,7 @@ def test_do_not_callback_unregistered(kaldi_logger):
     s_stream = kaldi_logger.handlers[-1].stream
     assert 'should see this\nbut see this\n' == s_stream.getvalue()
 
+
 def elicit_warning(filename, threaded=False):
     # helper to elicit a natural warning from kaldi
     writer = io.open('ark,t:{}'.format(filename), 'bv', 'w')
@@ -102,6 +108,7 @@ def elicit_warning(filename, threaded=False):
     next(reader)
     reader.close()
 
+
 @pytest.mark.parametrize('threaded', [True, False])
 def test_elicit_kaldi_warning(kaldi_logger, temp_file_1_name, threaded):
     s_stream = kaldi_logger.handlers[-1].stream
@@ -110,10 +117,10 @@ def test_elicit_kaldi_warning(kaldi_logger, temp_file_1_name, threaded):
     assert s_stream.tell()
     assert 'Reading infinite value into vector.\n' == s_stream.getvalue()
 
+
 def test_log_source_is_appropriate(kaldi_logger, temp_file_1_name):
     handler = kaldi_logger.handlers[-1]
     s_stream = handler.stream
-    rwspecifier = 'ark,t:{}'.format(temp_file_1_name)
     handler.setFormatter(logging.Formatter('%(filename)s: %(message)s'))
     assert not s_stream.tell()
     kaldi_logger.warning('pokeymans')
@@ -123,6 +130,7 @@ def test_log_source_is_appropriate(kaldi_logger, temp_file_1_name):
     elicit_warning(temp_file_1_name)
     assert 'kaldi-vector.cc' in s_stream.getvalue()
     assert '__init__.py' not in s_stream.getvalue()
+
 
 def test_python_error_doesnt_segfault(
         registered_regular_logger, temp_file_1_name):
