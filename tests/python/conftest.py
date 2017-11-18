@@ -24,6 +24,7 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
+
 @pytest.fixture
 def temp_file_1_name():
     temp = NamedTemporaryFile(delete=False)
@@ -31,12 +32,14 @@ def temp_file_1_name():
     yield temp.name
     os.remove(temp.name)
 
+
 @pytest.fixture
 def temp_file_2_name():
     temp = NamedTemporaryFile(delete=False)
     temp.close()
     yield temp.name
     os.remove(temp.name)
+
 
 @pytest.fixture(autouse=True)
 def logging_cleanup():

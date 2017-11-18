@@ -25,11 +25,13 @@ import numpy as np
 import pytest
 
 from pydrobert.kaldi.io import corpus
+from pydrobert.kaldi.io import open as io_open
 
 
 @pytest.mark.parametrize('samples', [
     ([[1, 2], [3, 4]], [[5, 6], [7, 8]]),
     ([True, False, False], [False, False, False]),
+    (['variable', 'length'], ['flds', 'k']),
     np.random.random((10, 50, 40)),
     np.random.randint(-10, 1000, size=(5, 4, 10, 1)),
 ])
@@ -46,8 +48,12 @@ def test_batch_data_basic(samples):
                 assert act_batch.shape[axis] == len(exp_batch)
                 for samp_idx in range(len(exp_batch)):
                     batch_slice[axis] = samp_idx
-                    assert np.allclose(
-                        exp_batch[samp_idx], act_batch[batch_slice])
+                    ex_samp = np.array(exp_batch[samp_idx], copy=False)
+                    act_samp = act_batch[batch_slice]
+                    if ex_samp.dtype.kind in ('U', 'S'):  # string
+                        assert ex_samp.tolist() == act_samp.tolist()
+                    else:
+                        assert np.allclose(ex_samp, act_samp)
 
 
 @pytest.mark.parametrize('samples', [
@@ -119,6 +125,19 @@ def test_padding():
     )
 
 
+def test_str_padding():
+    samples = [['a', 'a', 'a'], ['this', 'is'], ['w']]
+    l2_batches = tuple(corpus.batch_data(
+        samples, is_tup=False, batch_size=3, pad_mode='constant'))
+    assert len(l2_batches) == 1
+    act_samples = l2_batches[0].tolist()
+    assert act_samples == [
+        ['a', 'a', 'a'],
+        ['this', 'is', ''],
+        ['w', '', ''],
+    ]
+
+
 @pytest.mark.parametrize('is_tup', [True, False])
 @pytest.mark.parametrize('batch_size', [0, 1])
 def test_empty_samples(is_tup, batch_size):
@@ -134,3 +153,114 @@ def test_zero_batch(is_tup):
     batches = list(corpus.batch_data(samples, is_tup=is_tup))
     assert len(batches) == len(samples)
     assert np.allclose(samples, np.stack(batches))
+
+
+class NonRandomState(np.random.RandomState):
+    '''Replace the shuffle method with returning a reverse-sorted copy
+
+    Experts agree that this style of shuffling is, objectively, *too*
+    random to be considered random
+    '''
+
+    def shuffle(self, array):
+        super(NonRandomState, self).shuffle(array)
+        array[:] = np.sort(array)
+
+
+def test_training_data_basic(temp_file_1_name):
+    samples = np.random.random((10, 500, 20), dtype=np.float32)
+    keys = tuple(str(i) for i in range(10))
+    with io_open('ark:' + temp_file_1_name, 'fm', mode='w') as f:
+        for key, sample in zip(keys, samples):
+            f.write(key, sample)
+    train_data = corpus.TrainingData(
+        'ark:' + temp_file_1_name, batch_size=3, rng=NonRandomState())
+    assert len(train_data) == len(keys)
+    assert keys == tuple(train_data.key_list)
+    for _ in range(2):
+        ex_samp_idx = len(samples)
+        for batch in train_data:
+            for act_sample in batch:
+                ex_samp_idx -= 1
+                assert np.allclose(samples[ex_samp_idx], act_sample)
+
+
+def test_training_data_tups(temp_file_1_name, temp_file_2_name):
+    feats = [
+        [[1, 2, 3, 4], [5, 6, 7, 8]],
+        [[9, 10], [11, 12]],
+        [[13, 14, 15], [16, 17, 18]],
+        [[19], [20]],
+    ]
+    labels = [
+        np.array([[1, 2], [3, 4]], dtype=np.float64),
+        np.array([[5, 6, 7, 8], [9, 10, 11, 12]], dtype=np.float64),
+        np.array([[13], [14]], dtype=np.float64),
+        np.array([[15, 16, 17], [18, 19, 20]], dtype=np.float64)
+    ]
+    keys = tuple(str(i) for i in range(4))
+    with io_open('ark:' + temp_file_1_name, 'ivv', mode='w') as feat_f, \
+            io_open('ark:' + temp_file_1_name, 'dm', mode='w') as lab_f:
+        for key, feat, label in zip(keys, feats, labels):
+            feat_f.write(key, feat)
+            lab_f.write(key, label)
+    train_data = corpus.TrainingData(
+        'ark:' + temp_file_1_name, 'ark:' + temp_file_2_name,
+        batch_size=2, batch_pad_mode='constant',
+        key_list=keys, add_axis_len=1, rng=NonRandomState())
+    for _ in range(2):
+        ex_samp_idx = len(feats)
+        for feat_batch, _, len_batch in train_data:
+            for act_feat, act_len in zip(feat_batch, len_batch):
+                ex_samp_idx -= 1
+                ex_feat = feats[ex_samp_idx]
+                ex_len = ex_feat.shape[1]
+                assert ex_len == act_len
+                assert np.allclose(ex_feat, act_feat[:, :ex_len])
+                assert np.allclose(act_feat[:, ex_len:], 0)
+    train_data = corpus.TrainingData(
+        'ark:' + temp_file_1_name, 'ark:' + temp_file_2_name,
+        batch_size=3, batch_pad_mode='constant',
+        key_list=keys, add_axis_len=((1, 1), (0, 1)), rng=NonRandomState())
+    for _ in range(2):
+        ex_samp_idx = len(feats)
+        for feat_batch, label_batch, lablen_batch, featlen_batch in train_data:
+            for act_feat, act_label, act_lablen, act_featlen in zip(
+                    feat_batch, label_batch, lablen_batch, featlen_batch):
+                ex_samp_idx -= 1
+                ex_feat = feats[ex_samp_idx]
+                ex_label = labels[ex_samp_idx]
+                ex_featlen = ex_feat.shape[1]
+                ex_lablen = ex_label.shape[1]
+                assert ex_featlen == act_featlen
+                assert ex_lablen == act_lablen
+                assert np.allclose(ex_feat, act_feat[:, :ex_featlen])
+                assert np.allclose(act_feat[:, ex_featlen:], 0)
+                assert np.allclose(ex_label, act_label[:, :ex_lablen])
+                assert np.allclose(act_label[:, ex_lablen:], 0)
+
+
+def test_training_ignore_missing(temp_file_1_name, temp_file_2_name):
+    with io_open('ark:' + temp_file_1_name, 't', mode='w') as token_f:
+        token_f.write('1', 'cool')
+        token_f.write('3', 'bean')
+        token_f.write('4', 'casserole')
+    keys = [str(i) for i in range(6)]
+    train_data = corpus.TrainingData(
+        'ark:' + temp_file_1_name, key_list=keys, ignore_missing=True,
+        rng=NonRandomState())
+    act_samples = list(train_data)
+    assert all(ex == act for ex, act in zip(
+        ['casserole', 'bean', 'cool'], act_samples))
+    with io_open('ark:' + temp_file_2_name, 'B', mode='w') as bool_f:
+        bool_f.write('0', True)
+        bool_f.write('1', False)
+        bool_f.write('2', True)
+        bool_f.write('4', False)
+    train_data = corpus.TrainingData(
+        'ark:' + temp_file_1_name, 'ark:' + temp_file_2_name,
+        key_list=keys, ignore_missing=True, rng=NonRandomState())
+    act_tok_samples, act_bool_samples = list(zip(*iter(train_data)))
+    assert all(ex == act for ex, act in zip(
+        ['casserole', 'cool'], act_tok_samples))
+    assert all(not act for act in act_bool_samples)

@@ -106,9 +106,9 @@ def batch_data(
         match the largest shapes in the batch. How the inputs are
         padded matches the argument to ``numpy.pad``. If not set, will
         raise a ValueError if they don't all have the same shape
-
-    Additional keyword arguments are passed along to ``numpy.pad``, if
-    applicable.
+    pad_kwargs : Keyword arguments, optional
+        Additional keyword arguments are passed along to ``numpy.pad``
+        if padding.
 
     Yields
     ------
@@ -145,8 +145,34 @@ class TrainingData(Iterable):
     '''Provides iterators over training data
 
     This class provides a convenient wrapper over tables from a training
-    partition. It takes an arbitrary number of arguments, each
-    representing a table. Each argument is one of
+    partition. In a nutshell, you can use it like this:
+
+    >>> train = TrainingData(
+        'scp:feats.scp', 'scp:labels.scp', batch_size=10)
+    >>> for feat_batch, label_batch in train:
+    >>>     pass  # do something
+    >>> for feat_batch, label_batch in train:
+    >>>     pass  # loop over the data again
+
+    Data are randomized every time the object is looped over. A more
+    complex example: suppose you have variable-length features (w.r.t
+    axis 0) that you wish to zero-pad to the each batch's maximal
+    length. Further, you want to include a sub-batch of the original
+    length of features. Also, you want to generate batches ad-infinitum.
+    Then your code would look something like this:
+
+    >>> train = TrainingData(
+        'scp:feats.scp', 'scp:labels.scp', batch_size=10,
+        add_axis_len=0, batch_pad_mode='constant', repeat=True)
+    >>> for feat_batch, label_batch, len_batch in train:
+    >>>     pass  # do something... forever
+
+    Extended Summary
+    ----------------
+
+    The class takes an arbitrary positive number of positional
+    arguments on initialization, each a table to open. Each argument is
+    one of:
 
     1. An rspecifier (ideally for a script file). Assumed to be of type
        ``KaldiDataType.BaseMatrix``
@@ -157,15 +183,86 @@ class TrainingData(Iterable):
        dictionary to be passed as keyword arguments to the ``open``
        function
 
-    The rspecifiers are expected to have the same reference keys.
+    All tables are assumed to index data using the same keys. The tables
+    are opened in random access mode and samples are retrieved using
+    a shuffled list of keys. The list of keys can be specified as a
+    keyword argument or, if unspecified, inferred from the first table.
+    The latter option requires the table be read through sequentially
+    to extract the keys, closed, and reopened as a random access table.
+    As such, the list of keys must be provided as an argument if reading
+    a table from standard input.
+
+    If only one table is provided (and ``add_axis_len`` is ``None``)
+    batches will be iterated over directly. Otherwise, "sub-batches",
+    or batches from each table, will be encased in tuples. The iterator
+    returns these tuples.
+
+    If ``batch_size`` is set, data are stacked in batches along a new
+    axis. The keyword arguments ``batch_axis``, ``batch_pad_mode``, and
+    any dynamic keywords are sent to this module's ``batch_data``
+    function. If ``batch_size`` is None or zero, samples are returned
+    one-by-one. Data are always cast to numpy arrays before being
+    returned. Consult that function for more information on batching.
+
+    For batched sequence-to-sequence tasks, it is often important to
+    know the original length of data before padding. Setting
+    ``add_axis_len`` adds one or more sub-batches to the end of a
+    batch tuple with this information. These sub-batches are filled
+    with signed 32-bit integers. ``add_axis_len`` can be one of:
+
+    1. An integer specifying an axis from the first table to get the
+       lengths of.
+    2. A pair of integers. The first element is the table index, the
+       second is the axis index in that table.
+    3. A sequence of pairs of integers. Sub-batches will be appended
+       to the batch tuple in that order
+
+    Note that axes in ``add_axis_len`` index the axes in individual
+    samples, not the batch. For instance, if ``batch_axis == 0`` and
+    ``add_axis_len == 0``, then the last sub-batch will refer to the
+    pre-padded value of sub-batch 0's axis 1 (``batch[0].shape[1]``).
+
+    The length of this object is the total number of batches it will
+    serve.
 
     Parameters
     ----------
-
+    table
+        The first table specifier
+    key_list : sequence, optional
+        All the keys to be found in tables. If unspecified, keys will
+        be inferred from the first table
+    batch_size : int, optional
+        The number of samples per (sub-)batch
+    batch_axis : int or sequence
+        The axis or axes (in the case of multiple tables) along which
+        samples are stacked in (sub-)batches
+    batch_pad_mode : str, optional
+        If set, pads samples in (sub-)batches according to this
+        ``numpy.pad`` strategy when samples do not have the same length
+    rng : int or numpy.random.RandomState, optional
+        Either a ``RandomState`` object or a seed to create one. Used
+        when shuffling samples
+    repeat : bool
+        Whether to stop iterating after batches are exhausted (False) or
+        to randomize and do it again forever
+    ignore_missing : bool
+        If True and some provided table does not have some key, that
+        key will simply be ignored. Otherwise, a missing key raises a
+        ValueError
+    add_axis_len : int or sequence, optional
+        If set, sub-batches of axis lengths will be appended to the end
+        of a batch tuple
+    additional_tables : Arguments, optional
+        Table specifiers past the first. If not empty, will iterate over
+        tuples of sub-batches
+    batch_kwargs : Keyword arguments, optional
+        Additional keyword arguments to pass to ``batch_data``
     '''
 
     def __init__(
-            self, shuffle=True, batch_size=None,
-            batch_axis=0, rng=None, repeat=False, permissive=None,
-            add_axis_len=None, *rspec_tups, **batch_kwargs):
+            self, table, key_list=None, batch_size=None, batch_axis=0,
+            batch_pad_mode=None, rng=None, repeat=False,
+            ignore_missing=False, add_axis_len=None,
+            *additional_tables, **batch_kwargs):
         pass
