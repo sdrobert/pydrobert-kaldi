@@ -12,7 +12,7 @@ package:
   version: {{ version }}
 
 source:
-  git_url: ../
+  git_url: ..
 
 requirements:
   host:
@@ -40,11 +40,10 @@ requirements:
 
 build:
   number: {{ build_num }}
-  skip: True                               [win]
   detect_binary_files_with_prefix: False
 {% if blas_impl != 'mkl' %}
   features:
-    - nomkl
+    - nomkl                                [not win]
 {% endif %}
 
 test:
