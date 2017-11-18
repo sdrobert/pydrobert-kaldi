@@ -321,13 +321,12 @@ class CustomBuildExtCommand(build_ext):
         if not found_blas:
             raise Exception('Unable to find BLAS library via numpy')
 
-    def finalize_options(self):
+    def run(self):
         import numpy
         if not len(BLAS_DICT):
             self.look_for_blas()
-        # no super for python 2.7 compatibility
-        build_ext.finalize_options(self)
         self.include_dirs.append(numpy.get_include())
+        build_ext.run(self)
 
 setup(
     name='pydrobert-kaldi',

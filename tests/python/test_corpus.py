@@ -167,6 +167,7 @@ class NonRandomState(np.random.RandomState):
         array[:] = np.sort(array)
 
 
+@pytest.mark.xfail
 def test_training_data_basic(temp_file_1_name):
     samples = np.random.random((10, 500, 20), dtype=np.float32)
     keys = tuple(str(i) for i in range(10))
@@ -185,6 +186,7 @@ def test_training_data_basic(temp_file_1_name):
                 assert np.allclose(samples[ex_samp_idx], act_sample)
 
 
+@pytest.mark.xfail
 def test_training_data_tups(temp_file_1_name, temp_file_2_name):
     feats = [
         [[1, 2, 3, 4], [5, 6, 7, 8]],
@@ -240,6 +242,7 @@ def test_training_data_tups(temp_file_1_name, temp_file_2_name):
                 assert np.allclose(act_label[:, ex_lablen:], 0)
 
 
+@pytest.mark.xfail
 def test_training_ignore_missing(temp_file_1_name, temp_file_2_name):
     with io_open('ark:' + temp_file_1_name, 't', mode='w') as token_f:
         token_f.write('1', 'cool')
