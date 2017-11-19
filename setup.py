@@ -171,13 +171,15 @@ SRC_DIR = path.join(PWD, 'src')
 SWIG_DIR = path.join(PWD, 'swig')
 DEFINES = [
     ('KALDI_DOUBLEPRECISION', environ.get('KALDI_DOUBLEPRECISION', '0')),
-    ('_GLIBCXX_USE_CXX11_ABI', '0'),
-    ('HAVE_EXECINFO_H', '1'),
-    ('HAVE_CXXABI_H', None),
 ]
 if platform.system() != 'Windows':
     FLAGS = ['-std=c++11', '-m64' if IS_64_BIT else '-m32', '-msse', '-msse2']
     FLAGS += ['-fPIC']
+    DEFINES += [
+        ('_GLIBCXX_USE_CXX11_ABI', '0'),
+        ('HAVE_EXECINFO_H', '1'),
+        ('HAVE_CXXABI_H', None),
+    ]
 else:
     FLAGS = []
 LD_FLAGS = []
