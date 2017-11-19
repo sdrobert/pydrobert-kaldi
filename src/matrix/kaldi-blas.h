@@ -40,6 +40,14 @@
 // so we define HAVE_Svd to be zero and this directs our implementation to
 // supply its own "by hand" implementation which is based on TNT code.
 
+
+
+
+#if (defined(HAVE_CLAPACK) && (defined(HAVE_ATLAS) || defined(HAVE_MKL))) \
+    || (defined(HAVE_ATLAS) && defined(HAVE_MKL))
+#error "Do not define more than one of HAVE_CLAPACK, HAVE_ATLAS and HAVE_MKL"
+#endif
+
 #ifdef HAVE_ATLAS
   extern "C" {
     #include <cblas.h>
@@ -84,7 +92,7 @@
   extern "C" {
     #include <mkl.h>
   }
-#elif defined(HAVE_OPENBLAS) || defined(HAVE_LAPACKE)
+#elif defined(HAVE_OPENBLAS)
   // getting cblas.h and lapacke.h from <openblas-install-dir>/.
   // putting in "" not <> to search -I before system libraries.
   #include "cblas.h"
@@ -107,9 +115,6 @@
 
 #ifdef HAVE_OPENBLAS
 typedef int KaldiBlasInt; // try int.
-#endif
-#ifdef HAVE_LAPACKE
-typedef int KaldiBlasInt;
 #endif
 #ifdef HAVE_CLAPACK
 typedef integer KaldiBlasInt;

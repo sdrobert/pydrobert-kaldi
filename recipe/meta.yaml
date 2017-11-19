@@ -12,7 +12,7 @@ package:
   version: {{ version }}
 
 source:
-  git_url: ..
+  path: ..
 
 requirements:
   host:

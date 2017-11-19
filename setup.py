@@ -44,7 +44,10 @@ def mkl_setup(roots, mkl_threading=None):
         root = path.abspath(root)
         for root_name, _, base_names in walk(root):
             for base_name in base_names:
-                library_name = base_name[3:].split('.')[0]
+                if platform.system() == 'Windows':
+                    library_name = base_name.split('.')[0]
+                else:
+                    library_name = base_name[3:].split('.')[0]
                 if library_name in found_mkl_libs and \
                         not found_mkl_libs[library_name]:
                     found_mkl_libs[library_name] = True
@@ -173,7 +176,7 @@ DEFINES = [
     ('HAVE_CXXABI_H', None),
 ]
 FLAGS = ['-std=c++11', '-m64' if IS_64_BIT else '-m32', '-msse', '-msse2']
-FLAGS += ['-pthread', '-fPIC']
+FLAGS += ['-fPIC']
 LD_FLAGS = []
 
 MKL_ROOT = environ.get('MKLROOT', None)
@@ -209,7 +212,7 @@ else:
     )
     BLAS_DICT = dict()
 
-LIBRARIES = BLAS_DICT.get('BLAS_LIBRARIES', []) + ['pthread', 'm', 'dl']
+LIBRARIES = BLAS_DICT.get('BLAS_LIBRARIES', []) + ['m', 'dl']
 LIBRARY_DIRS = BLAS_DICT.get('BLAS_LIBRARY_DIRS', [])
 INCLUDE_DIRS = BLAS_DICT.get('BLAS_INCLUDES', []) + [SRC_DIR]
 LD_FLAGS += BLAS_DICT.get('LD_FLAGS', [])
