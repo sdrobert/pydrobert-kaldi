@@ -175,8 +175,11 @@ DEFINES = [
     ('HAVE_EXECINFO_H', '1'),
     ('HAVE_CXXABI_H', None),
 ]
-FLAGS = ['-std=c++11', '-m64' if IS_64_BIT else '-m32', '-msse', '-msse2']
-FLAGS += ['-fPIC']
+if platform.system() != 'Windows':
+    FLAGS = ['-std=c++11', '-m64' if IS_64_BIT else '-m32', '-msse', '-msse2']
+    FLAGS += ['-fPIC']
+else:
+    FLAGS = []
 LD_FLAGS = []
 
 MKL_ROOT = environ.get('MKLROOT', None)

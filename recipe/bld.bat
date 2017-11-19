@@ -1,3 +1,4 @@
+@echo off
 
 rem Copyright 2017 Sean Robertson
 
@@ -13,8 +14,12 @@ rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 rem See the License for the specific language governing permissions and
 rem limitations under the License.
 
-set MKLROOT="%CONDA_PREFIX%"
+set HOME=%cd%
+
+set MKLROOT=%CONDA_PREFIX%\Library
 
 "%PYTHON%" setup.py install ^
   --single-version-externally-managed ^
-  --record=record.txt if errorlevel 1 exit 1
+  --record=record.txt
+
+if errorlevel 1 exit 1

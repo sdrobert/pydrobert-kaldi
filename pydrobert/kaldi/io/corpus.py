@@ -18,6 +18,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from builtins import str as text
 from collections import Iterable
 
 import numpy as np
@@ -265,4 +266,12 @@ class TrainingData(Iterable):
             batch_pad_mode=None, rng=None, repeat=False,
             ignore_missing=False, add_axis_len=None,
             *additional_tables, **batch_kwargs):
-        pass
+        table_specifiers = [table] + additional_tables
+        for spec_idx, table_spec in enumerate(table_specifiers):
+            if isinstance(table_spec, str) or isinstance(table_spec, text):
+                table_spec = (table_spec, 'bm', dict())
+            elif len(table_spec) == 2:
+                table_spec += (dict(),)
+            elif len(table_spec) != 3:
+                raise ValueError('Invalid table spec {}'.format(table_spec))
+            table_specifiers[spec_idx] = table_spec
