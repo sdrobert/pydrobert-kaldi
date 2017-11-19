@@ -1,0 +1,28 @@
+environment:
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      PY_VER: 3.6
+      MINICONDA_PATH: "C:\\Miniconda3-x64"
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      PY_VER: 3.5
+      MINICONDA_PATH: "C:\\Miniconda3-x64"
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2010
+      PY_VER: 3.4
+      MINICONDA_PATH: "C:\\Miniconda3-x64"
+
+init:
+  - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
+  - cmd: conda config --set always_yes yes --set changeps1 no
+  - cmd: conda update -q --all
+  - cmd: conda install conda-build anaconda-client
+
+install:
+  - cmd: conda build recipe --no-test --python ${PY_VER}
+  - cmd: conda create -n test python=${PY_VER} pytest
+  - cmd: activate test
+  - cmd: conda install pydrobert-kaldi --use-local
+
+build: false
+
+test_script:
+  - pytest
