@@ -3,6 +3,7 @@ pydrobert-kaldi
 ===============
 
 .. image:: https://travis-ci.org/sdrobert/pydrobert-kaldi.svg?branch=master
+.. image:: https://ci.appveyor.com/api/projects/status/3lfk37i0xjgsk6ty/branch/master
 
 What is it?
 -----------

@@ -246,7 +246,7 @@ KALDI_LIBRARY = Extension(
     'pydrobert.kaldi._internal',
     sources=SRC_FILES,
     libraries=LIBRARIES,
-    runtime_library_dirs=LIBRARY_DIRS,
+    library_dirs=LIBRARY_DIRS,
     include_dirs=INCLUDE_DIRS,
     extra_compile_args=FLAGS,
     extra_link_args=LD_FLAGS,
@@ -263,12 +263,12 @@ class CustomBuildExtCommand(build_ext):
         '''Look for blas libraries through numpy'''
         injection_lookup = {
             'BLAS_LIBRARIES' : (KALDI_LIBRARY, 'libraries'),
-            'BLAS_LIBRARY_DIRS' : (KALDI_LIBRARY, 'runtime_library_dirs'),
+            'BLAS_LIBRARY_DIRS' : (KALDI_LIBRARY, 'library_dirs'),
             'BLAS_INCLUDES' : (KALDI_LIBRARY, 'include_dirs'),
             'LD_FLAGS' : (KALDI_LIBRARY, 'extra_link_args'),
             'DEFINES' : (KALDI_LIBRARY, 'define_macros'),
             'libraries' : (KALDI_LIBRARY, 'libraries'),
-            'library_dirs': (KALDI_LIBRARY, 'runtime_library_dirs'),
+            'library_dirs': (KALDI_LIBRARY, 'library_dirs'),
             'include_dirs': (self, 'include_dirs'),
             'define_macros': (KALDI_LIBRARY, 'define_macros'),
             'extra_compile_args': (KALDI_LIBRARY, 'extra_compile_args'),
