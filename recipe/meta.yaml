@@ -3,7 +3,7 @@
   {% set version = environ['TRAVIS_BRANCH'] %}
   {% set build_num = environ['TRAVIS_BUILD_NUMBER'] %}
 {% elif environ.get('APPVEYOR', False) %}
-  {% set version = environ.get('VERSION', '0.0') %}
+  {% set version = environ.get('GIT_DESCRIBE_TAG', '0.0') %}
   {% set build_num = environ['APPVEYOR_BUILD_NUMBER'] %}
 {% else %}
   {% set version = environ.get('GIT_DESCRIBE_TAG', '0.0') %}
