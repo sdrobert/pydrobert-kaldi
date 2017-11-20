@@ -15,8 +15,6 @@ environment:
     secure: /udeHG5jwcZKZAJbKIfb7obq541yU+xFuDzLtMh6tec=
 
 init:
-  - ps: Invoke-Expression "$(Join-Path $env:MINICONDA_PATH Scripts\anaconda) -h"
-  - ps: exit 1
   - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
   - cmd: conda config --set always_yes yes --set changeps1 no
   - cmd: conda update -q --all
@@ -47,4 +45,4 @@ test_script:
 #   - path: %MINICONDA_PATH%\conda-bld\win-64\pydrobert-kaldi-*.tar.bz2
 
 deploy_script:
-  - ps: Invoke-Expression (Join-Path $env:MINICONDA_PATH Scripts\anaconda) -t "$env:ANACONDA_TOKEN" upload $env:MINICONDA_PATH\conda-bld\win-64\pydrobert-kaldi-*.tar.bz2
+  - ps: Invoke-Expression "(Join-Path $env:MINICONDA_PATH Scripts\anaconda) -t $env:ANACONDA_TOKEN upload $env:MINICONDA_PATH\conda-bld\win-64\pydrobert-kaldi-*.tar.bz2"
