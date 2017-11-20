@@ -4,7 +4,7 @@ environment:
   matrix:
     - image: Visual Studio 2015
       PY_VER: 3.6
-      MINICONDA_PATH: "C:\\Miniconda3-x64"
+      MINICONDA_PATH: "C:\Miniconda3-x64"
     # - image: Visual Studio 2015
     #   PY_VER: 3.5
     #   MINICONDA_PATH: "C:\\Miniconda3-x64"
@@ -15,6 +15,9 @@ environment:
     secure: /udeHG5jwcZKZAJbKIfb7obq541yU+xFuDzLtMh6tec=
 
 init:
+  - ps: $env:FOO = (Join-Path -Path $env:MINICONDA_PATH -ChildPath '*' -Resolve)
+  - cmd: echo "FOO %FOO%"
+  - cmd: exit 1
   - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
   - cmd: conda config --set always_yes yes --set changeps1 no
   - cmd: conda update -q --all
@@ -46,5 +49,5 @@ test_script:
 
 deploy_script:
   - ps: $env:ANACONDA_PATH = (Join-Path $env:MINICONDA_PATH Scripts\anaconda)
-  - ps: $env:TARS = (ls %MINICONDA_PATH%\conda-bld\win-64\pydrobert-kaldi-*.tar.bz2)
+  - ps: $env:TARS = (ls $env:MINICONDA_PATH\conda-bld\win-64\pydrobert-kaldi-*.tar.bz2)
   - cmd: run %ANACONDA_PATH% -t %ANACONDA_TOKEN% upload %TARS%
