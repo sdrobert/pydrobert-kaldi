@@ -180,8 +180,10 @@ if platform.system() != 'Windows':
         ('HAVE_EXECINFO_H', '1'),
         ('HAVE_CXXABI_H', None),
     ]
+    LIBRARIES = ['m', 'dl']
 else:
     FLAGS = []
+    LIBRARIES = []
 LD_FLAGS = []
 
 MKL_ROOT = environ.get('MKLROOT', None)
@@ -217,7 +219,7 @@ else:
     )
     BLAS_DICT = dict()
 
-LIBRARIES = BLAS_DICT.get('BLAS_LIBRARIES', []) + ['m', 'dl']
+LIBRARIES += BLAS_DICT.get('BLAS_LIBRARIES', [])
 LIBRARY_DIRS = BLAS_DICT.get('BLAS_LIBRARY_DIRS', [])
 INCLUDE_DIRS = BLAS_DICT.get('BLAS_INCLUDES', []) + [SRC_DIR]
 LD_FLAGS += BLAS_DICT.get('LD_FLAGS', [])
