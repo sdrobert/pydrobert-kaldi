@@ -15,7 +15,7 @@ environment:
     secure: /udeHG5jwcZKZAJbKIfb7obq541yU+xFuDzLtMh6tec=
 
 init:
-  - ps: $env:A = (ls *)
+  - ps: $env:A = (echo foo)
   - ps: echo z $env:A z
   - cmd: echo a %A% a
   - cmd: exit 1
