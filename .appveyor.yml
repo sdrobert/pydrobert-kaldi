@@ -15,7 +15,7 @@ environment:
     secure: /udeHG5jwcZKZAJbKIfb7obq541yU+xFuDzLtMh6tec=
 
 init:
-  - ps: $env:MINICONDA_PATH\Scripts\anaconda
+  - ps: ${env:MINICONDA_PATH}\Scripts\anaconda
   - ps: exit 1
   - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
   - cmd: conda config --set always_yes yes --set changeps1 no
