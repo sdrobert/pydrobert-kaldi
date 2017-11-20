@@ -16,6 +16,7 @@ environment:
 
 init:
   - ps: $env:A = (ls *)
+  - ps: echo z $env:A z
   - cmd: echo a %A% a
   - cmd: exit 1
   - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
