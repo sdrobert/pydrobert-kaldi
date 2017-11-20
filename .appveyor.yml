@@ -1,3 +1,5 @@
+version: 0.0.0
+
 environment:
   matrix:
     - image: Visual Studio 2015
@@ -9,6 +11,8 @@ environment:
     # - image: Visual Studio 2010
     #   PY_VER: 3.4
     #   MINICONDA_PATH: "C:\\Miniconda3-x64"
+  ANACONDA_TOKEN:
+    secure: /udeHG5jwcZKZAJbKIfb7obq541yU+xFuDzLtMh6tec=
 
 init:
   - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
@@ -17,6 +21,8 @@ init:
   - cmd: conda install conda-build anaconda-client
 
 install:
+  - cmd: for /f "delims=" %%i in ('git describe --tags --abbrev=0') do set VERSION=%%i
+  - cmd: appveyor UpdateBuild -Version %VERSION%
   - cmd: conda build recipe --no-test --python %PY_VER%
   - cmd: conda create -n test python=%PY_VER% pytest
   - cmd: activate test
@@ -25,4 +31,10 @@ install:
 build: false
 
 test_script:
-  - pytest
+  - cmd: pytest
+
+artifacts:
+  - path: %MINICONDA_PATH%\conda-bld\win-64\pydrobert-kaldi-*.tar.bz2
+
+# deploy_script:
+#   - cmd: anaconda -t %ANACONDA_TOKEN% upload %MINICONDA_PATH%\conda-bld\win-64\pydrobert-kaldi-*.tar.bz2
