@@ -4,7 +4,7 @@ environment:
   matrix:
     - image: Visual Studio 2015
       PY_VER: 3.6
-      MINICONDA_PATH: "C:\Miniconda3-x64"
+      MINICONDA_PATH: "C:\\Miniconda3-x64"
     # - image: Visual Studio 2015
     #   PY_VER: 3.5
     #   MINICONDA_PATH: "C:\\Miniconda3-x64"
