@@ -45,4 +45,5 @@ test_script:
 #   - path: %MINICONDA_PATH%\conda-bld\win-64\pydrobert-kaldi-*.tar.bz2
 
 deploy_script:
-  - ps: Invoke-Expression "(Join-Path $env:MINICONDA_PATH Scripts\anaconda) -t $env:ANACONDA_TOKEN upload $env:MINICONDA_PATH\conda-bld\win-64\pydrobert-kaldi-*.tar.bz2"
+  - ps: $env:ANACONDA_PATH = (Join-Path $env:MINICONDA_PATH Scripts\anaconda)
+  - ps: Invoke-Expression "$env:ANACONDA_PATH -t $env:ANACONDA_TOKEN upload $env:MINICONDA_PATH\conda-bld\win-64\pydrobert-kaldi-*.tar.bz2"
