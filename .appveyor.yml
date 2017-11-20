@@ -15,6 +15,9 @@ environment:
     secure: /udeHG5jwcZKZAJbKIfb7obq541yU+xFuDzLtMh6tec=
 
 init:
+  - ps: $env:A = (ls *)
+  - cmd: echo a %A% a
+  - cmd: exit 1
   - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
   - cmd: conda config --set always_yes yes --set changeps1 no
   - cmd: conda update -q --all
