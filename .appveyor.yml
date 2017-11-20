@@ -21,8 +21,16 @@ init:
   - cmd: conda install conda-build anaconda-client
 
 install:
-  - ps: $env:VERSION = (git describe --tags --abbrev=0)
-  - ps: Update-AppveyorBuild -Version "$env:VERSION.$env:APPVEYOR_BUILD_NUM"
+  - ps: >-
+    if ($env:APPVEYOR_REPO_TAG -eq "true")
+    {
+        Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
+    }
+    else
+    {
+        Update-AppveyorBuild -Version "dev-$($env:APPVEYOR_REPO_COMMIT.Substring(0, 7))"
+    }
+  - ps: echo $env:MINICONDA_PATH $MINICONDA_PATH
   - cmd: conda build recipe --no-test --python %PY_VER%
   - cmd: conda create -n test python=%PY_VER% pytest
   - cmd: activate test
