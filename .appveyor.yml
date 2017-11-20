@@ -44,5 +44,5 @@ test_script:
 # artifacts:
 #   - path: %MINICONDA_PATH%\conda-bld\win-64\pydrobert-kaldi-*.tar.bz2
 
-# deploy_script:
-#   - cmd: anaconda -t %ANACONDA_TOKEN% upload %MINICONDA_PATH%\conda-bld\win-64\pydrobert-kaldi-*.tar.bz2
+deploy_script:
+  - ps: $env:MINICONDA_PATH\Scripts\anaconda -t $env:ANACONDA_TOKEN upload $env:MINICONDA_PATH\conda-bld\win-64\pydrobert-kaldi-*.tar.bz2
