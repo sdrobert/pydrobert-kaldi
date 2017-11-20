@@ -15,23 +15,23 @@ environment:
     secure: /udeHG5jwcZKZAJbKIfb7obq541yU+xFuDzLtMh6tec=
 
 init:
-  - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
-  - cmd: conda config --set always_yes yes --set changeps1 no
+  - ps: $env:MINICONDA_PATH\Scripts\activate
+  - ps: conda config --set always_yes yes --set changeps1 no
   - cmd: conda update -q --all
   - cmd: conda install conda-build anaconda-client
 
 install:
-  - cmd: for /f "delims=" %%i in ('git describe --tags --abbrev=0') do set VERSION=%%i
-  - cmd: appveyor UpdateBuild -Version %VERSION%
-  - cmd: conda build recipe --no-test --python %PY_VER%
-  - cmd: conda create -n test python=%PY_VER% pytest
-  - cmd: activate test
-  - cmd: conda install pydrobert-kaldi --use-local
+  - ps: $env:VERSION = (git describe --tags --abbrev=0)
+  - ps: Update-AppveyorBuild -Version "$env:VERSION.$env:$APPVEYOR_BUILD_NUMBER"
+  - ps: conda build recipe --no-test --python $env:PY_VER
+  - ps: conda create -n test python=$env:PY_VER pytest
+  - ps: activate test
+  - ps: conda install pydrobert-kaldi --use-local
 
 build: false
 
 test_script:
-  - cmd: pytest
+  - pytest
 
-# deploy_script:
-#   - cmd: anaconda -t %ANACONDA_TOKEN% upload %MINICONDA_PATH%\conda-bld\win-64\pydrobert-kaldi-*.tar.bz2
+deploy_script:
+  - ps: anaconda -t $env:ANACONDA_TOKEN upload $env:MINICONDA_PATH\conda-bld\win-64\pydrobert-kaldi-*.tar.bz2
