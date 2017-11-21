@@ -27,7 +27,7 @@ import pytest
 
 @pytest.fixture
 def temp_file_1_name():
-    temp = NamedTemporaryFile(delete=False)
+    temp = NamedTemporaryFile(delete=False, suffix='_1')
     temp.close()
     yield temp.name
     os.remove(temp.name)
@@ -35,7 +35,7 @@ def temp_file_1_name():
 
 @pytest.fixture
 def temp_file_2_name():
-    temp = NamedTemporaryFile(delete=False)
+    temp = NamedTemporaryFile(delete=False, suffix='_2')
     temp.close()
     yield temp.name
     os.remove(temp.name)

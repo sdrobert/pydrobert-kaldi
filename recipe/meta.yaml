@@ -20,7 +20,7 @@ source:
 requirements:
   host:
     - python {{ python }}
-    - numpy
+    - numpy >=1.13
     - setuptools
     - setuptools_scm
     - swig >=3.0.8

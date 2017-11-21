@@ -26,6 +26,7 @@ import pytest
 
 from pydrobert.kaldi.io import corpus
 from pydrobert.kaldi.io import open as io_open
+from pydrobert.kaldi.io.enums import KaldiDataType
 
 
 @pytest.mark.parametrize('samples', [
@@ -125,7 +126,7 @@ def test_padding():
     )
 
 
-@pytest.mark.xfail
+# @pytest.mark.xfail
 def test_str_padding():
     samples = [['a', 'a', 'a'], ['this', 'is'], ['w']]
     l2_batches = tuple(corpus.batch_data(
@@ -165,18 +166,19 @@ class NonRandomState(np.random.RandomState):
 
     def shuffle(self, array):
         super(NonRandomState, self).shuffle(array)
-        array[:] = np.sort(array)
+        array[::-1] = np.sort(array)
 
 
-@pytest.mark.xfail
 def test_training_data_basic(temp_file_1_name):
-    samples = np.random.random((10, 500, 20), dtype=np.float32)
+    samples = np.arange(100000).reshape((10, 200, 50)).astype(
+        np.float64 if KaldiDataType.BaseMatrix.is_double else np.float32)
     keys = tuple(str(i) for i in range(10))
-    with io_open('ark:' + temp_file_1_name, 'fm', mode='w') as f:
+    with io_open('ark:' + temp_file_1_name, 'bm', mode='w') as f:
         for key, sample in zip(keys, samples):
             f.write(key, sample)
     train_data = corpus.TrainingData(
         'ark:' + temp_file_1_name, batch_size=3, rng=NonRandomState())
+    assert isinstance(train_data.rng, NonRandomState)
     assert len(train_data) == len(keys)
     assert keys == tuple(train_data.key_list)
     for _ in range(2):
@@ -187,7 +189,6 @@ def test_training_data_basic(temp_file_1_name):
                 assert np.allclose(samples[ex_samp_idx], act_sample)
 
 
-@pytest.mark.xfail
 def test_training_data_tups(temp_file_1_name, temp_file_2_name):
     feats = [
         [[1, 2, 3, 4], [5, 6, 7, 8]],
@@ -203,12 +204,12 @@ def test_training_data_tups(temp_file_1_name, temp_file_2_name):
     ]
     keys = tuple(str(i) for i in range(4))
     with io_open('ark:' + temp_file_1_name, 'ivv', mode='w') as feat_f, \
-            io_open('ark:' + temp_file_1_name, 'dm', mode='w') as lab_f:
+            io_open('ark:' + temp_file_2_name, 'dm', mode='w') as lab_f:
         for key, feat, label in zip(keys, feats, labels):
             feat_f.write(key, feat)
             lab_f.write(key, label)
     train_data = corpus.TrainingData(
-        'ark:' + temp_file_1_name, 'ark:' + temp_file_2_name,
+        ('ark:' + temp_file_1_name, 'ivv'), ('ark:' + temp_file_2_name, 'dm'),
         batch_size=2, batch_pad_mode='constant',
         key_list=keys, add_axis_len=1, rng=NonRandomState())
     for _ in range(2):
@@ -216,13 +217,13 @@ def test_training_data_tups(temp_file_1_name, temp_file_2_name):
         for feat_batch, _, len_batch in train_data:
             for act_feat, act_len in zip(feat_batch, len_batch):
                 ex_samp_idx -= 1
-                ex_feat = feats[ex_samp_idx]
+                ex_feat = np.array(feats[ex_samp_idx], copy=False)
                 ex_len = ex_feat.shape[1]
                 assert ex_len == act_len
                 assert np.allclose(ex_feat, act_feat[:, :ex_len])
                 assert np.allclose(act_feat[:, ex_len:], 0)
     train_data = corpus.TrainingData(
-        'ark:' + temp_file_1_name, 'ark:' + temp_file_2_name,
+        ('ark:' + temp_file_1_name, 'ivv'), ('ark:' + temp_file_2_name, 'dm'),
         batch_size=3, batch_pad_mode='constant',
         key_list=keys, add_axis_len=((1, 1), (0, 1)), rng=NonRandomState())
     for _ in range(2):
@@ -231,7 +232,7 @@ def test_training_data_tups(temp_file_1_name, temp_file_2_name):
             for act_feat, act_label, act_lablen, act_featlen in zip(
                     feat_batch, label_batch, lablen_batch, featlen_batch):
                 ex_samp_idx -= 1
-                ex_feat = feats[ex_samp_idx]
+                ex_feat = np.array(feats[ex_samp_idx], copy=False)
                 ex_label = labels[ex_samp_idx]
                 ex_featlen = ex_feat.shape[1]
                 ex_lablen = ex_label.shape[1]
@@ -243,7 +244,6 @@ def test_training_data_tups(temp_file_1_name, temp_file_2_name):
                 assert np.allclose(act_label[:, ex_lablen:], 0)
 
 
-@pytest.mark.xfail
 def test_training_ignore_missing(temp_file_1_name, temp_file_2_name):
     with io_open('ark:' + temp_file_1_name, 't', mode='w') as token_f:
         token_f.write('1', 'cool')
@@ -251,8 +251,9 @@ def test_training_ignore_missing(temp_file_1_name, temp_file_2_name):
         token_f.write('4', 'casserole')
     keys = [str(i) for i in range(6)]
     train_data = corpus.TrainingData(
-        'ark:' + temp_file_1_name, key_list=keys, ignore_missing=True,
+        ('ark:' + temp_file_1_name, 't'), key_list=keys, ignore_missing=True,
         rng=NonRandomState())
+    assert len(train_data) == 3
     act_samples = list(train_data)
     assert all(ex == act for ex, act in zip(
         ['casserole', 'bean', 'cool'], act_samples))
@@ -262,8 +263,9 @@ def test_training_ignore_missing(temp_file_1_name, temp_file_2_name):
         bool_f.write('2', True)
         bool_f.write('4', False)
     train_data = corpus.TrainingData(
-        'ark:' + temp_file_1_name, 'ark:' + temp_file_2_name,
+        ('ark:' + temp_file_1_name, 't'), ('ark:' + temp_file_2_name, 'B'),
         key_list=keys, ignore_missing=True, rng=NonRandomState())
+    assert len(train_data) == 2
     act_tok_samples, act_bool_samples = list(zip(*iter(train_data)))
     assert all(ex == act for ex, act in zip(
         ['casserole', 'cool'], act_tok_samples))

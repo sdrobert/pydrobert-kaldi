@@ -23,6 +23,10 @@ from collections import Iterable
 
 import numpy as np
 
+from pydrobert.kaldi.io import open as io_open
+from pydrobert.kaldi.io.enums import RxfilenameType
+from pydrobert.kaldi.io.util import parse_kaldi_input_path
+
 __all__ = [
     'batch_data',
     'TrainingData',
@@ -237,7 +241,8 @@ class TrainingData(Iterable):
         The number of samples per (sub-)batch
     batch_axis : int or sequence
         The axis or axes (in the case of multiple tables) along which
-        samples are stacked in (sub-)batches
+        samples are stacked in (sub-)batches. batch_axis should take
+        into account axis length sub-batches. Defaults to 0
     batch_pad_mode : str, optional
         If set, pads samples in (sub-)batches according to this
         ``numpy.pad`` strategy when samples do not have the same length
@@ -246,11 +251,11 @@ class TrainingData(Iterable):
         when shuffling samples
     repeat : bool
         Whether to stop iterating after batches are exhausted (False) or
-        to randomize and do it again forever
+        to randomize and do it again forever. Defaults to False
     ignore_missing : bool
         If True and some provided table does not have some key, that
         key will simply be ignored. Otherwise, a missing key raises a
-        ValueError
+        ValueError. Default to False
     add_axis_len : int or sequence, optional
         If set, sub-batches of axis lengths will be appended to the end
         of a batch tuple
@@ -259,19 +264,152 @@ class TrainingData(Iterable):
         tuples of sub-batches
     batch_kwargs : Keyword arguments, optional
         Additional keyword arguments to pass to ``batch_data``
+
+    Attributes
+    ----------
+    table_specifiers : sequence
+        A tuple of triples indicating of rspecifier, kaldi_dtype, and
+        open_kwargs for each table
+    table_handles : sequence
+        The tables, opened in random access mode
+    key_list : sequence
+    batch_size : int or None
+    batch_axis : int or sequence
+        If iterators return tuples (more than one table or an axis
+        length has been added), this will always be a sequence
+    batch_kwargs : dict
+    repeat : bool
+    rng : numpy.random.RandomState
+    ignores_missing : bool
     '''
 
-    def __init__(
-            self, table, key_list=None, batch_size=None, batch_axis=0,
-            batch_pad_mode=None, rng=None, repeat=False,
-            ignore_missing=False, add_axis_len=None,
-            *additional_tables, **batch_kwargs):
-        table_specifiers = [table] + additional_tables
-        for spec_idx, table_spec in enumerate(table_specifiers):
+    def __init__(self, *tables, **kwargs):
+        if not len(tables):
+            raise TypeError('__init__() takes at least 2 arguments (1 given)')
+        self.batch_size = kwargs.pop('batch_size', None)
+        self.batch_pad_mode = kwargs.pop('batch_pad_mode', None)
+        self.repeat = bool(kwargs.pop('repeat', False))
+        self._ignore_missing = bool(kwargs.pop('ignore_missing', False))
+        key_list = kwargs.pop('key_list', None)
+        batch_axis = kwargs.pop('batch_axis', 0)
+        rng = kwargs.pop('rng', None)
+        add_axis_len = kwargs.pop('add_axis_len', None)
+        self.batch_kwargs = kwargs
+        table_specifiers = []
+        for table_spec in tables:
             if isinstance(table_spec, str) or isinstance(table_spec, text):
                 table_spec = (table_spec, 'bm', dict())
             elif len(table_spec) == 2:
                 table_spec += (dict(),)
             elif len(table_spec) != 3:
                 raise ValueError('Invalid table spec {}'.format(table_spec))
-            table_specifiers[spec_idx] = table_spec
+            table_specifiers.append(table_spec)
+        self.table_specifiers = tuple(table_specifiers)
+        if not key_list:
+            _, _, rx_type, _ = parse_kaldi_input_path(table_specifiers[0][0])
+            if rx_type == RxfilenameType.StandardInput:
+                raise IOError('Cannot reopen stdin after keys are inferred')
+            with io_open(
+                    table_specifiers[0][0], table_specifiers[0][1], mode='r',
+                    **table_specifiers[0][2]) as tab_f:
+                key_list = tuple(tab_f.keys())
+        else:
+            key_list = tuple(key_list)
+        self.key_list = key_list
+        if self._ignore_missing:
+            self._len = None  # will infer when they ask
+        else:
+            self._len = len(key_list)
+        if add_axis_len is None:
+            self._ax_tups = tuple()
+        elif isinstance(add_axis_len, int):
+            self._ax_tups = ((0, add_axis_len),)
+        else:
+            add_axis_len = tuple(add_axis_len)  # in case generator
+            if len(add_axis_len) == 2 and \
+                    isinstance(add_axis_len[0], int) and \
+                    isinstance(add_axis_len[1], int):
+                self._ax_tups = (add_axis_len,)
+            else:
+                self._ax_tups = add_axis_len
+        num_yield = len(self._ax_tups) + len(table_specifiers)
+        self._is_tup = num_yield > 1
+        if self._is_tup:
+            if isinstance(batch_axis, int):
+                if len(self._ax_tups) and (
+                        batch_axis > 1 or batch_axis < -1):
+                    raise ValueError(
+                        "batch_axis value {} invalid for axis-length "
+                        "sub-batches. Specify all {} batch axes explicitly."
+                        "".format(batch_axis, num_yield))
+                self.batch_axis = (batch_axis,) * num_yield
+            else:
+                batch_axis = tuple(batch_axis)
+                if len(batch_axis) != num_yield:
+                    if len(batch_axis) == len(table_specifiers):
+                        raise ValueError(
+                            'Expected batch_axis length of {}, but got length '
+                            '{} (did you remember to account for axis-length '
+                            'sub-batches?)'.format(len(batch_axis), num_yield))
+                    else:
+                        raise ValueError(
+                            'Expected batch_axis length of {}, but got length '
+                            '{}'.format(len(batch_axis), num_yield))
+                self.batch_axis = batch_axis
+        else:
+            self.batch_axis = batch_axis
+        if isinstance(rng, np.random.RandomState):
+            self.rng = rng
+        else:
+            self.rng = np.random.RandomState(rng)
+        self.table_handles = tuple(
+            io_open(rspec, dtype, mode='r+', **kwargs)
+            for rspec, dtype, kwargs in self.table_specifiers
+        )
+
+    @property
+    def ignores_missing(self):
+        '''bool : does this iterator ignore missing keys or throw an error'''
+        return self._ignore_missing
+
+    def sample_generator(self):
+        '''Yields shuffled samples'''
+        shuffled_keys = np.array(self.key_list)
+        self.rng.shuffle(shuffled_keys)
+        for key in shuffled_keys:
+            samp_tup = []
+            missing = False
+            for spec, handle in zip(self.table_specifiers, self.table_handles):
+                if key not in handle:
+                    if self._ignore_missing:
+                        missing = True
+                        break
+                    else:
+                        raise ValueError(
+                            'Table {} missing key {}'.format(spec[0], key))
+                samp_tup.append(np.array(handle[key], copy=False))
+            for sub_batch_idx, axis_idx in self._ax_tups:
+                samp_tup.append(samp_tup[sub_batch_idx].shape[axis_idx])
+            if not missing:
+                if self._is_tup:
+                    yield tuple(samp_tup)
+                else:
+                    yield samp_tup[0]
+
+    def __iter__(self):
+        return batch_data(
+            self.sample_generator(),
+            batch_size=self.batch_size,
+            axis=self.batch_axis,
+            pad_mode=self.batch_pad_mode,
+            is_tup=self._is_tup,
+            **self.batch_kwargs
+        )
+
+    def __len__(self):
+        if self._len is None:
+            self._len = sum(
+                all(key in handle for handle in self.table_handles)
+                for key in self.key_list
+            )
+        return self._len
