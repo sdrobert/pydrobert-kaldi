@@ -47,4 +47,4 @@ test_script:
 deploy_script:
   - ps: $env:ANACONDA_PATH = (Join-Path $env:MINICONDA_PATH Scripts\anaconda)
   - ps: $env:TARS = (Join-Path -Path $env:MINICONDA_PATH -ChildPath 'conda-bld\win-64\pydrobert-kaldi-*.tar.bz2' -Resolve)
-  - ps: Invoke-Expression "$env:ANACONDA_PATH -t $env:ANACONDA_TOKEN upload -u sdrobert $env:TARS"
+  - ps: cmd /c "$env:ANACONDA_PATH -t $env:ANACONDA_TOKEN upload -u sdrobert $env:TARS"
