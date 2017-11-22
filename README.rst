@@ -5,6 +5,10 @@ pydrobert-kaldi
 .. image:: https://travis-ci.org/sdrobert/pydrobert-kaldi.svg?branch=master
 .. image:: https://ci.appveyor.com/api/projects/status/3lfk37i0xjgsk6ty/branch/master
 
+.. warning:: This is student-driven code, so don't expect a stable API. I'll try
+   to use semantic versioning, but the best way to keep functionality stable is
+   by forking.
+
 What is it?
 -----------
 
@@ -41,6 +45,13 @@ sequential reading (``mode='r'``), dict-like random access reading
 (``mode='r+'``), or writing (``mode='w'``). For more information on the open
 function, consult the docstring. Information on `Kaldi I/O`_ can be found on
 their website.
+
+The submodule ``pydrobert.kaldi.io.corpus`` contains useful wrappers around
+Kaldi I/O to serve up batches of data to, say, a neural network:
+
+>>> train = TrainingData('scp:feats.scp', 'scp:labels.scp', batch_size=10)
+>>> for feat_batch, label_batch in train:
+>>>     pass  # do something
 
 Logging and CLI
 ---------------

@@ -317,9 +317,9 @@ class TrainingData(Iterable):
             key_list = tuple(key_list)
         self.key_list = key_list
         if self._ignore_missing:
-            self._len = None  # will infer when they ask
+            self._num_samples = None  # will infer when they ask
         else:
-            self._len = len(key_list)
+            self._num_samples = len(key_list)
         if add_axis_len is None:
             self._ax_tups = tuple()
         elif isinstance(add_axis_len, int):
@@ -407,9 +407,12 @@ class TrainingData(Iterable):
         )
 
     def __len__(self):
-        if self._len is None:
-            self._len = sum(
+        if self._num_samples is None:
+            self._num_samples = sum(
                 all(key in handle for handle in self.table_handles)
                 for key in self.key_list
             )
-        return self._len
+        if self.batch_size:
+            return int(np.ceil(self._num_samples / self.batch_size))
+        else:
+            return self._num_samples

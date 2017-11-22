@@ -126,7 +126,6 @@ def test_padding():
     )
 
 
-# @pytest.mark.xfail
 def test_str_padding():
     samples = [['a', 'a', 'a'], ['this', 'is'], ['w']]
     l2_batches = tuple(corpus.batch_data(
@@ -179,7 +178,7 @@ def test_training_data_basic(temp_file_1_name):
     train_data = corpus.TrainingData(
         'ark:' + temp_file_1_name, batch_size=3, rng=NonRandomState())
     assert isinstance(train_data.rng, NonRandomState)
-    assert len(train_data) == len(keys)
+    assert len(train_data) == int(np.ceil(len(keys) / 3))
     assert keys == tuple(train_data.key_list)
     for _ in range(2):
         ex_samp_idx = len(samples)
@@ -187,6 +186,21 @@ def test_training_data_basic(temp_file_1_name):
             for act_sample in batch:
                 ex_samp_idx -= 1
                 assert np.allclose(samples[ex_samp_idx], act_sample)
+
+
+@pytest.mark.parametrize('seed', [1234, 4321])
+def test_seeded_training_is_predictable(temp_file_1_name, seed):
+    samples = np.arange(100000).reshape((1000, 100)).astype(np.float32)
+    with io_open('ark:' + temp_file_1_name, 'fv', mode='w') as f:
+        for idx, sample in enumerate(samples):
+            f.write(str(idx), sample)
+    train_data_1 = corpus.TrainingData(
+        ('ark:' + temp_file_1_name, 'fv'), batch_size=13, rng=seed)
+    train_data_2 = corpus.TrainingData(
+        ('ark:' + temp_file_1_name, 'fv'), batch_size=13, rng=seed)
+    for _ in range(2):
+        for batch_1, batch_2 in zip(train_data_1, train_data_2):
+            assert np.allclose(batch_1, batch_2)
 
 
 def test_training_data_tups(temp_file_1_name, temp_file_2_name):

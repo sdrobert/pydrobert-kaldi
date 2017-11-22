@@ -28,6 +28,7 @@ from sys import version_info
 
 IS_64_BIT = maxsize > 2 ** 32
 
+
 def mkl_setup(roots, mkl_threading=None):
     found_mkl_libs = {
         'mkl_rt': False,
@@ -98,6 +99,7 @@ def mkl_setup(roots, mkl_threading=None):
         'DEFINES': [('HAVE_MKL', None)],
     }
 
+
 def blas_setup(roots, library_names, headers, extra_entries_on_success):
     library_names = dict((lib, False) for lib in library_names)
     headers = dict((header, False) for header in headers)
@@ -127,6 +129,7 @@ def blas_setup(roots, library_names, headers, extra_entries_on_success):
     ret['BLAS_INCLUDES'] = list(include_dirs)
     return ret
 
+
 def openblas_setup(roots):
     return blas_setup(
         roots,
@@ -134,6 +137,7 @@ def openblas_setup(roots):
         ('cblas.h', 'lapacke.h',),
         {'DEFINES': [('HAVE_OPENBLAS', None)]},
     )
+
 
 def atlas_setup(roots):
     return blas_setup(
@@ -143,6 +147,7 @@ def atlas_setup(roots):
         {'DEFINES': [('HAVE_ATLAS', None)]},
     )
 
+
 def blas_lapacke_setup(roots):
     return blas_setup(
         roots,
@@ -150,6 +155,7 @@ def blas_lapacke_setup(roots):
         ('cblas.h', 'lapacke.h'),
         {'DEFINES': [('HAVE_LAPACKE', None)]},
     )
+
 
 def blas_clapack_setup(roots):
     return blas_setup(
@@ -159,11 +165,13 @@ def blas_clapack_setup(roots):
         {'DEFINES': [('HAVE_CLAPACK', None)]},
     )
 
+
 def accelerate_setup():
     return {
         'DEFINES': [('HAVE_CLAPACK', None)],
         'LD_FLAGS': ['-framework', 'Accelerate'],
     }
+
 
 PWD = path.abspath(path.dirname(__file__))
 PYTHON_DIR = path.join(PWD, 'python')
@@ -196,7 +204,7 @@ if MKL_ROOT or OPENBLAS_ROOT or ATLAS_ROOT or USE_ACCELERATE:
     if sum(
             x is not None for x in (
                 MKL_ROOT, OPENBLAS_ROOT, ATLAS_ROOT, USE_ACCELERATE,
-                CLAPACK_ROOT, #LAPACKE_ROOT
+                CLAPACK_ROOT, LAPACKE_ROOT
             )) != 1:
         raise Exception(
             'Only one of MKLROOT, ATLASROOT, ACCELERATE, or '
@@ -257,6 +265,7 @@ KALDI_LIBRARY = Extension(
     language='c++',
 )
 
+
 # https://stackoverflow.com/questions/2379898/
 # make-distutils-look-for-numpy-header-files-in-the-correct-place
 class CustomBuildExtCommand(build_ext):
@@ -264,12 +273,12 @@ class CustomBuildExtCommand(build_ext):
     def look_for_blas(self):
         '''Look for blas libraries through numpy'''
         injection_lookup = {
-            'BLAS_LIBRARIES' : (KALDI_LIBRARY, 'libraries'),
-            'BLAS_LIBRARY_DIRS' : (KALDI_LIBRARY, 'library_dirs'),
-            'BLAS_INCLUDES' : (KALDI_LIBRARY, 'include_dirs'),
-            'LD_FLAGS' : (KALDI_LIBRARY, 'extra_link_args'),
-            'DEFINES' : (KALDI_LIBRARY, 'define_macros'),
-            'libraries' : (KALDI_LIBRARY, 'libraries'),
+            'BLAS_LIBRARIES': (KALDI_LIBRARY, 'libraries'),
+            'BLAS_LIBRARY_DIRS': (KALDI_LIBRARY, 'library_dirs'),
+            'BLAS_INCLUDES': (KALDI_LIBRARY, 'include_dirs'),
+            'LD_FLAGS': (KALDI_LIBRARY, 'extra_link_args'),
+            'DEFINES': (KALDI_LIBRARY, 'define_macros'),
+            'libraries': (KALDI_LIBRARY, 'libraries'),
             'library_dirs': (KALDI_LIBRARY, 'library_dirs'),
             'include_dirs': (self, 'include_dirs'),
             'define_macros': (KALDI_LIBRARY, 'define_macros'),
@@ -313,11 +322,12 @@ class CustomBuildExtCommand(build_ext):
             # otherwise we try setting up in the library dirs, then in the
             # directories above them.
             check_dirs = list(info['library_dirs'])
-            check_dirs += [path.abspath(path.join(x, '..')) for x in check_dirs]
+            check_dirs += [
+                path.abspath(path.join(x, '..')) for x in check_dirs]
             check_dirs = list(info.get('include_dirs', [])) + check_dirs
             try:
                 blas_dict = setup_func(check_dirs)
-            except:
+            except Exception:
                 continue
             for key, value in blas_dict.items():
                 obj, attribute = injection_lookup[key]
@@ -337,6 +347,7 @@ class CustomBuildExtCommand(build_ext):
             self.look_for_blas()
         self.include_dirs.append(numpy.get_include())
         build_ext.run(self)
+
 
 setup(
     name='pydrobert-kaldi',
