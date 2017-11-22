@@ -1,6 +1,7 @@
 // util/kaldi-table.cc
 
 // Copyright 2009-2011  Microsoft Corporation
+//                2017  Sean Robertson
 
 // See ../../COPYING for clarification regarding multiple authors
 //
@@ -19,6 +20,7 @@
 
 #include "util/kaldi-table.h"
 #include "util/text-utils.h"
+#include "base/kaldi-math.h"
 
 namespace kaldi {
 
@@ -284,7 +286,10 @@ RspecifierType ClassifyRspecifier(const std::string &rspecifier,
     } else if (!strcmp(c, "np")) {
       if (opts) opts->permissive = false;
     } else if (!strcmp(c, "s")) {
-      if (opts) opts->sorted = true;
+      if (opts) {
+        opts->sorted = true;
+        opts->randomized = false;
+      }
     } else if (!strcmp(c, "ns")) {
       if (opts) opts->sorted = false;
     } else if (!strcmp(c, "cs")) {
@@ -293,6 +298,19 @@ RspecifierType ClassifyRspecifier(const std::string &rspecifier,
       if (opts) opts->called_sorted = false;
     } else if (!strcmp(c, "bg")) {
       if (opts) opts->background = true;
+    } else if (!strncmp(c, "rd", 2)) {
+      if (opts) {
+        opts->randomized = true;
+        opts->sorted = false;
+      }
+      if (strlen(c + 2)) {
+        char * end_ptr;
+        auto seed = strtol(c + 2, &end_ptr, 10);
+        if (*end_ptr != '\0') return kNoRspecifier;
+        if (opts) opts->seed = static_cast<unsigned int>(seed);
+      } else {
+        opts->seed = static_cast<unsigned int>(Rand());
+      }
     } else if (!strcmp(c, "ark")) {
       if (rs == kNoRspecifier) rs = kArchiveRspecifier;
       else

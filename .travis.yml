@@ -35,8 +35,8 @@ script:
 deploy:
   - provider: script
     script: source recipe/anaconda_deploy.sh
-    on:
-      tags: true
+    # on:
+    #   tags: true
     skip_cleanup: true
 # install:
 #   - sudo apt-get install libopenblas-dev
