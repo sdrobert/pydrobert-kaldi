@@ -25,11 +25,12 @@ import pytest
 
 from pydrobert.kaldi.io import open as io_open
 
+
 def test_chained(temp_file_1_name):
     # wholly too limited a test
     obj_list = [
         ('iv', tuple(x for x in range(1000))),
-        ('fm', [[1,2.5], [1e-10, 4]]),
+        ('fm', [[1, 2.5], [1e-10, 4]]),
         ('dv', np.random.random(1)),
         ('dm', np.random.random((100, 20))),
         ('t', 'fiddlesticks'),
@@ -47,6 +48,7 @@ def test_chained(temp_file_1_name):
             else:
                 assert read == obj
 
+
 @pytest.mark.parametrize('dtype,value', [
     ('bv', []),
     ('bm', [[]]),
@@ -58,7 +60,7 @@ def test_chained(temp_file_1_name):
     ('dv', np.arange(1000, dtype=np.float64) - 10),
     ('dm', np.outer(
         np.arange(100, dtype=np.float32),
-        np.arange(111, dtype=np.float32))), # upcast ok
+        np.arange(111, dtype=np.float32))),  # upcast ok
     ('t', 'able'),
     # our methods can accept unicode, but always return strings,
     # so we don't enforce that these be unicode type.
@@ -93,11 +95,34 @@ def test_read_write_valid(temp_file_1_name, dtype, value, binary):
     else:
         assert read_value == value
 
+
+@pytest.mark.parametrize('ktype,dtype,value', [
+    ('b', np.float32, 3.14),  # upcast ok (if applicable)
+    ('bpv', np.float32, ((0, 1.2), (3.4, 5), (6, 7.89))),  # upcast ok (if app)
+    ('i', np.int32, 420),
+    ('iv', np.int32, (1, 1, 2, 3, 5, 8, 13, 21)),
+    ('ivv', np.int32, ((0, 1), (2, 3), (4, 5))),
+    ('ipv', np.int32, ((0, 1), (2, 3), (4, 5))),
+    ('t', np.str, 'foo'),
+    ('tv', np.str, ('foo', 'bar')),
+])
+def test_write_read_numpy_versions(temp_file_1_name, ktype, dtype, value):
+    npy_value = np.array(value).astype(dtype)
+    with io_open(temp_file_1_name, mode='w', header=False) as outp:
+        outp.write(npy_value, ktype)
+    with io_open(temp_file_1_name, header=False) as inp:
+        act_value = inp.read(ktype)
+    if ktype in ('b', 'bpv'):
+        assert np.allclose(value, act_value)
+    else:
+        assert value == act_value
+
+
 @pytest.mark.parametrize('dtype,value', [
     ('bv', ['a', 2, 3]),
     ('bv', 'abc'),
     ('bv', [[1, 2]]),
-    ('fv', np.arange(3, dtype=np.float64)), # downcast not ok
+    ('fv', np.arange(3, dtype=np.float64)),  # downcast not ok
     ('bm', [['a', 2]]),
     ('bm', [0]),
     ('fm', np.random.random((10, 1)).astype(np.float64)),
@@ -111,7 +136,7 @@ def test_read_write_valid(temp_file_1_name, dtype, value, binary):
     ('iv', 1),
     ('ivv', [[[1]]]),
     ('ipv', ((1, 2), (3,))),
-    ('d', 1+1j),
+    ('d', 1 + 1j),
     ('b', 'akljdal'),
     ('bpv', ((1,), (2, 3))),
 ])

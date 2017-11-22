@@ -274,8 +274,16 @@ class KaldiOutput(KaldiIOBase):
             if kaldi_dtype == KaldiDataType.WaveMatrix:
                 self._internal.WriteWaveData(obj[0], float(obj[1]))
             elif kaldi_dtype == KaldiDataType.Token:
+                try:
+                    obj = obj.tolist()
+                except AttributeError:
+                    pass
                 self._internal.WriteToken(write_binary, obj)
             elif kaldi_dtype == KaldiDataType.TokenVector:
+                try:
+                    obj = obj.tolist()
+                except AttributeError:
+                    pass
                 if error_on_str and (
                         isinstance(obj, str) or isinstance(obj, text)):
                     raise ValueError(

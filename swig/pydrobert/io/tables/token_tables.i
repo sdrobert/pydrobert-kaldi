@@ -42,16 +42,19 @@ namespace kaldi {
     $self->Write(key, token);
   };
 }
+
 %extend kaldi::SequentialTableReader<kaldi::TokenHolder > {
   const std::string& Value() {
     return $self->Value();
   };
 }
+
 %extend kaldi::RandomAccessTableReaderMapped<kaldi::TokenHolder > {
   const std::string& Value(const std::string& key) {
     return $self->Value(key);
   };
 }
+
 %extend kaldi::TableWriter<kaldi::TokenVectorHolder > {
   void Write(const std::string& key, const std::vector<std::string >& token_vec) {
     for (std::vector<std::string >::const_iterator iter = token_vec.begin();
@@ -64,11 +67,13 @@ namespace kaldi {
     $self->Write(key, token_vec);
   };
 }
+
 %extend kaldi::SequentialTableReader<kaldi::TokenVectorHolder > {
   const std::vector<std::string >& Value() {
     return $self->Value();
   };
 }
+
 %extend kaldi::RandomAccessTableReaderMapped<kaldi::TokenVectorHolder > {
   const std::vector<std::string >& Value(const std::string& key) {
     return $self->Value(key);

@@ -129,7 +129,9 @@ def open_table_stream(
             table = _KaldiRandomAccessSimpleReader(
                 path, kaldi_dtype, utt2spk=utt2spk)
     elif mode in ('w', 'w+'):
-        if kaldi_dtype.value == 'tv':
+        if kaldi_dtype.value == 't':
+            table = _KaldiTokenWriter(path, kaldi_dtype)
+        elif kaldi_dtype.value == 'tv':
             table = _KaldiTokenVectorWriter(
                 path, kaldi_dtype, error_on_str=error_on_str)
         else:
@@ -529,7 +531,6 @@ class _KaldiSimpleWriter(KaldiWriter):
         'dv': _i.DoubleVectorWriter,
         'fm': _i.FloatMatrixWriter,
         'fv': _i.FloatVectorWriter,
-        't': _i.TokenWriter,
         'wm': _i.WaveWriter,
         'i': _i.Int32Writer,
         'iv': _i.Int32VectorWriter,
@@ -672,6 +673,35 @@ class _KaldiRandomAccessWaveReader(KaldiRandomAccessReader):
         self.closed = True
 
 
+class _KaldiTokenWriter(KaldiWriter):
+    __doc__ = KaldiWriter.__doc__
+
+    def __init__(self, path, kaldi_dtype):
+        instance = _i.TokenWriter()
+        if not instance.Open(path):
+            raise IOError('Unable to open for write')
+        self._internal = instance
+        super(_KaldiTokenWriter, self).__init__(path, kaldi_dtype)
+        self.binary = False
+
+    def write(self, key, value):
+        # swig bindings have difficulty when this value is a scalar
+        # numpy array. Easy fix is to use 'tolist', which actually
+        # returns str or unicode.
+        if self.closed:
+            raise IOError('I/O operation on a closed file')
+        try:
+            value = value.tolist()
+        except AttributeError:
+            pass
+        self._internal.Write(key, value)
+
+    def close(self):
+        if not self.closed:
+            self._internal.Close()
+        self.closed = True
+
+
 class _KaldiTokenVectorWriter(KaldiWriter):
     __doc__ = KaldiWriter.__doc__
 
@@ -687,6 +717,10 @@ class _KaldiTokenVectorWriter(KaldiWriter):
     def write(self, key, value):
         if self.closed:
             raise IOError('I/O operation on a closed file')
+        try:
+            value = value.tolist()
+        except AttributeError:
+            pass
         if self._error_on_str and (
                 isinstance(value, str) or isinstance(value, text)):
             raise ValueError(
