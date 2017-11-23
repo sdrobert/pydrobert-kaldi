@@ -286,10 +286,7 @@ RspecifierType ClassifyRspecifier(const std::string &rspecifier,
     } else if (!strcmp(c, "np")) {
       if (opts) opts->permissive = false;
     } else if (!strcmp(c, "s")) {
-      if (opts) {
-        opts->sorted = true;
-        opts->randomized = false;
-      }
+      if (opts) opts->sorted = true;
     } else if (!strcmp(c, "ns")) {
       if (opts) opts->sorted = false;
     } else if (!strcmp(c, "cs")) {
