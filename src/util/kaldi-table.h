@@ -216,13 +216,9 @@ struct  RspecifierOptions {
   bool background;  // For sequential readers, if the background option ("bg")
                     // is provided, it will read ahead to the next object in a
                     // background thread.
-  bool randomized;  // For sequential readers, if the random option ("rd") is
-                    // provided, it will return key/value pairs in shuffled
-                    // order (via Mersenne twister)
-  unsigned int seed;  // The seed provided to the twister
   RspecifierOptions(): once(false), sorted(false),
                        called_sorted(false), permissive(false),
-                       background(false), randomized(false), seed(0) { }
+                       background(false) { }
 };
 
 enum RspecifierType  {

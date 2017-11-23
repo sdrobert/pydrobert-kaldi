@@ -298,19 +298,6 @@ RspecifierType ClassifyRspecifier(const std::string &rspecifier,
       if (opts) opts->called_sorted = false;
     } else if (!strcmp(c, "bg")) {
       if (opts) opts->background = true;
-    } else if (!strncmp(c, "rd", 2)) {
-      if (opts) {
-        opts->randomized = true;
-        opts->sorted = false;
-      }
-      if (strlen(c + 2)) {
-        char * end_ptr;
-        auto seed = strtol(c + 2, &end_ptr, 10);
-        if (*end_ptr != '\0') return kNoRspecifier;
-        if (opts) opts->seed = static_cast<unsigned int>(seed);
-      } else {
-        opts->seed = static_cast<unsigned int>(Rand());
-      }
     } else if (!strcmp(c, "ark")) {
       if (rs == kNoRspecifier) rs = kArchiveRspecifier;
       else

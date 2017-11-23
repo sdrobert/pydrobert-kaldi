@@ -41,7 +41,7 @@ def test_batch_data_numpy(samples):
     # samples are numpy data of the same shape and type
     batch_start = 0
     for ex_samp, act_samp in zip(
-            samples, corpus.batch_data(samples, in_tup=False)):
+            samples, corpus.batch_data(samples, subsamples=False)):
         try:
             assert np.allclose(ex_samp, act_samp)
         except TypeError:
@@ -53,7 +53,8 @@ def test_batch_data_numpy(samples):
         for batch_size in range(1, len(samples) + 2):
             batch_start = 0
             for act_batch in corpus.batch_data(
-                    samples, batch_size=batch_size, in_tup=False, axis=axis):
+                    samples, batch_size=batch_size, subsamples=False,
+                    axis=axis):
                 ex_batch = samples[batch_start:batch_start + batch_size]
                 assert len(ex_batch) == act_batch.shape[axis]
                 for samp_idx in range(len(ex_batch)):
@@ -87,7 +88,7 @@ def test_batch_data_alt(samples):
     # - variable type
     batch_start = 0
     for ex_samp, act_samp in zip(
-            samples, corpus.batch_data(samples, in_tup=False)):
+            samples, corpus.batch_data(samples, subsamples=False)):
         try:
             assert np.allclose(ex_samp, act_samp)
         except TypeError:
@@ -97,7 +98,7 @@ def test_batch_data_alt(samples):
     for batch_size in range(1, len(samples) + 2):
         batch_start = 0
         for act_batch in corpus.batch_data(
-                samples, batch_size=batch_size, in_tup=False):
+                samples, batch_size=batch_size, subsamples=False):
             ex_batch = samples[batch_start:batch_start + batch_size]
             assert len(ex_batch) == len(act_batch)
             for ex_samp, act_samp in zip(ex_batch, act_batch):
@@ -148,7 +149,8 @@ def test_batch_data_tups_numpy(samples):
         for batch_size in range(1, len(samples) + 2):
             batch_start = 0
             for act_batch in corpus.batch_data(
-                    samples, in_tup=True, batch_size=batch_size, axis=axis):
+                    samples, subsamples=True, batch_size=batch_size,
+                    axis=axis):
                 assert len(act_batch) == len(input_shapes)
                 assert isinstance(act_batch, tuple)
                 ex_batch = samples[batch_start:batch_start + batch_size]
@@ -214,7 +216,7 @@ def test_batch_data_tups_alt(samples):
 def test_padding():
     samples = [([1], [2], [3]), ([4, 5], [6, 7]), ([8], [9])]
     l1_batches = tuple(corpus.batch_data(
-        samples, in_tup=False, batch_size=1, pad_mode='maximum',
+        samples, subsamples=False, batch_size=1, pad_mode='maximum',
         cast_to_array=np.int32,
     ))
     assert len(l1_batches) == 3
@@ -222,7 +224,7 @@ def test_padding():
     assert np.allclose(l1_batches[1], [[4, 5], [6, 7]])
     assert np.allclose(l1_batches[2], [[8], [9]])
     l2_batches = tuple(corpus.batch_data(
-        samples, in_tup=False, batch_size=2, pad_mode='maximum',
+        samples, subsamples=False, batch_size=2, pad_mode='maximum',
         cast_to_array=np.int32,
     ))
     assert len(l2_batches) == 2
@@ -235,7 +237,7 @@ def test_padding():
     )
     assert np.allclose(l2_batches[1], [[8], [9]])
     l3_batches = tuple(corpus.batch_data(
-        samples, in_tup=False, batch_size=3, pad_mode='wrap',
+        samples, subsamples=False, batch_size=3, pad_mode='wrap',
         cast_to_array=np.int32,
     ))
     assert len(l3_batches) == 1
@@ -249,7 +251,7 @@ def test_padding():
     )
     # if we do not set cast_to_array, no padding should occur
     no_cast_batches = tuple(corpus.batch_data(
-        samples, in_tup=False, batch_size=3, pad_mode='wrap'))
+        samples, subsamples=False, batch_size=3, pad_mode='wrap'))
     assert len(no_cast_batches) == 1
     assert no_cast_batches[0] == samples
 
@@ -257,7 +259,7 @@ def test_padding():
 def test_str_padding():
     samples = [['a', 'a', 'a'], ['this', 'is'], ['w']]
     l2_batches = tuple(corpus.batch_data(
-        samples, in_tup=False, batch_size=3, pad_mode='constant',
+        samples, subsamples=False, batch_size=3, pad_mode='constant',
         cast_to_array=str))
     assert len(l2_batches) == 1
     act_samples = l2_batches[0].tolist()
@@ -267,7 +269,7 @@ def test_str_padding():
         ['w', '', ''],
     ]
     no_cast_batches = tuple(corpus.batch_data(
-        samples, in_tup=False, batch_size=3, pad_mode='constant'))
+        samples, subsamples=False, batch_size=3, pad_mode='constant'))
     assert len(no_cast_batches) == 1
     assert no_cast_batches[0] == samples
 
@@ -291,7 +293,7 @@ def test_training_data_basic(temp_file_1_name):
     with io_open('ark:' + temp_file_1_name, 'bm', mode='w') as f:
         for key, sample in zip(keys, samples):
             f.write(key, sample)
-    train_data = corpus.TrainingData(
+    train_data = corpus.ShuffledData(
         'ark:' + temp_file_1_name, batch_size=3, rng=NonRandomState())
     assert isinstance(train_data.rng, NonRandomState)
     assert len(train_data) == int(np.ceil(len(keys) / 3))
@@ -310,9 +312,9 @@ def test_seeded_training_is_predictable(temp_file_1_name, seed):
     with io_open('ark:' + temp_file_1_name, 'fv', mode='w') as f:
         for idx, sample in enumerate(samples):
             f.write(str(idx), sample)
-    train_data_1 = corpus.TrainingData(
+    train_data_1 = corpus.ShuffledData(
         ('ark:' + temp_file_1_name, 'fv'), batch_size=13, rng=seed)
-    train_data_2 = corpus.TrainingData(
+    train_data_2 = corpus.ShuffledData(
         ('ark:' + temp_file_1_name, 'fv'), batch_size=13, rng=seed)
     for _ in range(2):
         for batch_1, batch_2 in zip(train_data_1, train_data_2):
@@ -338,10 +340,10 @@ def test_training_data_tups(temp_file_1_name, temp_file_2_name):
         for key, feat, label in zip(keys, feats, labels):
             feat_f.write(key, feat)
             lab_f.write(key, label)
-    train_data = corpus.TrainingData(
+    train_data = corpus.ShuffledData(
         ('ark:' + temp_file_1_name, 'ivv'), ('ark:' + temp_file_2_name, 'dm'),
         batch_size=2, batch_pad_mode='constant',
-        key_list=keys, add_axis_len=1, rng=NonRandomState(),
+        key_list=keys, axis_lengths=1, rng=NonRandomState(),
         batch_cast_to_array=(np.int32, None, None))
     for _ in range(2):
         ex_samp_idx = len(feats)
@@ -353,10 +355,10 @@ def test_training_data_tups(temp_file_1_name, temp_file_2_name):
                 assert ex_len == act_len
                 assert np.allclose(ex_feat, act_feat[:, :ex_len])
                 assert np.allclose(act_feat[:, ex_len:], 0)
-    train_data = corpus.TrainingData(
+    train_data = corpus.ShuffledData(
         ('ark:' + temp_file_1_name, 'ivv'), ('ark:' + temp_file_2_name, 'dm'),
         batch_size=3, batch_pad_mode='constant',
-        key_list=keys, add_axis_len=((1, 1), (0, 1)), rng=NonRandomState(),
+        key_list=keys, axis_lengths=((1, 1), (0, 1)), rng=NonRandomState(),
         batch_cast_to_array=(np.int32, None, None, None))
     for _ in range(2):
         ex_samp_idx = len(feats)
@@ -382,7 +384,7 @@ def test_training_ignore_missing(temp_file_1_name, temp_file_2_name):
         token_f.write('3', 'bean')
         token_f.write('4', 'casserole')
     keys = [str(i) for i in range(6)]
-    train_data = corpus.TrainingData(
+    train_data = corpus.ShuffledData(
         ('ark:' + temp_file_1_name, 't'), key_list=keys, ignore_missing=True,
         rng=NonRandomState())
     assert len(train_data) == 3
@@ -394,7 +396,7 @@ def test_training_ignore_missing(temp_file_1_name, temp_file_2_name):
         bool_f.write('1', False)
         bool_f.write('2', True)
         bool_f.write('4', False)
-    train_data = corpus.TrainingData(
+    train_data = corpus.ShuffledData(
         ('ark:' + temp_file_1_name, 't'), ('ark:' + temp_file_2_name, 'B'),
         key_list=keys, ignore_missing=True, rng=NonRandomState())
     assert len(train_data) == 2
