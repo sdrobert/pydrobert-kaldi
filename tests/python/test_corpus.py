@@ -30,45 +30,114 @@ from pydrobert.kaldi.io.enums import KaldiDataType
 
 
 @pytest.mark.parametrize('samples', [
-    ([[1, 2], [3, 4]], [[5, 6], [7, 8]]),
-    ([True, False, False], [False, False, False]),
-    (['variable', 'length'], ['flds', 'k']),
-    np.random.random((10, 50, 40)),
-    np.random.randint(-10, 1000, size=(5, 4, 10, 1)),
+    np.random.random((100, 20, 10)),
+    np.random.random(1),
+    np.arange(100),
+    np.array(['foo', 'barz', 'ba']),
+    np.array([['foo', 'bar'], ['baz', 'bump']]),
+    np.eye(100).reshape((10, 10, 10, 10)),
 ])
-def test_batch_data_basic(samples):
-    input_shape = np.array(samples[0], copy=False).shape
-    for axis in range(-1, len(input_shape) + 1):
-        batch_slice = [slice(None)] * (len(input_shape) + 1)
-        for batch_size in range(1, len(samples) + 1):
-            for batch_num, act_batch in enumerate(corpus.batch_data(
-                    samples, is_tup=False, batch_size=batch_size,
-                    axis=axis)):
-                exp_batch = samples[
-                    batch_num * batch_size:(batch_num + 1) * batch_size]
-                assert act_batch.shape[axis] == len(exp_batch)
-                for samp_idx in range(len(exp_batch)):
+def test_batch_data_numpy(samples):
+    # samples are numpy data of the same shape and type
+    batch_start = 0
+    for ex_samp, act_samp in zip(
+            samples, corpus.batch_data(samples, in_tup=False)):
+        try:
+            assert np.allclose(ex_samp, act_samp)
+        except TypeError:
+            assert ex_samp.tolist() == act_samp.tolist()
+        batch_start += 1
+    assert batch_start == len(samples)
+    for axis in range(-1, len(samples.shape)):
+        batch_slice = [slice(None)] * len(samples.shape)
+        for batch_size in range(1, len(samples) + 2):
+            batch_start = 0
+            for act_batch in corpus.batch_data(
+                    samples, batch_size=batch_size, in_tup=False, axis=axis):
+                ex_batch = samples[batch_start:batch_start + batch_size]
+                assert len(ex_batch) == act_batch.shape[axis]
+                for samp_idx in range(len(ex_batch)):
                     batch_slice[axis] = samp_idx
-                    ex_samp = np.array(exp_batch[samp_idx], copy=False)
-                    act_samp = act_batch[batch_slice]
-                    if ex_samp.dtype.kind in ('U', 'S'):  # string
-                        assert ex_samp.tolist() == act_samp.tolist()
-                    else:
-                        assert np.allclose(ex_samp, act_samp)
+                    try:
+                        assert np.allclose(
+                            ex_batch[samp_idx], act_batch[batch_slice])
+                    except TypeError:
+                        assert (
+                            ex_batch[samp_idx].flatten().tolist() ==
+                            act_batch[batch_slice].flatten().tolist())
+                batch_start += len(ex_batch)
+        assert batch_start == len(samples)
 
 
 @pytest.mark.parametrize('samples', [
     ([[1, 2], [3, 4]], [[5, 6], [7, 8]]),
-    ([[1., 2.], 3.], [[4., 5.], 6.], [[7., 8.], 9.]),
-    ([1, [2, 3], [4, 5, 6]], [7, [8, 9], [10, 11, 12]]),
-    np.random.random((10, 5, 4)),
-    np.random.randint(-10, 1000, size=(3, 4, 2, 1, 2)),
+    ([True, False, False], [False, False, False]),
+    ('a', 'b', 'c'),
+    ('de',),
+    ([10, 4], [1]),
+    tuple(),
+    (np.arange(100, dtype=np.int32), np.arange(100, dtype=np.int64)),
+    (np.arange(100).reshape(10, 10), np.arange(1000).reshape(10, 100)),
 ])
-def test_batch_data_tups(samples):
-    input_shapes = tuple(
-        np.array(sample, copy=False).shape for sample in samples[0])
+def test_batch_data_alt(samples):
+    # data that are:
+    # - not in sub-batches
+    # - not numpy arrays (and not casted)
+    # - variable shape
+    # - variable type
+    batch_start = 0
+    for ex_samp, act_samp in zip(
+            samples, corpus.batch_data(samples, in_tup=False)):
+        try:
+            assert np.allclose(ex_samp, act_samp)
+        except TypeError:
+            assert ex_samp == act_samp
+        batch_start += 1
+    assert batch_start == len(samples)
+    for batch_size in range(1, len(samples) + 2):
+        batch_start = 0
+        for act_batch in corpus.batch_data(
+                samples, batch_size=batch_size, in_tup=False):
+            ex_batch = samples[batch_start:batch_start + batch_size]
+            assert len(ex_batch) == len(act_batch)
+            for ex_samp, act_samp in zip(ex_batch, act_batch):
+                try:
+                    assert np.allclose(ex_samp, act_samp)
+                except TypeError:
+                    assert ex_samp == act_samp
+            batch_start += len(act_batch)
+        assert batch_start == len(samples)
+
+
+@pytest.mark.parametrize('samples', [
+    np.random.random((10, 5, 4)),
+    np.random.random((4, 1)),
+    np.random.randint(0, 2, size=(3, 4, 2, 1, 2)).astype(bool),
+    np.eye(10).reshape((10, 10)),
+    np.array([
+        [['able', 'was']],
+        [['I', 'ere']],
+        [['I', 'saw']],
+        [['elba', 'dawg']]]),
+])
+def test_batch_data_tups_numpy(samples):
+    input_shapes = tuple(sample.shape for sample in samples[0])
     axes = tuple(product(*(range(len(shape) + 1) for shape in input_shapes)))
     axes += (0, -1)
+    batch_start = 0
+    for ex_samp, act_samp in zip(samples, corpus.batch_data(samples)):
+        assert isinstance(act_samp, tuple)
+        for ex_sub_samp, act_sub_samp in zip(ex_samp, act_samp):
+            assert ex_sub_samp.shape == act_sub_samp.shape
+            try:
+                assert np.allclose(ex_sub_samp, act_sub_samp)
+            except TypeError:
+                assert (
+                    ex_sub_samp.flatten().tolist() ==
+                    act_sub_samp.flatten().tolist()
+                )
+        batch_start += 1
+    assert batch_start == len(samples)
     for axis in axes:
         batch_slices = tuple(
             [slice(None)] * (len(shape) + 1) for shape in input_shapes)
@@ -76,34 +145,86 @@ def test_batch_data_tups(samples):
             axis_iter = repeat(axis)
         else:
             axis_iter = axis
-        for batch_size in range(1, len(samples) + 1):
-            for batch_num, act_batch in enumerate(corpus.batch_data(
-                    samples, is_tup=True, batch_size=batch_size, axis=axis)):
+        for batch_size in range(1, len(samples) + 2):
+            batch_start = 0
+            for act_batch in corpus.batch_data(
+                    samples, in_tup=True, batch_size=batch_size, axis=axis):
                 assert len(act_batch) == len(input_shapes)
-                exp_batch = samples[
-                    batch_num * batch_size:(batch_num + 1) * batch_size]
-                for sub_batch_idx, sub_axis in \
-                        zip(range(len(input_shapes)), axis_iter):
+                assert isinstance(act_batch, tuple)
+                ex_batch = samples[batch_start:batch_start + batch_size]
+                for sub_batch_idx, sub_axis in zip(
+                        range(len(input_shapes)), axis_iter):
                     act_sub_batch = act_batch[sub_batch_idx]
-                    assert act_sub_batch.shape[sub_axis] == len(exp_batch)
+                    assert len(ex_batch) == act_sub_batch.shape[sub_axis]
                     sub_batch_slice = batch_slices[sub_batch_idx]
-                    for samp_idx in range(len(exp_batch)):
-                        sub_batch_slice[sub_axis] = samp_idx
-                        assert np.allclose(
-                            exp_batch[samp_idx][sub_batch_idx],
-                            act_sub_batch[sub_batch_slice])
+                    for sub_samp_idx in range(len(ex_batch)):
+                        sub_batch_slice[sub_axis] = sub_samp_idx
+                        ex_sub_samp = ex_batch[sub_samp_idx, sub_batch_idx]
+                        act_sub_samp = act_sub_batch[sub_batch_slice]
+                        # the == 2 is to account for the case when
+                        # ex_sub_samp are going to be np.generics (as
+                        # opposed to a arrays)
+                        assert (len(input_shapes) == 2) or (
+                            ex_sub_samp.shape == act_sub_samp.shape, sub_axis)
+                        try:
+                            assert np.allclose(ex_sub_samp, act_sub_samp)
+                        except TypeError:
+                            assert (
+                                ex_sub_samp.flatten().tolist() ==
+                                act_sub_samp.flatten().tolist()
+                            )
+                batch_start += len(ex_batch)
+            assert batch_start == len(samples)
+
+
+@pytest.mark.parametrize('samples', [
+    (([1, 2], [3, 4]), ([5, 6], [7, 8])),
+    ((['a', 'bc', 'd'], 'e'), ('f', ['ghi', 'j'])),
+    ((np.array(50),), (np.array(1),), (np.arange(10),)),
+    tuple(),
+])
+def test_batch_data_tups_alt(samples):
+    batch_start = 0
+    for ex_samp, act_samp in zip(samples, corpus.batch_data(samples)):
+        assert isinstance(act_samp, tuple)
+        for ex_sub_samp, act_sub_samp in zip(ex_samp, act_samp):
+            try:
+                assert np.allclose(ex_sub_samp, act_sub_samp)
+            except TypeError:
+                assert ex_sub_samp == act_sub_samp
+        batch_start += 1
+    assert batch_start == len(samples)
+    for batch_size in range(1, len(samples) + 2):
+        batch_start = 0
+        for act_batch in corpus.batch_data(samples, batch_size=batch_size):
+            ex_batch = samples[batch_start:batch_start + batch_size]
+            assert len(ex_batch[0]) == len(act_batch)  # same num sub-batches
+            for sub_batch_idx, act_sub_batch in enumerate(act_batch):
+                assert len(act_sub_batch) == len(ex_batch)
+                for sub_samp_idx, act_sub_samp in enumerate(act_sub_batch):
+                    ex_sub_samp = ex_batch[sub_samp_idx][sub_batch_idx]
+                    try:
+                        assert np.allclose(ex_sub_samp, act_sub_samp)
+                    except TypeError:
+                        assert ex_samp == act_samp
+            batch_start += len(ex_batch)
+        assert batch_start == len(samples)
 
 
 def test_padding():
-    samples = ([[1], [2], [3]], [[4, 5], [6, 7]], [[8], [9]])
+    samples = [([1], [2], [3]), ([4, 5], [6, 7]), ([8], [9])]
     l1_batches = tuple(corpus.batch_data(
-        samples, is_tup=False, batch_size=1, pad_mode='maximum'))
+        samples, in_tup=False, batch_size=1, pad_mode='maximum',
+        cast_to_array=np.int32,
+    ))
     assert len(l1_batches) == 3
     assert np.allclose(l1_batches[0], [[1], [2], [3]])
     assert np.allclose(l1_batches[1], [[4, 5], [6, 7]])
     assert np.allclose(l1_batches[2], [[8], [9]])
     l2_batches = tuple(corpus.batch_data(
-        samples, is_tup=False, batch_size=2, pad_mode='maximum'))
+        samples, in_tup=False, batch_size=2, pad_mode='maximum',
+        cast_to_array=np.int32,
+    ))
     assert len(l2_batches) == 2
     assert np.allclose(
         l2_batches[0],
@@ -114,7 +235,9 @@ def test_padding():
     )
     assert np.allclose(l2_batches[1], [[8], [9]])
     l3_batches = tuple(corpus.batch_data(
-        samples, is_tup=False, batch_size=3, pad_mode='wrap'))
+        samples, in_tup=False, batch_size=3, pad_mode='wrap',
+        cast_to_array=np.int32,
+    ))
     assert len(l3_batches) == 1
     assert np.allclose(
         l3_batches[0],
@@ -124,12 +247,18 @@ def test_padding():
             [[8, 8], [9, 9], [8, 8]],
         ]
     )
+    # if we do not set cast_to_array, no padding should occur
+    no_cast_batches = tuple(corpus.batch_data(
+        samples, in_tup=False, batch_size=3, pad_mode='wrap'))
+    assert len(no_cast_batches) == 1
+    assert no_cast_batches[0] == samples
 
 
 def test_str_padding():
     samples = [['a', 'a', 'a'], ['this', 'is'], ['w']]
     l2_batches = tuple(corpus.batch_data(
-        samples, is_tup=False, batch_size=3, pad_mode='constant'))
+        samples, in_tup=False, batch_size=3, pad_mode='constant',
+        cast_to_array=str))
     assert len(l2_batches) == 1
     act_samples = l2_batches[0].tolist()
     assert act_samples == [
@@ -137,23 +266,10 @@ def test_str_padding():
         ['this', 'is', ''],
         ['w', '', ''],
     ]
-
-
-@pytest.mark.parametrize('is_tup', [True, False])
-@pytest.mark.parametrize('batch_size', [0, 1])
-def test_empty_samples(is_tup, batch_size):
-    samples = []
-    batches = list(corpus.batch_data(
-        samples, is_tup=is_tup, batch_size=batch_size))
-    assert samples == batches
-
-
-@pytest.mark.parametrize('is_tup', [True, False])
-def test_zero_batch(is_tup):
-    samples = np.random.random((10, 2, 4, 100))
-    batches = list(corpus.batch_data(samples, is_tup=is_tup))
-    assert len(batches) == len(samples)
-    assert np.allclose(samples, np.stack(batches))
+    no_cast_batches = tuple(corpus.batch_data(
+        samples, in_tup=False, batch_size=3, pad_mode='constant'))
+    assert len(no_cast_batches) == 1
+    assert no_cast_batches[0] == samples
 
 
 class NonRandomState(np.random.RandomState):
@@ -225,7 +341,8 @@ def test_training_data_tups(temp_file_1_name, temp_file_2_name):
     train_data = corpus.TrainingData(
         ('ark:' + temp_file_1_name, 'ivv'), ('ark:' + temp_file_2_name, 'dm'),
         batch_size=2, batch_pad_mode='constant',
-        key_list=keys, add_axis_len=1, rng=NonRandomState())
+        key_list=keys, add_axis_len=1, rng=NonRandomState(),
+        batch_cast_to_array=(np.int32, None, None))
     for _ in range(2):
         ex_samp_idx = len(feats)
         for feat_batch, _, len_batch in train_data:
@@ -239,7 +356,8 @@ def test_training_data_tups(temp_file_1_name, temp_file_2_name):
     train_data = corpus.TrainingData(
         ('ark:' + temp_file_1_name, 'ivv'), ('ark:' + temp_file_2_name, 'dm'),
         batch_size=3, batch_pad_mode='constant',
-        key_list=keys, add_axis_len=((1, 1), (0, 1)), rng=NonRandomState())
+        key_list=keys, add_axis_len=((1, 1), (0, 1)), rng=NonRandomState(),
+        batch_cast_to_array=(np.int32, None, None, None))
     for _ in range(2):
         ex_samp_idx = len(feats)
         for feat_batch, label_batch, lablen_batch, featlen_batch in train_data:
