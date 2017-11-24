@@ -286,42 +286,42 @@ class NonRandomState(np.random.RandomState):
         array[::-1] = np.sort(array)
 
 
-def test_training_data_basic(temp_file_1_name):
+def test_shuffled_data_basic(temp_file_1_name):
     samples = np.arange(100000).reshape((10, 200, 50)).astype(
         np.float64 if KaldiDataType.BaseMatrix.is_double else np.float32)
     keys = tuple(str(i) for i in range(10))
     with io_open('ark:' + temp_file_1_name, 'bm', mode='w') as f:
         for key, sample in zip(keys, samples):
             f.write(key, sample)
-    train_data = corpus.ShuffledData(
+    data = corpus.ShuffledData(
         'ark:' + temp_file_1_name, batch_size=3, rng=NonRandomState())
-    assert isinstance(train_data.rng, NonRandomState)
-    assert len(train_data) == int(np.ceil(len(keys) / 3))
-    assert keys == tuple(train_data.key_list)
+    assert isinstance(data.rng, NonRandomState)
+    assert len(data) == int(np.ceil(len(keys) / 3))
+    assert keys == tuple(data.key_list)
     for _ in range(2):
         ex_samp_idx = len(samples)
-        for batch in train_data:
+        for batch in data:
             for act_sample in batch:
                 ex_samp_idx -= 1
                 assert np.allclose(samples[ex_samp_idx], act_sample)
 
 
 @pytest.mark.parametrize('seed', [1234, 4321])
-def test_seeded_training_is_predictable(temp_file_1_name, seed):
+def test_seeded_shuffled_is_predictable(temp_file_1_name, seed):
     samples = np.arange(100000).reshape((1000, 100)).astype(np.float32)
     with io_open('ark:' + temp_file_1_name, 'fv', mode='w') as f:
         for idx, sample in enumerate(samples):
             f.write(str(idx), sample)
-    train_data_1 = corpus.ShuffledData(
+    data_1 = corpus.ShuffledData(
         ('ark:' + temp_file_1_name, 'fv'), batch_size=13, rng=seed)
-    train_data_2 = corpus.ShuffledData(
+    data_2 = corpus.ShuffledData(
         ('ark:' + temp_file_1_name, 'fv'), batch_size=13, rng=seed)
     for _ in range(2):
-        for batch_1, batch_2 in zip(train_data_1, train_data_2):
+        for batch_1, batch_2 in zip(data_1, data_2):
             assert np.allclose(batch_1, batch_2)
 
 
-def test_training_data_tups(temp_file_1_name, temp_file_2_name):
+def test_shuffled_data_tups(temp_file_1_name, temp_file_2_name):
     feats = [
         [[1, 2, 3, 4], [5, 6, 7, 8]],
         [[9, 10], [11, 12]],
@@ -340,14 +340,14 @@ def test_training_data_tups(temp_file_1_name, temp_file_2_name):
         for key, feat, label in zip(keys, feats, labels):
             feat_f.write(key, feat)
             lab_f.write(key, label)
-    train_data = corpus.ShuffledData(
+    data = corpus.ShuffledData(
         ('ark:' + temp_file_1_name, 'ivv'), ('ark:' + temp_file_2_name, 'dm'),
         batch_size=2, batch_pad_mode='constant',
         key_list=keys, axis_lengths=1, rng=NonRandomState(),
         batch_cast_to_array=(np.int32, None, None))
     for _ in range(2):
         ex_samp_idx = len(feats)
-        for feat_batch, _, len_batch in train_data:
+        for feat_batch, _, len_batch in data:
             for act_feat, act_len in zip(feat_batch, len_batch):
                 ex_samp_idx -= 1
                 ex_feat = np.array(feats[ex_samp_idx], copy=False)
@@ -355,14 +355,14 @@ def test_training_data_tups(temp_file_1_name, temp_file_2_name):
                 assert ex_len == act_len
                 assert np.allclose(ex_feat, act_feat[:, :ex_len])
                 assert np.allclose(act_feat[:, ex_len:], 0)
-    train_data = corpus.ShuffledData(
+    data = corpus.ShuffledData(
         ('ark:' + temp_file_1_name, 'ivv'), ('ark:' + temp_file_2_name, 'dm'),
         batch_size=3, batch_pad_mode='constant',
         key_list=keys, axis_lengths=((1, 1), (0, 1)), rng=NonRandomState(),
         batch_cast_to_array=(np.int32, None, None, None))
     for _ in range(2):
         ex_samp_idx = len(feats)
-        for feat_batch, label_batch, lablen_batch, featlen_batch in train_data:
+        for feat_batch, label_batch, lablen_batch, featlen_batch in data:
             for act_feat, act_label, act_lablen, act_featlen in zip(
                     feat_batch, label_batch, lablen_batch, featlen_batch):
                 ex_samp_idx -= 1
@@ -378,17 +378,17 @@ def test_training_data_tups(temp_file_1_name, temp_file_2_name):
                 assert np.allclose(act_label[:, ex_lablen:], 0)
 
 
-def test_training_ignore_missing(temp_file_1_name, temp_file_2_name):
+def test_shuffled_ignore_missing(temp_file_1_name, temp_file_2_name):
     with io_open('ark:' + temp_file_1_name, 't', mode='w') as token_f:
         token_f.write('1', 'cool')
         token_f.write('3', 'bean')
         token_f.write('4', 'casserole')
     keys = [str(i) for i in range(6)]
-    train_data = corpus.ShuffledData(
+    data = corpus.ShuffledData(
         ('ark:' + temp_file_1_name, 't'), key_list=keys, ignore_missing=True,
         rng=NonRandomState())
-    assert len(train_data) == 3
-    act_samples = list(train_data)
+    assert len(data) == 3
+    act_samples = list(data)
     assert all(ex == act for ex, act in zip(
         ['casserole', 'bean', 'cool'], act_samples))
     with io_open('ark:' + temp_file_2_name, 'B', mode='w') as bool_f:
@@ -396,11 +396,52 @@ def test_training_ignore_missing(temp_file_1_name, temp_file_2_name):
         bool_f.write('1', False)
         bool_f.write('2', True)
         bool_f.write('4', False)
-    train_data = corpus.ShuffledData(
+    data = corpus.ShuffledData(
         ('ark:' + temp_file_1_name, 't'), ('ark:' + temp_file_2_name, 'B'),
         key_list=keys, ignore_missing=True, rng=NonRandomState())
-    assert len(train_data) == 2
-    act_tok_samples, act_bool_samples = list(zip(*iter(train_data)))
+    assert len(data) == 2
+    act_tok_samples, act_bool_samples = list(zip(*iter(data)))
     assert all(ex == act for ex, act in zip(
         ['casserole', 'cool'], act_tok_samples))
     assert all(not act for act in act_bool_samples)
+
+
+def test_sequential_basic(temp_file_1_name):
+    samples = np.arange(1000).reshape((10, 100)).astype(np.int32)
+    with io_open('ark:' + temp_file_1_name, 'iv', mode='w') as f:
+        for idx, sample in enumerate(samples):
+            f.write(str(idx), sample)
+    data = corpus.SequentialData(
+        ('ark,s:' + temp_file_1_name, 'iv'), batch_size=3)
+    assert len(data) == 4
+    batch_start = 0
+    for act_batch in data:
+        ex_batch = samples[batch_start:batch_start + 3]
+        assert np.allclose(ex_batch, act_batch)
+        batch_start += len(ex_batch)
+    assert batch_start == len(samples)
+
+
+def test_sequential_data_tups(temp_file_1_name, temp_file_2_name):
+    feats = np.random.random((4, 10, 100)).astype(np.float64)
+    labels = [
+        ('foo',), ('bar', 'baz',),
+        ('bingo',), ('bango', 'bongo', 'eugene'),
+    ]
+    with io_open('ark:' + temp_file_1_name, 'dm', mode='w') as feats_f, \
+            io_open('ark:' + temp_file_2_name, 'tv', mode='w') as labels_f:
+        for idx, (feat, label) in enumerate(zip(feats, labels)):
+            feats_f.write(str(idx), feat)
+            labels_f.write(str(idx), label)
+    data = corpus.SequentialData(
+        ('ark,s:' + temp_file_1_name, 'dm'),
+        ('ark,s:' + temp_file_2_name, 'tv'), axis_lengths=0)
+    batch_start = 0
+    for ex_feat, ex_label, (act_feat, act_label, act_len) in zip(
+            feats, labels, data):
+        assert np.allclose(ex_feat, act_feat)
+        assert ex_label == act_label
+        assert act_len == 10
+        batch_start += 1
+    assert batch_start == len(feats)
+    assert len(data) == batch_start

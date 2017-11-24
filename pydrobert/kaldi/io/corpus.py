@@ -23,6 +23,7 @@ from builtins import str as text
 from collections import Iterable
 from collections import Sized
 from itertools import cycle
+from warnings import warn
 
 import numpy as np
 
@@ -33,6 +34,7 @@ from pydrobert.kaldi.io.util import parse_kaldi_input_path
 __all__ = [
     'batch_data',
     'ShuffledData',
+    'SequentialData',
 ]
 
 
@@ -168,7 +170,7 @@ def batch_data(
                     raise ValueError(
                         'Expected {} sub-samples per sample, got {}'.format(
                             num_sub, len(sample)))
-                if cast_to_array != (None,):
+                if cast_to_array[0] is not None:
                     yield tuple(
                         np.array(
                             sub_sample, dtype=cast_to_array[0], copy=False)
@@ -584,13 +586,21 @@ class ShuffledData(Data):
     @property
     def num_samples(self):
         if self._num_samples is None:
-            self._num_samples = sum(
-                1 for _ in self.sample_generator_for_epoch())
+            self._num_samples = 0
+            for key in self.key_list:
+                missing = False
+                for handle in self.table_handles:
+                    if key not in handle:
+                        missing = True
+                        break
+                if not missing:
+                    self._num_samples += 1
         return self._num_samples
 
     def sample_generator_for_epoch(self):
         shuffled_keys = np.array(self.key_list)
         self.rng.shuffle(shuffled_keys)
+        num_samples = 0
         for key in shuffled_keys:
             samp_tup = []
             missing = False
@@ -600,17 +610,180 @@ class ShuffledData(Data):
                         missing = True
                         break
                     else:
-                        raise ValueError(
+                        raise IOError(
                             'Table {} missing key {}'.format(spec[0], key))
                 samp_tup.append(handle[key])
+            if missing:
+                continue
+            num_samples += 1
             for sub_batch_idx, axis_idx in self.axis_lengths:
                 samp_tup.append(
                     np.array(
                         samp_tup[sub_batch_idx], copy=False).shape[axis_idx])
             if self.add_key:
                 samp_tup.insert(0, key)
-            if not missing:
+            if self.num_sub != 1:
+                yield tuple(samp_tup)
+            else:
+                yield samp_tup[0]
+        if self._num_samples is None:
+            self._num_samples = num_samples
+        elif self._num_samples != num_samples:
+            raise IOError('Different number of samples from last time!')
+
+
+class SequentialData(Data):
+    '''Provides iterators to read data sequentially
+
+    Tables are always assumed to be sorted so reading can proceed in
+    lock-step.
+
+    ..warning:: Each time an iterator is requested, new sequential
+                readers are opened. Be careful with stdin!
+    '''
+
+    def __init__(self, table, *additional_tables, **kwargs):
+        super(SequentialData, self).__init__(
+            table, *additional_tables, **kwargs)
+        self._num_samples = None
+        sorteds = tuple(
+            parse_kaldi_input_path(spec[0])[3]['sorted']
+            for spec in self.table_specifiers
+        )
+        if not all(sorteds):
+            uns_rspec = self.table_specifiers[sorteds.index(False)][0]
+            uns_rspec_split = uns_rspec.split(':')
+            uns_rspec_split[0] += ',s'
+            sor_rspec = ':'.join(uns_rspec_split)
+            warn(
+                'SequentialData assumes data are sorted, and "{}" does '
+                'not promise to be sorted. To supress this warning, '
+                'check that this table is sorted, then add the sorted '
+                'flag to this rspecifier ("{}")'.format(
+                    uns_rspec, sor_rspec))
+        if self.ignore_missing and len(self.table_specifiers) > 1:
+            self._sample_generator_for_epoch = self._ignore_epoch
+        else:
+            self._sample_generator_for_epoch = self._no_ignore_epoch
+
+    def _ignore_epoch(self):
+        '''Epoch of samples w/ ignore_missing'''
+        iters = tuple(
+            io_open(spec[0], spec[1], **spec[2]).items()
+            for spec in self.table_specifiers
+        )
+        num_samples = 0
+        num_tabs = len(iters)
+        try:
+            while True:
+                samp_tup = [None] * num_tabs
+                high_key = None
+                tab_idx = 0
+                while tab_idx < num_tabs:
+                    if samp_tup[tab_idx] is None:
+                        key, value = next(iters[tab_idx])
+                        if high_key is None:
+                            high_key = key
+                        elif high_key < key:
+                            # key is further along than keys in
+                            # samp_tup. Discard those and keep this
+                            samp_tup = [None] * num_tabs
+                            samp_tup[tab_idx] = value
+                            high_key = key
+                            tab_idx = 0
+                            continue
+                        elif high_key > key:
+                            # key is behind high_key. keep pushing this
+                            # iterator forward
+                            continue
+                        samp_tup[tab_idx] = value
+                        tab_idx += 1
+                num_samples += 1
+                for sub_batch_idx, axis_idx in self.axis_lengths:
+                    samp_tup.append(
+                        np.array(
+                            samp_tup[sub_batch_idx],
+                            copy=False).shape[axis_idx])
+                if self.add_key:
+                    samp_tup.insert(0, key)
                 if self.num_sub != 1:
                     yield tuple(samp_tup)
                 else:
                     yield samp_tup[0]
+        except StopIteration:
+            pass
+        # don't care if one iterator ends first - rest will be missing
+        # that iterator's value
+        if self._num_samples is None:
+            self._num_samples = num_samples
+        elif self._num_samples != num_samples:
+            raise IOError(
+                'Different number of samples from last time! (is a '
+                'table from stdin?)')
+
+    def _no_ignore_epoch(self):
+        '''Epoch of samples w/o ignore_missing'''
+        iters = tuple(
+            io_open(spec[0], spec[1], **spec[2]).items()
+            for spec in self.table_specifiers
+        )
+        num_samples = 0
+        for kv_pairs in zip(*iters):
+            samp_tup = []
+            past_key = None
+            for tab_idx, (key, sample) in enumerate(kv_pairs):
+                if past_key is None:
+                    past_key = key
+                elif past_key != key:
+                    # assume sorted, base on which is first
+                    if past_key < key:
+                        miss_rspec = self.table_specifiers[tab_idx][0]
+                        miss_key = past_key
+                    else:
+                        miss_rspec = self.table_specifiers[tab_idx - 1][0]
+                        miss_key = key
+                    raise IOError(
+                        'Table {} missing key {} (or tables are sorted '
+                        'differently)'.format(miss_rspec, miss_key))
+                samp_tup.append(sample)
+            num_samples += 1
+            for sub_batch_idx, axis_idx in self.axis_lengths:
+                samp_tup.append(
+                    np.array(
+                        samp_tup[sub_batch_idx], copy=False).shape[axis_idx])
+            if self.add_key:
+                samp_tup.insert(0, key)
+            if self.num_sub != 1:
+                yield tuple(samp_tup)
+            else:
+                yield samp_tup[0]
+        # make sure all iterators ended at the same time
+        for tab_idx, it in enumerate(iters):
+            try:
+                miss_key, _ = next(it)
+                if tab_idx:
+                    miss_rspec = self.table_specifiers[0][0]
+                else:
+                    miss_rspec = self.table_specifiers[1][0]
+                raise IOError(
+                    'Table {} missing key {}'.format(miss_rspec, miss_key))
+            except StopIteration:
+                pass
+        if self._num_samples is None:
+            self._num_samples = num_samples
+        elif self._num_samples != num_samples:
+            raise IOError(
+                'Different number of samples from last time! (is a '
+                'table from stdin?)')
+
+    @property
+    def num_samples(self):
+        if self._num_samples is None:
+            # gets set after you run through an epoch
+            assert (
+                sum(1 for _ in self.sample_generator_for_epoch()) ==
+                self._num_samples)
+        return self._num_samples
+
+    def sample_generator_for_epoch(self):
+        return self._sample_generator_for_epoch()
