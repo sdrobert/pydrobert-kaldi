@@ -21,6 +21,7 @@
 %{
 
 #include "base/kaldi-error.h"
+#include <mutex>
 
 namespace kaldi {
   static PyObject *g_py_log_handler = NULL;

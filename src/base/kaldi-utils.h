@@ -75,6 +75,9 @@ namespace kaldi {
 // CharToString prints the character in a human-readable form, for debugging.
 std::string CharToString(const char &c);
 
+// StringToReadable prints characters in a string for debugging
+std::string StringToReadable(const std::string &s);
+
 
 inline int MachineIsLittleEndian() {
   int check = 1;

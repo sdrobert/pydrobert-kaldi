@@ -28,6 +28,8 @@
 #endif
 
 #include <string>
+#include <sstream>
+#include "base/kaldi-utils.h"
 #include "base/kaldi-common.h"
 
 
@@ -40,6 +42,17 @@ std::string CharToString(const char &c) {
   else
     snprintf(buf, sizeof(buf), "[character %d]", static_cast<int>(c));
   return (std::string) buf;
+}
+
+std::string StringToReadable(const std::string &s) {
+  std::stringstream ss;
+  for (const char &c : s) {
+    if (std::isprint(c))
+      ss << c;
+    else
+      ss << "[character " << static_cast<int>(c) << "]";
+  }
+  return ss.str();
 }
 
 void Sleep(float seconds) {

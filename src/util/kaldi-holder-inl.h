@@ -26,6 +26,7 @@
 #include <vector>
 #include <utility>
 #include <string>
+#include "base/kaldi-utils.h"
 #include "util/kaldi-io.h"
 #include "util/text-utils.h"
 #include "matrix/kaldi-matrix.h"
@@ -287,7 +288,7 @@ template<class BasicType> class BasicVectorHolder {
         return true;
       } catch(const std::exception &e) {
         KALDI_WARN << "BasicVectorHolder::Read, could not interpret line: "
-                   << "'" << line << "'" << "\n" << e.what();
+                   << "'" << StringToReadable(line) << "'" << "\n" << e.what();
         return false;
       }
     } else {  // binary mode.
@@ -655,7 +656,7 @@ class TokenHolder {
     char c;
     while (isspace(c = is.peek()) && c!= '\n') is.get();
     if (is.peek() != '\n') {
-      KALDI_ERR << "TokenHolder::Read, expected newline, got char " <<
+      KALDI_WARN << "TokenHolder::Read, expected newline, got char " <<
           CharToString(is.peek())
                 << ", at stream pos " << is.tellg();
       return false;
@@ -720,12 +721,19 @@ class TokenVectorHolder {
     std::string line;
     getline(is, line);  // this will discard the \n, if present.
     if (is.fail()) {
-      KALDI_WARN << "BasicVectorHolder::Read, error reading line " << (is.eof()
-                                                                       ? "[eof]" : "");
+      KALDI_WARN << "TokenVectorHolder::Read, error reading line " << (is.eof()
+                                                                      ? "[eof]" : "");
       return false;  // probably eof.  fail in any case.
     }
     const char *white_chars = " \t\n\r\f\v";
     SplitStringToVector(line, white_chars, true, &t_);  // true== omit
+    for (const std::string &token : t_) {
+      if (!IsToken(token)) {
+        KALDI_WARN << "TokenVectorHolder::Read, not all tokens in '"
+                   << StringToReadable(line) << "' are valid";
+        return false;
+      }
+    }
     // empty strings e.g. between spaces.
     return true;
   }

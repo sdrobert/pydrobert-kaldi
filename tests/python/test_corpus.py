@@ -445,3 +445,25 @@ def test_sequential_data_tups(temp_file_1_name, temp_file_2_name):
         batch_start += 1
     assert batch_start == len(feats)
     assert len(data) == batch_start
+
+
+def test_sequential_ignore_missing(temp_file_1_name, temp_file_2_name):
+    with io_open('ark:' + temp_file_1_name, 'ipv', mode='w') as pair_f:
+        pair_f.write('10', [(10, 9), (8, 7), (6, 5)])
+        pair_f.write('11', [(11, 10), (9, 8)])
+        pair_f.write('12', [(12, 11)])
+        pair_f.write('14', [])
+    with io_open('ark:' + temp_file_2_name, 'd', mode='w') as double_f:
+        double_f.write('09', 3.14)
+        double_f.write('10', .159)
+        double_f.write('12', .265)
+        double_f.write('13', .357)
+    data = corpus.SequentialData(
+        ('ark,s:' + temp_file_1_name, 'ipv'),
+        ('ark,s:' + temp_file_2_name, 'd'), ignore_missing=True)
+    act_pair_samples, act_double_samples = list(zip(*iter(data)))
+    assert act_pair_samples == (
+        ((10, 9), (8, 7), (6, 5)),
+        ((12, 11),)
+    )
+    assert np.allclose(act_double_samples, (.159, .265))

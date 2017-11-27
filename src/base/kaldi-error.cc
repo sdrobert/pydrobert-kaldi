@@ -206,12 +206,12 @@ void MessageLogger::HandleMessage(const LogMessageEnvelope &envelope,
   // Should we throw exception, or abort?
   switch (envelope.severity) {
     case LogMessageEnvelope::kAssertFailed:
-      abort(); // ASSERT_FAILED,
+      abort();  // ASSERT_FAILED,
       break;
     case LogMessageEnvelope::kError:
       if (!std::uncaught_exception()) {
         // throw exception with empty message,
-        throw std::runtime_error(""); // KALDI_ERR,
+        throw std::runtime_error("");  // KALDI_ERR,
       } else {
         // If we got here, this thread has already thrown exception,
         // and this exception has not yet arrived to its 'catch' clause...

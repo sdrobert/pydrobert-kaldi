@@ -419,6 +419,7 @@ class _KaldiSequentialSimpleReader(KaldiSequentialReader):
     def __init__(self, path, kaldi_dtype):
         kaldi_dtype = KaldiDataType(kaldi_dtype)
         instance = self._dtype_to_cls[kaldi_dtype.value]()
+        self.closed = True
         if not instance.Open(path):
             raise IOError('Unable to open for sequential read')
         self._internal = instance
@@ -490,6 +491,7 @@ class _KaldiRandomAccessSimpleReader(KaldiRandomAccessReader):
     def __init__(self, path, kaldi_dtype, utt2spk=''):
         kaldi_dtype = KaldiDataType(kaldi_dtype)
         instance = self._dtype_to_cls[kaldi_dtype.value]()
+        self.closed = True
         if not instance.Open(path, utt2spk):
             raise IOError('Unable to open for random access read')
         self._internal = instance
@@ -545,6 +547,7 @@ class _KaldiSimpleWriter(KaldiWriter):
     def __init__(self, path, kaldi_dtype):
         kaldi_dtype = KaldiDataType(kaldi_dtype)
         instance = self._dtype_to_cls[kaldi_dtype.value]()
+        self.closed = True
         if not instance.Open(path):
             raise IOError('Unable to open for write')
         self._internal = instance
@@ -637,6 +640,7 @@ class _KaldiRandomAccessWaveReader(KaldiRandomAccessReader):
             instance = _i.RandomAccessWaveReader()
         else:
             instance = _i.RandomAccessWaveInfoReader()
+        self.closed = True
         if not instance.Open(path, utt2spk):
             raise IOError('Unable to open for sequential read')
         self._internal = instance
@@ -678,6 +682,7 @@ class _KaldiTokenWriter(KaldiWriter):
 
     def __init__(self, path, kaldi_dtype):
         instance = _i.TokenWriter()
+        self.closed = True
         if not instance.Open(path):
             raise IOError('Unable to open for write')
         self._internal = instance
@@ -708,6 +713,7 @@ class _KaldiTokenVectorWriter(KaldiWriter):
     def __init__(self, path, kaldi_dtype, error_on_str=True):
         self._error_on_str = error_on_str
         instance = _i.TokenVectorWriter()
+        self.closed = True
         if not instance.Open(path):
             raise IOError('Unable to open for write')
         self._internal = instance

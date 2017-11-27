@@ -25,6 +25,7 @@ import pytest
 
 from pydrobert.kaldi.io import open as io_open
 from pydrobert.kaldi.io import table_streams
+from pydrobert.kaldi.io.enums import KaldiDataType
 
 
 @pytest.mark.parametrize('dtype,value', [
@@ -53,12 +54,15 @@ from pydrobert.kaldi.io import table_streams
     ('iv', (0, 1, 2)),
     ('iv', tuple()),
     ('ivv', ((100,), (10, 40))),
+    ('ivv', tuple()),
     ('ipv', ((1, 2), (3, 4))),
+    ('ipv', tuple()),
     ('d', .1),
     ('d', 1),
     ('b', -.1),
     ('b', -10000),
     ('bpv', ((0, 1.3), (4.5, 6))),
+    ('bpv', tuple()),
     ('B', True),
     ('B', False),
 ])
@@ -116,6 +120,48 @@ def test_invalid_tv_does_not_segfault(temp_file_1_name):
         writer.write('foo', np.array(tv))
 
 
+@pytest.mark.parametrize('ktype,value', [
+    ('fv', (0, 1, 2, 3, 4, 5)),
+    ('dv', (0, 1, 2, 3, 4, 5)),
+    ('dm', ((0, 1, 2), (3, 4, 5))),
+    ('fm', ((0, 1, 2), (3, 4, 5))),
+    ('wm', np.random.randint(-255, 255, size=(3, 10)).astype(np.int16)),
+    ('t', 'hrnnngh'),
+    ('tv', ('who', 'am', 'I')),
+    ('i', -420),
+    ('iv', (7, 8, 9)),
+    ('ivv', ((0, 1), (2,))),
+    ('ipv', ((-1, -10), (-5, 4))),
+    ('d', .4),
+    ('b', 1.401298464324817e-44),
+    ('b', -1.401298464324817e-44),
+    ('bpv', ((1, 2.5), (3, 4.5))),
+    ('B', True)
+])
+@pytest.mark.parametrize('is_text', [True, False])
+@pytest.mark.parametrize('bg', [pytest.mark.skip(True), False])
+def test_incorrect_open_read(temp_file_1_name, ktype, value, is_text, bg):
+    if ktype == 'wm' and is_text:
+        pytest.skip("WaveMatrix can only be written as binary")
+    opts = ['', 't'] if is_text else ['']
+    specifier = 'ark' + ','.join(opts) + ':' + temp_file_1_name
+    with io_open(specifier, ktype, mode='w') as writer:
+        writer.write('0', value)
+    if bg:
+        opts += ['bg']
+    specifier = 'ark' + ','.join(opts) + ':' + temp_file_1_name
+    for bad_ktype in KaldiDataType:
+        try:
+            with io_open(specifier, bad_ktype) as reader:
+                print(bad_ktype, 'opened')
+                next(reader)
+        except Exception:
+            # sometimes it'll work, and the expected output will be
+            # correct (in the case of basic types). We don't care. All
+            # we care about here is that we don't segfault
+            pass
+
+
 @pytest.mark.parametrize('dtype,value', [
     ('bv', ['a', 2, 3]),
     ('bv', 'abc'),
@@ -141,7 +187,6 @@ def test_invalid_tv_does_not_segfault(temp_file_1_name):
 ])
 @pytest.mark.parametrize('is_text', [True, False])
 def test_write_invalid(temp_file_1_name, dtype, value, is_text):
-    specifier = None
     if is_text:
         specifier = 'ark,t:{}'.format(temp_file_1_name)
     else:
@@ -164,11 +209,8 @@ def test_read_sequential(temp_file_1_name):
     for key, value in enumerate(values):
         writer.write(str(key), value)
     writer.close()
-    # shouldn't need to close: writer should flush after each
-    # we confound "once" and "background" testing here, but I assume
-    # these are working in Kaldi and shouldn't be visible here
     count = 0
-    reader = io_open('ark,bg:{}'.format(temp_file_1_name), 'fm')
+    reader = io_open('ark:{}'.format(temp_file_1_name), 'fm')
     for act_value, reader_value in zip(values, iter(reader)):
         assert np.allclose(act_value, reader_value)
         count += 1

@@ -33,19 +33,17 @@
 %include "exception.i"
 
 %exception {
-  // treat std::exception (kaldi) as a SytemError. If *I* set an error,
-  // return NULL like a good python function.
   try {
     $action
     if (PyErr_Occurred()) return 0;
-  } catch (const std::runtime_error& e) {
-    SWIG_exception(SWIG_RuntimeError, e.what());
   } catch (const std::invalid_argument& e) {
-   SWIG_exception(SWIG_ValueError, e.what());
+    SWIG_exception(SWIG_TypeError, e.what());
   } catch (const std::out_of_range& e) {
-   SWIG_exception(SWIG_IndexError, e.what());
+    SWIG_exception(SWIG_IndexError, e.what());
+  } catch (const std::exception& e) {
+    SWIG_exception(SWIG_RuntimeError, e.what());
   } catch (...) {
-    SWIG_exception(SWIG_RuntimeError, "unknown exception");
+    SWIG_exception(SWIG_RuntimeError, "unkown error");
   }
 }
 

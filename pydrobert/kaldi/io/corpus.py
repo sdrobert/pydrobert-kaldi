@@ -697,7 +697,7 @@ class SequentialData(Data):
                             # iterator forward
                             continue
                         samp_tup[tab_idx] = value
-                        tab_idx += 1
+                    tab_idx += 1
                 num_samples += 1
                 for sub_batch_idx, axis_idx in self.axis_lengths:
                     samp_tup.append(
