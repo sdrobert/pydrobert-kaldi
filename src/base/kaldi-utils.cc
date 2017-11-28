@@ -44,13 +44,13 @@ std::string CharToString(const char &c) {
   return (std::string) buf;
 }
 
-std::string StringToReadable(const std::string &s) {
+std::string StringToReadable(const std::string& s) {
   std::stringstream ss;
-  for (const char &c : s) {
-    if (std::isprint(c))
-      ss << c;
+  for (size_t i = 0; i < s.length(); ++i) {
+    if (std::isprint(s[i]))
+      ss << s[i];
     else
-      ss << "[character " << static_cast<int>(c) << "]";
+      ss << "[character " << static_cast<int>(s[i]) << "]";
   }
   return ss.str();
 }

@@ -1,7 +1,6 @@
 // util/kaldi-table.cc
 
 // Copyright 2009-2011  Microsoft Corporation
-//                2017  Sean Robertson
 
 // See ../../COPYING for clarification regarding multiple authors
 //
@@ -20,7 +19,6 @@
 
 #include "util/kaldi-table.h"
 #include "util/text-utils.h"
-#include "base/kaldi-math.h"
 
 namespace kaldi {
 

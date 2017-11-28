@@ -2,7 +2,6 @@
 
 // Copyright 2009-2011    Microsoft Corporation
 //                2013    Johns Hopkins University (author: Daniel Povey)
-//                2017    Sean Robertson
 
 // See ../../COPYING for clarification regarding multiple authors
 //
@@ -185,14 +184,11 @@ bool WriteScriptFile(std::ostream &os,
 //       [any of the above options can be prefixed by n to negate them, e.g. no,
 //       ns, ncs, np; but these aren't currently useful as you could just omit
 //       the option].
-//   bg  means "background".  It currently has no effect for random-access readers,
+//   bg means "background".  It currently has no effect for random-access readers,
 //       but for sequential readers it will cause it to "read ahead" to the next
 //       value, in a background thread.  Recommended when reading larger objects
 //       such as neural-net training examples, especially when you want to
 //       maximize GPU usage.
-//   rd[uint] means "randomized". It only has an effect for sequential readers.
-//       Data will be read in pseudo-random order. If "rd" is followed by an
-//       unsigned integer, it will be used as the seed for shuffling.
 //
 //   b   is ignored [for scripting convenience]
 //   t   is ignored [for scripting convenience]
@@ -212,7 +208,6 @@ struct  RspecifierOptions {
   // scp files that can't be read as if the corresponding key were not there.
   // For archive files it will suppress errors getting thrown if the archive
   // is corrupted and can't be read to the end.
-  // These options will only make a difference for the SequentialTableReader
   bool background;  // For sequential readers, if the background option ("bg")
                     // is provided, it will read ahead to the next object in a
                     // background thread.
@@ -325,7 +320,9 @@ class SequentialTableReader {
   // option makes it behave as if that key does not even exist, if the
   // corresponding file cannot be read.]  You probably wouldn't want to catch
   // this exception; the user can just specify the p option in the rspecifier.
-  const T &Value();
+  // We make this non-const to enable things like shallow swap on the held
+  // object in situations where this would avoid making a redundant copy.
+  T &Value();
 
   // Next goes to the next key.  It will not throw; any error will
   // result in Done() returning true, and then the destructor will

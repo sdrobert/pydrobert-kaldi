@@ -133,9 +133,12 @@ def test_invalid_tv_does_not_segfault(temp_file_1_name):
     ('ivv', ((0, 1), (2,))),
     ('ipv', ((-1, -10), (-5, 4))),
     ('d', .4),
+    # the base floats can be cast to ints. It's important for the speed
+    # of testing that certain floats are small/negative
     ('b', 1.401298464324817e-44),
     ('b', -1.401298464324817e-44),
-    ('bpv', ((1, 2.5), (3, 4.5))),
+    ('bpv', ((1.401298464324817e-44, 2.5), (3, 4.5))),
+    ('bpv', ((-1.401298464324817e-44, 2.5), (3, 4.5))),
     ('B', True)
 ])
 @pytest.mark.parametrize('is_text', [True, False])
@@ -151,9 +154,9 @@ def test_incorrect_open_read(temp_file_1_name, ktype, value, is_text, bg):
         opts += ['bg']
     specifier = 'ark' + ','.join(opts) + ':' + temp_file_1_name
     for bad_ktype in KaldiDataType:
+        print(bad_ktype)
         try:
             with io_open(specifier, bad_ktype) as reader:
-                print(bad_ktype, 'opened')
                 next(reader)
         except Exception:
             # sometimes it'll work, and the expected output will be
