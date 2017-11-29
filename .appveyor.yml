@@ -11,8 +11,6 @@ environment:
     # - image: Visual Studio 2010
     #   PY_VER: 3.4
     #   MINICONDA_PATH: "C:\\Miniconda3-x64"
-  ANACONDA_TOKEN:
-    secure: /udeHG5jwcZKZAJbKIfb7obq541yU+xFuDzLtMh6tec=
 
 init:
   - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
@@ -41,18 +39,7 @@ build: false
 test_script:
   - pytest
 
-after_test:
-  - ps: $conda_build_root = [io.path]::combine($env:MINICONDA_PATH, 'conda-bld', 'win-64')
-  - ps: Get-ChildItem -Path $conda_build_root -Include *.tar.bz2
-  - ps: Get-ChildItem -Path $conda_build_root -Include *.tar.bz2 | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
-
 deploy_script:
-  - ps: $env:ANACONDA_PATH = (Join-Path $env:MINICONDA_PATH Scripts\anaconda)
-  - ps: >-
-      foreach($artifactName in $artifacts.keys)
-      {
-        echo "Uploading $artifactName";
-        cmd /c "env:ANACONDA_PATH 2>&1" -t $env:ANACONDA_TOKEN upload -u sdrobert --register $artifacts[$artifactName].path;
-      }
-  # - ps: $env:TARS = (Join-Path -Path $env:MINICONDA_PATH -ChildPath 'conda-bld\win-64\pydrobert-kaldi-*.tar.bz2' -Resolve)
-  # - ps: cmd /c "$env:ANACONDA_PATH 2>&1" -t $env:ANACONDA_TOKEN upload -u sdrobert --register $env:TARS
+  - ps: echo $env:DUMMY_VAR
+  - ps: $env:TARS = (Join-Path -Path $env:MINICONDA_PATH -ChildPath 'conda-bld\win-64\pydrobert-kaldi-*.tar.bz2' -Resolve)
+  - ps: cmd /c "$env:ANACONDA_PATH 2>&1" -t $env:ANACONDA_TOKEN upload -u sdrobert --register $env:TARS
