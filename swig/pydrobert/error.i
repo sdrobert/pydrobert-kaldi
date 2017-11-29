@@ -42,7 +42,14 @@ namespace kaldi {
             envelope.severity,
             envelope.func, envelope.file, envelope.line
           );
+          // kaldi does not guarantee that the message is of a specific
+          // encoding, so we send it as bytes and decode it there, replacing
+          // errors with <?>
+#if PY_VERSION_HEX >= 0x03000000
+          PyObject *arg_list = Py_BuildValue("(Oy)", envelope_obj, message);
+#else
           PyObject *arg_list = Py_BuildValue("(Os)", envelope_obj, message);
+#endif
           PyObject *result = PyObject_CallObject(g_py_log_handler, arg_list);
           Py_DECREF(arg_list);
           Py_DECREF(envelope_obj);

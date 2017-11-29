@@ -187,6 +187,7 @@ def _kaldi_logging_handler(envelope, message):
 
     Otherwise, errors are propagated to registered loggers
     '''
+    message = message.decode(encoding='utf8', errors='replace')
     if _REGISTERED_LOGGER_NAMES:
         py_severity = kaldi_lvl_to_logging_lvl(envelope[0])
         for logger_name in _REGISTERED_LOGGER_NAMES:

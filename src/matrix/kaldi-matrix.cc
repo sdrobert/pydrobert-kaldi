@@ -1487,8 +1487,8 @@ void Matrix<Real>::Read(std::istream & is, bool binary, bool add) {
     std::string token;
     ReadToken(is, binary, &token);
     if (token != my_token) {
-      specific_error << ": Expected token " << my_token
-                     << ", got " << token;
+      if (token.length() > 20) token = token.substr(0, 17) + "...";
+      specific_error << ": Expected token " << my_token << ", got " << token;
       goto bad;
     }
     int32 rows, cols;
@@ -1521,8 +1521,8 @@ void Matrix<Real>::Read(std::istream & is, bool binary, bool add) {
     // }
     if (str == "[]") { Resize(0, 0); return; } // Be tolerant of variants.
     else if (str != "[") {
-      specific_error << ": Expected \"[\", got \""
-                     << str << '"';
+      if (str.length() > 20) str = str.substr(0, 17) + "...";
+      specific_error << ": Expected \"[\", got \"" << str << '"';
       goto bad;
     }
     // At this point, we have read "[".
@@ -1593,8 +1593,8 @@ void Matrix<Real>::Read(std::istream & is, bool binary, bool add) {
           cur_row->push_back(std::numeric_limits<Real>::quiet_NaN());
           KALDI_WARN << "Reading NaN value into matrix.";
         } else {
-          specific_error << "Expecting numeric matrix data, got "
-                         << str;
+          if (str.length() > 20) str = str.substr(0, 17) + "...";
+          specific_error << "Expecting numeric matrix data, got " << str;
           goto cleanup;
         }
       }

@@ -350,7 +350,8 @@ def write_table_to_pickle(args=None):
     The inverse is write_pickle_to_table
     '''
     logger = logging.getLogger(sys.argv[0])
-    logger.addHandler(logging.StreamHandler())
+    if not logger.handlers:
+        logger.addHandler(logging.StreamHandler())
     register_logger_for_kaldi(logger)
     try:
         options = _write_table_to_pickle_parse_args(args, logger)
@@ -640,7 +641,8 @@ def write_pickle_to_table(args=None):
     The inverse is write-table-to-pickle
     '''
     logger = logging.getLogger(sys.argv[0])
-    logger.addHandler(logging.StreamHandler())
+    if not logger.handlers:
+        logger.addHandler(logging.StreamHandler())
     register_logger_for_kaldi(logger)
     try:
         options = _write_pickle_to_table_parse_args(args, logger)

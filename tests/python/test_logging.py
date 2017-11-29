@@ -45,7 +45,8 @@ def kaldi_logger():
     register_logger_for_kaldi(logger_name)
     yield ret_logger
     deregister_logger_for_kaldi(logger_name)
-    ret_logger.removeHandler(s_stream)
+    for handler in ret_logger.handlers:
+        ret_logger.removeHandler(handler)
 
 
 @pytest.fixture

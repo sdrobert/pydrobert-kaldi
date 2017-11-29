@@ -67,17 +67,11 @@ namespace kaldi {
 }
 %extend kaldi::SequentialTableReader<kaldi::KaldiObjectHolder<kaldi::Vector<Real > > > {
   void Value(Real **vec_out, kaldi::MatrixIndexT *len) {
-    fprintf(stderr, "Getting value\n");
     const kaldi::Vector<Real > &vec = $self->Value();
-    fprintf(stderr, "Got value\n");
     const kaldi::MatrixIndexT dim = vec.Dim();
-    fprintf(stderr, "Allocating %d\n", dim);
     *vec_out = (Real*) std::malloc(dim * sizeof(Real));
-    fprintf(stderr, "Allocated. Copying\n");
     std::memcpy(*vec_out, vec.Data(), dim * sizeof(Real));
-    fprintf(stderr, "Copied\n");
     *len = dim;
-    fprintf(stderr, "Setlen\n");
   };
 }
 %extend kaldi::SequentialTableReader<kaldi::KaldiObjectHolder<kaldi::Matrix<Real > > > {

@@ -32,7 +32,6 @@
 #include "base/kaldi-common.h"
 #include "base/kaldi-error.h"
 #include "base/version.h"
-#include "base/kaldi-utils.h"
 
 namespace kaldi {
 
@@ -149,8 +148,8 @@ MessageLogger::MessageLogger(LogMessageEnvelope::Severity severity,
 
 
 MessageLogger::~MessageLogger() KALDI_NOEXCEPT(false) {
-  // sanitize and remove trailing '\n',
-  std::string str = StringToReadable(ss_.str());
+  // remove trailing '\n',
+  std::string str = ss_.str();
   while (!str.empty() && str[str.length() - 1] == '\n')
     str.resize(str.length() - 1);
 
