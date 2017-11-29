@@ -43,10 +43,16 @@ test_script:
 
 after_test:
   - ps: $conda_build_root = [io.path]::combine($env:MINICONDA_PATH, 'conda-bld', 'win-64')
-  - ps: echo $conda_build_root
+  - ps: Get-ChildItem -Path $conda_build_root -Include *.tar.bz2
   - ps: Get-ChildItem -Path $conda_build_root -Include *.tar.bz2 | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
 
-# deploy_script:
-#   - ps: $env:ANACONDA_PATH = (Join-Path $env:MINICONDA_PATH Scripts\anaconda)
-#   - ps: $env:TARS = (Join-Path -Path $env:MINICONDA_PATH -ChildPath 'conda-bld\win-64\pydrobert-kaldi-*.tar.bz2' -Resolve)
-#   - ps: cmd /c "$env:ANACONDA_PATH 2>&1" -t $env:ANACONDA_TOKEN upload -u sdrobert --register $env:TARS
+deploy_script:
+  - ps: $env:ANACONDA_PATH = (Join-Path $env:MINICONDA_PATH Scripts\anaconda)
+  - ps: >-
+      foreach($artifactName in $artifacts.keys)
+      {
+        echo "Uploading $artifactName";
+        cmd /c "env:ANACONDA_PATH 2>&1" -t $env:ANACONDA_TOKEN upload -u sdrobert --register $artifacts[$artifactName].path;
+      }
+  # - ps: $env:TARS = (Join-Path -Path $env:MINICONDA_PATH -ChildPath 'conda-bld\win-64\pydrobert-kaldi-*.tar.bz2' -Resolve)
+  # - ps: cmd /c "$env:ANACONDA_PATH 2>&1" -t $env:ANACONDA_TOKEN upload -u sdrobert --register $env:TARS
