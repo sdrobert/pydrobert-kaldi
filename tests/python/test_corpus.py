@@ -256,6 +256,7 @@ def test_padding():
     assert no_cast_batches[0] == samples
 
 
+@pytest.mark.importorskip("numpy", minversion="1.13")
 def test_str_padding():
     samples = [['a', 'a', 'a'], ['this', 'is'], ['w']]
     l2_batches = tuple(corpus.batch_data(

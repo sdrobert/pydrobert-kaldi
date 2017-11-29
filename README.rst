@@ -49,7 +49,7 @@ their website.
 The submodule ``pydrobert.kaldi.io.corpus`` contains useful wrappers around
 Kaldi I/O to serve up batches of data to, say, a neural network:
 
->>> train = TrainingData('scp:feats.scp', 'scp:labels.scp', batch_size=10)
+>>> train = ShuffledData('scp:feats.scp', 'scp:labels.scp', batch_size=10)
 >>> for feat_batch, label_batch in train:
 >>>     pass  # do something
 
@@ -76,8 +76,8 @@ write-pickle-to-table
 Installation
 ------------
 
-If you're on a Linux or OSX machine and you've got Conda_ installed, your life
-is easy.
+If you're on a Linux, OSX, or Windows 64-bit machine and you've got Conda_
+installed, your life is easy.
 
 Simply::
 
@@ -85,7 +85,12 @@ Simply::
 
 Which installs binaries with MKL BLAS. If ``nomkl`` is installed into the
 environment, either an OpenBLAS version (Linux) or Accelerate (OSX) version is
-installed.
+installed. ``nomkl`` is not supported by windows.
+
+Bleeding-edge builds from the dev branch are saved under the label ``dev`` on
+the Anaconda cloud::
+
+   conda install -c sdrobert/label/dev pydrobert-kaldi
 
 Alternatively, to build through PyPI, you'll need to point the install to a BLAS
 library::
@@ -107,8 +112,8 @@ License
 
 This code is licensed under Apache 2.0.
 
-Code found under the ``src/`` directory has been primarily copied from Kaldi
-version 5.1.46. ``setup.py`` is also strongly influenced by Kaldi's build
+Code found under the ``src/`` directory has been primarily copied from Kaldi.
+``setup.py`` is also strongly influenced by Kaldi's build
 configuration. Kaldi is also covered by the Apache 2.0 license; its specific
 license file was copied into ``src/COPYING_Kaldi_Project`` to live among its
 fellows.

@@ -12,12 +12,12 @@ package:
   version: {{ version }}
 
 source:
-  path: ..
+  git_url: ../
 
 requirements:
   host:
     - python {{ python }}
-    - numpy >=1.13
+    - numpy
     - setuptools
     - setuptools_scm
     - swig >=3.0.8
