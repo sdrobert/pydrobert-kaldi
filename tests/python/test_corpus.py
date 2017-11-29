@@ -256,25 +256,6 @@ def test_padding():
     assert no_cast_batches[0] == samples
 
 
-@pytest.mark.importorskip("numpy", minversion="1.13")
-def test_str_padding():
-    samples = [['a', 'a', 'a'], ['this', 'is'], ['w']]
-    l2_batches = tuple(corpus.batch_data(
-        samples, subsamples=False, batch_size=3, pad_mode='constant',
-        cast_to_array=str))
-    assert len(l2_batches) == 1
-    act_samples = l2_batches[0].tolist()
-    assert act_samples == [
-        ['a', 'a', 'a'],
-        ['this', 'is', ''],
-        ['w', '', ''],
-    ]
-    no_cast_batches = tuple(corpus.batch_data(
-        samples, subsamples=False, batch_size=3, pad_mode='constant'))
-    assert len(no_cast_batches) == 1
-    assert no_cast_batches[0] == samples
-
-
 class NonRandomState(np.random.RandomState):
     '''Replace the shuffle method with returning a reverse-sorted copy
 

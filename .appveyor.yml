@@ -8,11 +8,16 @@ environment:
     - image: Visual Studio 2015
       PY_VER: 3.5
       MINICONDA_PATH: "C:\\Miniconda3-x64"
-    - image: Visual Studio 2010
-      PY_VER: 3.4
-      MINICONDA_PATH: "C:\\Miniconda3-x64"
+    # - image: Visual Studio 2010
+    #   PY_VER: 3.4
+    #   MINICONDA_PATH: "C:\\Miniconda3-x64"
+
+shallow_clone: true
 
 init:
+  - ps: git fetch --unshallow; $foo = (git describe --tags | $_.split("-")[0].TrimStart("v"));
+  - ps: echo $foo
+  - cmd: exit 1
   - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
   - cmd: conda config --set always_yes yes --set changeps1 no
   - cmd: conda update -q --all
@@ -26,7 +31,7 @@ install:
       }
       else
       {
-        Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_BRANCH)-$($env:APPVEYOR_REPO_COMMIT.Substring(0, 7))"
+        Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_COMMIT.Substring(0, 7))"
       }
   - cmd: conda build recipe --no-test --python %PY_VER%
   - cmd: conda create -n test python=%PY_VER% pytest
@@ -42,11 +47,13 @@ deploy_script:
   - ps: >-
       if ($env:APPVEYOR_REPO_BRANCH -eq "master")
       {
+        git fetch --unshallow
         $env:LABEL = main
       }
       else
       {
         $env:LABEL = $env:APPVEYOR_REPO_BRANCH
+        $env:VERSION = dev
       }
   - ps: $env:ANACONDA_PATH = (Join-Path $env:MINICONDA_PATH Scripts\anaconda)
   - ps: $env:TARS = (Join-Path -Path $env:MINICONDA_PATH -ChildPath 'conda-bld\win-64\pydrobert-kaldi-*.tar.bz2' -Resolve)

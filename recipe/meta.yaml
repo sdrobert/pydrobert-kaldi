@@ -1,9 +1,11 @@
-{% set version = environ.get('GIT_DESCRIBE_TAG', '0.0').replace('v', '') %}
 {% if environ.get('TRAVIS', False) %}
+  {% set version = environ.get('GIT_DESCRIBE_TAG', environ['TRAVIS_COMMIT'][:7]) %}
   {% set build_num = environ['TRAVIS_BUILD_NUMBER'] %}
 {% elif environ.get('APPVEYOR', False) %}
+  {% set version = environ.get('GIT_DESCRIBE_TAG', environ['APPVEYOR_REPO_COMMIT'][:7]) %}
   {% set build_num = environ['APPVEYOR_BUILD_NUMBER'] %}
 {% else %}  
+  {% set version = environ.get('GIT_DESCRIBE_TAG', '0.0').replace('v', '') %}
   {% set build_num = environ.get('GIT_DESCRIBE_NUMBER', 0) %}
 {% endif %}
 
@@ -12,7 +14,7 @@ package:
   version: {{ version }}
 
 source:
-  git_url: ../
+  path: ..
 
 requirements:
   host:
