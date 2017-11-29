@@ -43,6 +43,7 @@ test_script:
 
 after_test:
   - ps: $conda_build_root = [io.path]::combine($env:MINICONDA_PATH, 'conda-bld', 'win-64')
+  - ps: echo $conda_build_root
   - ps: Get-ChildItem -Path $conda_build_root -Include *.tar.bz2 | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
 
 # deploy_script:

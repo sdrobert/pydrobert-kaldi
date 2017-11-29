@@ -1,7 +1,5 @@
 #! /bin/bash
 
-source deactivate || true
-
 # if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
 #   conda build recipe -m recipe/travis_py2_conda_build_config.yaml
 # else

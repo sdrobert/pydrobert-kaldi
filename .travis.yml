@@ -34,7 +34,7 @@ script:
   - pytest
 deploy:
   - provider: script
-    script: source recipe/anaconda_deploy.sh
+    script: source deactivate || true; bash recipe/anaconda_deploy.sh
     on:
       branch: dev
     # on:
