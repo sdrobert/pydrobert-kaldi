@@ -12,18 +12,18 @@ environment:
     #   PY_VER: 3.4
     #   MINICONDA_PATH: "C:\\Miniconda3-x64"
 
-clone_depth: 1
+shallow_clone: true
 
-init:
+# init:
+#   - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
+#   - cmd: conda config --set always_yes yes --set changeps1 no
+#   - cmd: conda update -q --all
+#   - cmd: conda install conda-build anaconda-client
+
+install:
   - ps: git fetch --unshallow; $version_fluffy = (git describe --tags); $version = $version_fluffy.split("-")[0].TrimStart("v");
   - ps: echo $version
   - cmd: exit 1
-  - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
-  - cmd: conda config --set always_yes yes --set changeps1 no
-  - cmd: conda update -q --all
-  - cmd: conda install conda-build anaconda-client
-
-install:
   - ps: >-
       if ($env:APPVEYOR_REPO_TAG -eq "true")
       {
