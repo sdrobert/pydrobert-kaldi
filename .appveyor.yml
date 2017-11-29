@@ -15,8 +15,8 @@ environment:
 shallow_clone: true
 
 init:
-  - ps: git fetch --unshallow; $foo = (git describe --tags | $_.split("-")[0].TrimStart("v"));
-  - ps: echo $foo
+  - ps: git fetch --unshallow; $version_fluffy = (git describe --tags); $version = $version_fluffy.split("-")[0].TrimStart("v"));
+  - ps: echo $version
   - cmd: exit 1
   - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
   - cmd: conda config --set always_yes yes --set changeps1 no
