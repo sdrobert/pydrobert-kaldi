@@ -26,9 +26,8 @@ install:
       }
       else
       {
-        Update-AppveyorBuild -Version "dev-$($env:APPVEYOR_REPO_COMMIT.Substring(0, 7))"
+        Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_BRANCH)-$($env:APPVEYOR_REPO_COMMIT.Substring(0, 7))"
       }
-  - ps: echo $env:MINICONDA_PATH $MINICONDA_PATH
   - cmd: conda build recipe --no-test --python %PY_VER%
   - cmd: conda create -n test python=%PY_VER% pytest
   - cmd: activate test
@@ -40,6 +39,15 @@ test_script:
   - pytest
 
 deploy_script:
-  - ps: echo $env:DUMMY_VAR
+  - ps: >-
+      if ($env:APPVEYOR_REPO_BRANCH -eq "master")
+      {
+        $env:LABEL = main
+      }
+      else
+      {
+        $env:LABEL = $env:APPVEYOR_REPO_BRANCH
+      }
+  - ps: $env:ANACONDA_PATH = (Join-Path $env:MINICONDA_PATH Scripts\anaconda)
   - ps: $env:TARS = (Join-Path -Path $env:MINICONDA_PATH -ChildPath 'conda-bld\win-64\pydrobert-kaldi-*.tar.bz2' -Resolve)
-  - ps: cmd /c "$env:ANACONDA_PATH 2>&1" -t $env:ANACONDA_TOKEN upload -u sdrobert --register $env:TARS
+  - ps: cmd /c "$env:ANACONDA_PATH 2>&1" -t $env:ANACONDA_TOKEN upload -u sdrobert --register $env:TARS -l $env:LABEL

@@ -34,12 +34,15 @@ script:
   - pytest
 deploy:
   - provider: script
-    script: source deactivate || true; bash recipe/anaconda_deploy.sh
+    script: source deactivate || true; bash recipe/anaconda_deploy.sh main
+    skip_cleanup: true
+    on:
+      branch: master
+  - provider: script
+    script: source deactivate || true; bash recipe/anaconda_deploy.sh dev
+    skip_cleanup: true
     on:
       branch: dev
-    # on:
-    #   tags: true
-    skip_cleanup: true
 # install:
 #   - sudo apt-get install libopenblas-dev
 #   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then

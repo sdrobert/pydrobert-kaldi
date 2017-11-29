@@ -45,7 +45,7 @@ __all__ = ['io']
 try:
     __version__ = get_distribution(__name__).version
 except DistributionNotFound:
-    pass
+    __version__ = 'dev'
 
 LOCALE_MESSAGE = """\
 It looks like you did not 'export LC_ALL=C' before you started python.
