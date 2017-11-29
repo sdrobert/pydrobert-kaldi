@@ -35,6 +35,8 @@ script:
 deploy:
   - provider: script
     script: source recipe/anaconda_deploy.sh
+    on:
+      branch: dev
     # on:
     #   tags: true
     skip_cleanup: true

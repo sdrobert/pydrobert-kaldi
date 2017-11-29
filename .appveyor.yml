@@ -35,17 +35,16 @@ install:
   - cmd: conda create -n test python=%PY_VER% pytest
   - cmd: activate test
   - cmd: conda install pydrobert-kaldi --use-local
+  - ps: $env:ANACONDA_PATH = (Join-Path $env:MINICONDA_PATH Scripts\anaconda)
+  - ps: $env:TARS = (Join-Path -Path $env:MINICONDA_PATH -ChildPath 'conda-bld\win-64\pydrobert-kaldi-*.tar.bz2' -Resolve)
 
 build: false
 
 test_script:
   - pytest
 
-# artifacts:
-#   - path: %MINICONDA_PATH%\conda-bld\win-64\pydrobert-kaldi-*.tar.bz2
+artifacts:
+   - path: %TARS%
 
-deploy_script:
-  - ps: $env:ANACONDA_PATH = (Join-Path $env:MINICONDA_PATH Scripts\anaconda)
-  - ps: $env:TARS = (Join-Path -Path $env:MINICONDA_PATH -ChildPath 'conda-bld\win-64\pydrobert-kaldi-*.tar.bz2' -Resolve)
-  - ps: echo "$env:TARS"
-  - ps: cmd /c "$env:ANACONDA_PATH 2>&1" -t $env:ANACONDA_TOKEN upload -u sdrobert --register $env:TARS
+# deploy_script:
+#   - ps: cmd /c "$env:ANACONDA_PATH 2>&1" -t $env:ANACONDA_TOKEN upload -u sdrobert --register $env:TARS
