@@ -1,6 +1,6 @@
 /* -*- C++ -*-
 
- Copyright 2016 Sean Robertson
+ Copyright 2017 Sean Robertson
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -20,23 +20,30 @@
 %{
   #define SWIG_FILE_WITH_INIT
   #define SWIG_PYTHON_2_UNICODE
-  #include "util/kaldi-holder.h"
-  #include "util/kaldi-table.h"
 %}
+
+#include "base/version.h"
+
+%include "typemaps.i"
+// %include "stdint.i" // causes weird mapping issues in vectors
 %include "std_string.i"
 %include "std_vector.i"
-%include "stdint.i"
+%include "std_pair.i"
 %include "numpy/numpy.i"
 %include "exception.i"
 
 %exception {
-  // treat std::exception (kaldi) as a SytemError. If *I* set an error,
-  // return NULL like a good python function.
   try {
     $action
     if (PyErr_Occurred()) return 0;
+  } catch (const std::invalid_argument& e) {
+    SWIG_exception(SWIG_TypeError, e.what());
+  } catch (const std::out_of_range& e) {
+    SWIG_exception(SWIG_IndexError, e.what());
   } catch (const std::exception& e) {
     SWIG_exception(SWIG_RuntimeError, e.what());
+  } catch (...) {
+    SWIG_exception(SWIG_RuntimeError, "unkown error");
   }
 }
 
@@ -44,45 +51,17 @@
   import_array();
 %}
 
-%template(StringVector) std::vector<std::string >;
-
-// general table types
-namespace kaldi {
-  
-  template <class KaldiType> class KaldiObjectHolder {
-    public:
-      typedef KaldiType T;
-  };
-  template <class Holder> class SequentialTableReader {
-    public:
-      typedef typename Holder::T T;
-      bool Open(const std::string &rspecifier);
-      bool Done();
-      std::string Key();
-      void Next();
-      bool IsOpen() const;
-      bool Close();
-      // const T &Value();
-  };
-  template <class Holder> class RandomAccessTableReaderMapped {
-    public:
-      typedef typename Holder::T T;
-      bool Open(const std::string &table_rxfilename,
-                const std::string &utt2spk_rxfilename);
-      bool IsOpen() const;
-      bool Close();
-      bool HasKey(const std::string &key);
-      // const T &Value(const std::string &key);
-  };
-  template <class Holder> class TableWriter {
-    public:
-      typedef typename Holder::T T;
-      bool Open(const std::string &wspecifier);
-      bool IsOpen() const;
-      bool Close();
-      // void Write(const std::string &key, const T &value) const;
-  };
-}
+%template() std::vector<std::string >;
+// we support the combinations of basic types/vectors that have typedefs in
+// table-types.h
+%template() std::vector<long >;
+%template() std::vector<std::vector<long > >;
+%template() std::pair<long, long >;
+%template() std::vector<std::pair<long, long > >;
+%template() std::pair<double, double >;
+%template() std::vector<std::pair<double, double > >;
+%template() std::pair<float, float >;
+%template() std::vector<std::pair<float, float > >;
 
 // to determine BaseFloat in python wrapper
 #if KALDI_DOUBLEPRECISION
@@ -90,22 +69,25 @@ namespace kaldi {
 namespace kaldi {
   typedef double BaseFloat;
 }
+%numpy_typemaps(kaldi::BaseFloat, NPY_DOUBLE, kaldi::MatrixIndexT);
 #else
 %constant bool kDoubleIsBase = false;
 namespace kaldi {
   typedef float BaseFloat;
 }
+%numpy_typemaps(kaldi::BaseFloat, NPY_FLOAT, kaldi::MatrixIndexT);
 #endif
 
-%define TEMPLATE_WITH_KOBJECT_NAME_AND_TYPE(Name, Type)
-%template(Name) Type;
-%template(Name ## Holder) kaldi::KaldiObjectHolder<Type >;
-%template(Sequential ## Name ## Reader) kaldi::SequentialTableReader<kaldi::KaldiObjectHolder<Type > >;
-%template(RandomAccess ## Name ## Reader) kaldi::RandomAccessTableReaderMapped<kaldi::KaldiObjectHolder<Type > >;
-%template(Name ## Writer) kaldi::TableWriter<kaldi::KaldiObjectHolder<Type > >;
-%enddef
+namespace kaldi {
+  typedef int MatrixIndexT;
+  typedef int SignedMatrixIndexT;
+  typedef unsigned int UnsignedMatrixIndexT;
+}
 
-%include "pydrobert/mv_tables.i"
-%include "pydrobert/wave_tables.i"
-%include "pydrobert/token_tables.i"
+%numpy_typemaps(double, NPY_DOUBLE, kaldi::MatrixIndexT);
+%numpy_typemaps(float, NPY_FLOAT, kaldi::MatrixIndexT);
+
 %include "pydrobert/error.i"
+%include "pydrobert/io/util.i"
+%include "pydrobert/io/tables/tables.i"
+%include "pydrobert/io/duck.i"

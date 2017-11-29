@@ -26,42 +26,57 @@ namespace kaldi {
   static PyObject *g_py_log_handler = NULL;
   
   void SetPythonLogHandler(PyObject *py_func) {
+    Py_BEGIN_ALLOW_THREADS;
     Py_XDECREF(g_py_log_handler);
     g_py_log_handler = py_func;
     if (g_py_log_handler) {
       SetLogHandler([]
         (const LogMessageEnvelope &envelope, const char * message)
         {
+          PyGILState_STATE gstate;
+          int acquire_gil = PyEval_ThreadsInitialized();
+          if (acquire_gil)
+            gstate = PyGILState_Ensure();
           PyObject *envelope_obj = Py_BuildValue(
             "(issi)",
             envelope.severity,
             envelope.func, envelope.file, envelope.line
           );
+          // kaldi does not guarantee that the message is of a specific
+          // encoding, so we send it as bytes and decode it there, replacing
+          // errors with <?>
+#if PY_VERSION_HEX >= 0x03000000
+          PyObject *arg_list = Py_BuildValue("(Oy)", envelope_obj, message);
+#else
           PyObject *arg_list = Py_BuildValue("(Os)", envelope_obj, message);
-          // TODO(sdrobert): stack trace, maybe?
+#endif
           PyObject *result = PyObject_CallObject(g_py_log_handler, arg_list);
           Py_DECREF(arg_list);
           Py_DECREF(envelope_obj);
           Py_XDECREF(result);
+          if (acquire_gil)
+            PyGILState_Release(gstate);
         }
       );
     } else {
       SetLogHandler(NULL);
     }
+
     Py_XINCREF(py_func);
+    Py_END_ALLOW_THREADS;
   }
 
-  void VerboseLog(int32_t lvl, const char * message) {
+  void VerboseLog(long lvl, const char * message) {
     KALDI_VLOG(lvl) << message;
   }
 }
 %}
 
 namespace kaldi {
-  int32_t GetVerboseLevel();
-  void SetVerboseLevel(int32_t i);
+  long GetVerboseLevel();
+  void SetVerboseLevel(long i);
   void SetPythonLogHandler(PyObject *py_func);
-  void VerboseLog(int32_t lvl, const char * message);
+  void VerboseLog(long lvl, const char * message);
 }  // namespace kaldi
 
 %typemap(in) PyObject *py_func {

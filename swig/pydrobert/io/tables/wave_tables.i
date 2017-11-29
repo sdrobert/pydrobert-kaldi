@@ -16,11 +16,11 @@
  
 */
 
-#if KALDI_DOUBLEPRECISION
-%numpy_typemaps(kaldi::BaseFloat, NPY_DOUBLE, kaldi::MatrixIndexT);
-#else
-%numpy_typemaps(kaldi::BaseFloat, NPY_FLOAT, kaldi::MatrixIndexT);
-#endif
+// #if KALDI_DOUBLEPRECISION
+// %numpy_typemaps(kaldi::BaseFloat, NPY_DOUBLE, kaldi::MatrixIndexT);
+// #else
+// %numpy_typemaps(kaldi::BaseFloat, NPY_FLOAT, kaldi::MatrixIndexT);
+// #endif
 %apply(kaldi::BaseFloat* IN_ARRAY2, kaldi::MatrixIndexT DIM1, kaldi::MatrixIndexT DIM2) {(const kaldi::BaseFloat* matrix_in, const kaldi::MatrixIndexT dim_row, const kaldi::MatrixIndexT dim_col)};
 %apply(kaldi::BaseFloat** ARGOUTVIEWM_ARRAY2, kaldi::MatrixIndexT* DIM1, kaldi::MatrixIndexT* DIM2) {(kaldi::BaseFloat** matrix_out, kaldi::MatrixIndexT* dim_row, kaldi::MatrixIndexT* dim_col)};
 
@@ -103,7 +103,7 @@ namespace kaldi {
                  const kaldi::BaseFloat *matrix_in,
                  const kaldi::MatrixIndexT dim_row,
                  const kaldi::MatrixIndexT dim_col) const {
-    if (!(dim_row * dim_col)) {
+    if (!(dim_row && dim_col)) {
       PyErr_SetString(PyExc_ValueError, "Cannot write an empty wave file");
       return;
     }
@@ -131,8 +131,9 @@ namespace kaldi {
   };
 }
 
-%template(SequentialWaveReader) kaldi::SequentialTableReader<kaldi::WaveHolder >;
-%template(RandomAccessWaveReaderMapped) kaldi::RandomAccessTableReaderMapped<kaldi::WaveHolder >;
-%template(WaveWriter) kaldi::TableWriter<kaldi::WaveHolder >;
+TEMPLATE_WITH_NAME_AND_HOLDER_TYPE(Wave, kaldi::WaveHolder);
+
+EXTEND_RW_WITH_IS_BINARY(kaldi::SequentialTableReader, kaldi::WaveInfoHolder);
+EXTEND_RW_WITH_IS_BINARY(kaldi::RandomAccessTableReaderMapped, kaldi::WaveInfoHolder);
 %template(SequentialWaveInfoReader) kaldi::SequentialTableReader<kaldi::WaveInfoHolder >;
 %template(RandomAccessWaveInfoReaderMapped) kaldi::RandomAccessTableReaderMapped<kaldi::WaveInfoHolder >;

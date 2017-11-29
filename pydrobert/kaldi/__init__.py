@@ -32,26 +32,23 @@ from __future__ import print_function
 import locale
 import warnings
 
-from sys import stderr
-
-from pydrobert.kaldi._internal import SetPythonLogHandler as _set_log_handler
+from pkg_resources import DistributionNotFound
+from pkg_resources import get_distribution
 
 __author__ = "Sean Robertson"
 __email__ = "sdrobert@cs.toronto.edu"
 __license__ = "Apache 2.0"
 __copyright__ = "Copyright 2016 Sean Robertson"
 
-__all__ = ['tables']
+__all__ = ['io']
+
+try:
+    __version__ = get_distribution(__name__).version
+except DistributionNotFound:
+    __version__ = 'dev'
 
 LOCALE_MESSAGE = """\
 It looks like you did not 'export LC_ALL=C' before you started python.
 This is important to do if you plan on using kaldi's sorted tables at all."""
 if locale.getdefaultlocale() != (None, None):
     warnings.warn(LOCALE_MESSAGE)
-
-def _kaldi_default_log_handler(envelope, message):
-    '''Default callback for kaldi logging; propagate all non-info to stderr'''
-    if envelope[0] < 0:
-        print(message, file=stderr)
-
-_set_log_handler(_kaldi_default_log_handler)

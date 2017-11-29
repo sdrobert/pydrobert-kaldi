@@ -1,4 +1,4 @@
-# Copyright 2016 Sean Robertson
+# Copyright 2017 Sean Robertson
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,16 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Pytests for `pydrobert.kaldi.logging`"""
+"""Pytests for `pydrobert.kaldi.logging`"""
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
 import logging
-import os
-
-from tempfile import NamedTemporaryFile
 
 import numpy as np
 import pytest
@@ -29,18 +26,12 @@ import pytest
 from builtins import chr
 from six.moves import StringIO
 
-from pydrobert.kaldi import tables
+from pydrobert.kaldi import io
 from pydrobert.kaldi._internal import VerboseLog as verbose_log
 from pydrobert.kaldi.logging import KaldiLogger
 from pydrobert.kaldi.logging import deregister_logger_for_kaldi
 from pydrobert.kaldi.logging import register_logger_for_kaldi
 
-@pytest.fixture
-def temp_file_1_name():
-    temp = NamedTemporaryFile(delete=False)
-    temp.close()
-    yield temp.name
-    os.remove(temp.name)
 
 @pytest.fixture
 def kaldi_logger():
@@ -54,7 +45,9 @@ def kaldi_logger():
     register_logger_for_kaldi(logger_name)
     yield ret_logger
     deregister_logger_for_kaldi(logger_name)
-    ret_logger.removeHandler(s_stream)
+    for handler in ret_logger.handlers:
+        ret_logger.removeHandler(handler)
+
 
 @pytest.fixture
 def registered_regular_logger():
@@ -67,6 +60,7 @@ def registered_regular_logger():
     deregister_logger_for_kaldi(logger_name)
     ret_logger.removeHandler(s_stream)
 
+
 def test_kaldi_logger_basic_write(kaldi_logger):
     kaldi_logger.setLevel(logging.WARNING)
     s_stream = kaldi_logger.handlers[-1].stream
@@ -77,6 +71,7 @@ def test_kaldi_logger_basic_write(kaldi_logger):
     assert test_string + '\n' == s_stream.getvalue()
     kaldi_logger.info(test_string)
     assert test_string + '\n' == s_stream.getvalue()
+
 
 def test_callback_delivers_correct_messages(
         kaldi_logger, registered_regular_logger):
@@ -90,6 +85,7 @@ def test_callback_delivers_correct_messages(
     assert 'everyone gets this\nnot r_stream, here\n' == k_stream.getvalue()
     assert 'everyone gets this\n' == r_stream.getvalue()
 
+
 def test_do_not_callback_unregistered(kaldi_logger):
     kaldi_logger.setLevel(logging.WARNING)
     verbose_log(-1, 'should see this')
@@ -102,17 +98,19 @@ def test_do_not_callback_unregistered(kaldi_logger):
     s_stream = kaldi_logger.handlers[-1].stream
     assert 'should see this\nbut see this\n' == s_stream.getvalue()
 
+
 def elicit_warning(filename, threaded=False):
     # helper to elicit a natural warning from kaldi
-    writer = tables.open('ark,t:{}'.format(filename), 'bv', 'w')
+    writer = io.open('ark,t:{}'.format(filename), 'bv', 'w')
     writer.write('zz', [np.infty])
     writer.close()
-    reader = tables.open(
+    reader = io.open(
         'ark,t{}:{}'.format(',bg' if threaded else '', filename), 'bv')
     next(reader)
     reader.close()
 
-@pytest.mark.parametrize('threaded', [True, False])
+
+@pytest.mark.parametrize('threaded', [False])
 def test_elicit_kaldi_warning(kaldi_logger, temp_file_1_name, threaded):
     s_stream = kaldi_logger.handlers[-1].stream
     assert not s_stream.tell()
@@ -120,10 +118,10 @@ def test_elicit_kaldi_warning(kaldi_logger, temp_file_1_name, threaded):
     assert s_stream.tell()
     assert 'Reading infinite value into vector.\n' == s_stream.getvalue()
 
+
 def test_log_source_is_appropriate(kaldi_logger, temp_file_1_name):
     handler = kaldi_logger.handlers[-1]
     s_stream = handler.stream
-    rwspecifier = 'ark,t:{}'.format(temp_file_1_name)
     handler.setFormatter(logging.Formatter('%(filename)s: %(message)s'))
     assert not s_stream.tell()
     kaldi_logger.warning('pokeymans')
@@ -133,6 +131,7 @@ def test_log_source_is_appropriate(kaldi_logger, temp_file_1_name):
     elicit_warning(temp_file_1_name)
     assert 'kaldi-vector.cc' in s_stream.getvalue()
     assert '__init__.py' not in s_stream.getvalue()
+
 
 def test_python_error_doesnt_segfault(
         registered_regular_logger, temp_file_1_name):

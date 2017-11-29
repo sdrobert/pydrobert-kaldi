@@ -46,7 +46,6 @@ import logging
 
 from sys import stderr
 
-from pydrobert.kaldi._internal import GetVerboseLevel as _get_verbose_level
 from pydrobert.kaldi._internal import SetPythonLogHandler as _set_log_handler
 from pydrobert.kaldi._internal import SetVerboseLevel as _set_verbose_level
 
@@ -59,7 +58,11 @@ __all__ = [
     'KaldiLogger',
     'register_logger_for_kaldi',
     'deregister_logger_for_kaldi',
+    'kaldi_lvl_to_logging_lvl',
+    'logging_lvl_to_kaldi_lvl',
+    'kaldi_vlog_level_cmd_decorator',
 ]
+
 
 class KaldiLogger(logging.getLoggerClass()):
     """Logger subclass that overwrites log info with kaldi's
@@ -94,13 +97,28 @@ class KaldiLogger(logging.getLoggerClass()):
         record = super(KaldiLogger, self).makeRecord(*args, **kwargs)
         return record
 
+
+def kaldi_logger_decorator(func):
+    '''Sets the default logger class to KaldiLogger over the func call'''
+    def _new_func(*args, **kwargs):
+        logger_class = logging.getLoggerClass()
+        logging.setLoggerClass(KaldiLogger)
+        try:
+            ret = func(*args, **kwargs)
+        finally:
+            logging.setLoggerClass(logger_class)
+        return ret
+    _new_func.__doc__ = func.__doc__
+    return _new_func
+
+
 def register_logger_for_kaldi(name):
     '''Register logger to receive Kaldi's messages
 
     See module docstring for more info
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     name : str
         logger name. When a new message comes along from Kaldi, the
         callback will send a message to ``logging.getLogger(name)``
@@ -110,11 +128,56 @@ def register_logger_for_kaldi(name):
     _set_verbose_level(2147483647)
     _REGISTERED_LOGGER_NAMES.add(name)
 
+
 def deregister_logger_for_kaldi(name):
     '''Deregister logger previously registered w register_logger_for_kaldi'''
     _REGISTERED_LOGGER_NAMES.discard(name)
     if not _REGISTERED_LOGGER_NAMES:
         _set_verbose_level(0)
+
+
+def deregister_all_loggers_for_kaldi():
+    '''Deregister all loggers registered w register_logger_for_kaldi'''
+    _REGISTERED_LOGGER_NAMES.clear()
+    _set_verbose_level(0)
+
+
+def kaldi_vlog_level_cmd_decorator(func):
+    '''Decorator to rename, then revert, level names according to Kaldi [1]_
+
+    See pydrobert.kaldi for the conversion chart. After the return of
+    the function, the level names before the call are reverted. This
+    function is insensitive to renaming while the function executes
+
+    .. [1] Povey, D., et al (2011). The Kaldi Speech Recognition
+           Toolkit. ASRU
+    '''
+    def _new_func(*args, **kwargs):
+        old_level_names = [logging.getLevelName(0)]
+        for level in range(1, 10):
+            old_level_names.append(logging.getLevelName(level))
+            logging.addLevelName(level, 'VLOG [{:d}]'.format(11 - level))
+        for level in range(10, 51):
+            old_level_names.append(logging.getLevelName(level))
+            if level // 10 == 1:
+                logging.addLevelName(level, 'VLOG [1]')
+            elif level // 10 == 2:
+                logging.addLevelName(level, 'LOG')
+            elif level // 10 == 3:
+                logging.addLevelName(level, 'WARNING')
+            elif level // 10 == 4:
+                logging.addLevelName(level, 'ERROR')
+            elif level // 10 == 5:
+                logging.addLevelName(level, 'ASSERTION_FAILED ')
+        try:
+            ret = func(*args, **kwargs)
+        finally:
+            for level, name in enumerate(old_level_names):
+                logging.addLevelName(level, name)
+        return ret
+    _new_func.__doc__ = func.__doc__
+    return _new_func
+
 
 def _kaldi_logging_handler(envelope, message):
     '''Kaldi message handler that plays nicely with logging module
@@ -124,8 +187,9 @@ def _kaldi_logging_handler(envelope, message):
 
     Otherwise, errors are propagated to registered loggers
     '''
+    message = message.decode(encoding='utf8', errors='replace')
     if _REGISTERED_LOGGER_NAMES:
-        py_severity = _kaldi_lvl_to_logging_lvl(envelope[0])
+        py_severity = kaldi_lvl_to_logging_lvl(envelope[0])
         for logger_name in _REGISTERED_LOGGER_NAMES:
             logger = logging.getLogger(logger_name)
             logger.log(
@@ -133,7 +197,8 @@ def _kaldi_logging_handler(envelope, message):
     elif envelope[0] < 0:
         print(message, file=stderr)
 
-def _kaldi_lvl_to_logging_lvl(lvl):
+
+def kaldi_lvl_to_logging_lvl(lvl):
     '''Convert kaldi level to logging level. See module docstring'''
     if lvl <= 1:
         lvl = lvl * -10 + 20
@@ -141,7 +206,8 @@ def _kaldi_lvl_to_logging_lvl(lvl):
         lvl = 11 - lvl
     return lvl
 
-def _logging_lvl_to_kaldi_lvl(lvl):
+
+def logging_lvl_to_kaldi_lvl(lvl):
     '''Convert logging level to kaldi level. See module docstring'''
     if lvl >= 10:
         lvl = max(-3, (lvl - 20) // -10)
@@ -149,7 +215,9 @@ def _logging_lvl_to_kaldi_lvl(lvl):
         lvl = 11 - lvl
     return lvl
 
+
 _REGISTERED_LOGGER_NAMES = set()
 '''The loggers who will receive kaldi's messages'''
+
 
 _set_log_handler(_kaldi_logging_handler)

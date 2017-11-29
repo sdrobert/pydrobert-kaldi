@@ -1,0 +1,65 @@
+{% set version = environ.get('GIT_DESCRIBE_TAG', '0.0').replace('v','') %}
+{% if environ.get('TRAVIS', False) %}
+  {% set build_num = environ['TRAVIS_BUILD_NUMBER'] %}
+{% elif environ.get('APPVEYOR', False) %}
+  {% set build_num = environ['APPVEYOR_BUILD_NUMBER'] %}
+{% else %}  
+  {% set build_num = environ.get('GIT_DESCRIBE_NUMBER', 0) %}
+{% endif %}
+
+package:
+  name: pydrobert-kaldi
+  version: {{ version }}
+
+source:
+  path: ..
+
+requirements:
+  host:
+    - python {{ python }}
+    - numpy
+    - setuptools
+    - setuptools_scm
+    - swig >=3.0.8
+    - pytest-runner
+{% if blas_impl == 'mkl' %}
+    - mkl
+    - mkl-include
+{% elif blas_impl == 'openblas' %}
+    - openblas
+{% endif %}
+  build:
+    - {{ compiler('cxx') }}
+  run:
+    # let link libraries be downstream deps
+    - python {{ python }}
+    - {{ pin_compatible('numpy', max_pin='x.x') }}
+    - future
+    - six
+    - enum34                               [py2k]
+
+build:
+  number: {{ build_num }}
+  detect_binary_files_with_prefix: False
+{% if blas_impl != 'mkl' %}
+  features:
+    - nomkl                                [not win]
+{% endif %}
+
+test:
+  source_files:
+    - tests
+  requires:
+    - pytest
+    - scipy
+  imports:
+    - pydrobert
+    - pydrobert.kaldi
+  commands:
+    - pytest
+
+about:
+  home: https://github.com/sdrobert/pydrobert-kaldi
+  license: Apache 2.0
+  license_file: LICENSE
+  summary: Kaldi Swig bindings for Python

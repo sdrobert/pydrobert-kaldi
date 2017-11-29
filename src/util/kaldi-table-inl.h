@@ -25,6 +25,7 @@
 
 #include <algorithm>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 #include <errno.h>
@@ -32,8 +33,7 @@
 #include "util/kaldi-holder.h"
 #include "util/text-utils.h"
 #include "util/stl-utils.h"  // for StringHasher.
-#include "thread/kaldi-thread.h"
-#include "thread/kaldi-semaphore.h"
+#include "util/kaldi-semaphore.h"
 
 
 namespace kaldi {
@@ -60,7 +60,7 @@ template<class Holder> class SequentialTableReaderImplBase {
   // Done() returned false.  It throws if the value could not be read.  [However
   // if you use the ,p modifier it will never throw, unless you call it at the
   // wrong time, i.e. unless there is a code error.]
-  virtual const T &Value() = 0;
+  virtual T &Value() = 0;
   virtual void FreeCurrent() = 0;
   // move to the next object.  This won't throw unless called wrongly (e.g. on
   // non-open archive.]
@@ -99,7 +99,6 @@ template<class Holder>  class SequentialTableReaderScriptImpl:
                   << "rspecifier was " << rspecifier_;
     bool binary;
     rspecifier_ = rspecifier;
-#pragma GCC diagnostic ignored "-Wunused-variable"
     RspecifierType rs = ClassifyRspecifier(rspecifier, &script_rxfilename_,
                                            &opts_);
     KALDI_ASSERT(rs == kScriptRspecifier);
@@ -160,7 +159,7 @@ template<class Holder>  class SequentialTableReaderScriptImpl:
     return key_;
   }
 
-  const T &Value() {
+  T &Value() {
     if (!EnsureObjectLoaded())
       KALDI_ERR << "Failed to load object from "
                 << PrintableRxfilename(data_rxfilename_)
@@ -499,7 +498,6 @@ template<class Holder>  class SequentialTableReaderArchiveImpl:
       }
     }
     rspecifier_ = rspecifier;
-#pragma GCC diagnostic ignored "-Wunused-variable"
     RspecifierType rs = ClassifyRspecifier(rspecifier,
                                            &archive_rxfilename_,
                                            &opts_);
@@ -614,7 +612,7 @@ template<class Holder>  class SequentialTableReaderArchiveImpl:
     return key_;
   }
 
-  const T &Value() {
+  T &Value() {
     switch (state_) {
       case kHaveObject:
         break;  // only valid case.
@@ -717,18 +715,8 @@ class SequentialTableReaderBackgroundImpl:
     KALDI_ASSERT(base_reader_ != NULL &&
                  base_reader_->IsOpen());  // or code error.
     {
-      pthread_attr_t pthread_attr;
-      pthread_attr_init(&pthread_attr);
-      int32 ret = pthread_create(
-          &thread_,
-          &pthread_attr,
-          SequentialTableReaderBackgroundImpl<Holder>::run,
-          static_cast<void*>(this));
-      if (ret != 0) {
-        const char *c = strerror(ret);
-        KALDI_WARN << "Error creating thread, errno was: " << c;
-        return false;
-      }
+      thread_ = std::thread(SequentialTableReaderBackgroundImpl<Holder>::run,
+                            this);
     }
 
     if (!base_reader_->Done())
@@ -777,11 +765,8 @@ class SequentialTableReaderBackgroundImpl:
       return;
     }
   }
-  static void* run(void *object_in) {
-    SequentialTableReaderBackgroundImpl<Holder> *object =
-        reinterpret_cast<SequentialTableReaderBackgroundImpl<Holder>*>(object_in);
+  static void run(SequentialTableReaderBackgroundImpl<Holder> *object) {
     object->RunInBackground();
-    return NULL;
   }
   virtual bool Done() const {
     return key_.empty();
@@ -791,7 +776,7 @@ class SequentialTableReaderBackgroundImpl:
       KALDI_ERR << "Calling Key() at the wrong time.";
     return key_;
   }
-  virtual const T &Value() {
+  virtual T &Value() {
     if (key_.empty())
       KALDI_ERR << "Calling Value() at the wrong time.";
     return holder_.Value();
@@ -829,7 +814,7 @@ class SequentialTableReaderBackgroundImpl:
   // note: we can be sure that Close() won't be called twice, as the TableReader
   // object will delete this object after calling Close.
   virtual bool Close() {
-    KALDI_ASSERT(base_reader_ != NULL && KALDI_PTHREAD_PTR(thread_) != 0);
+    KALDI_ASSERT(base_reader_ != NULL && thread_.joinable());
     // wait until the producer thread is idle.
     consumer_sem_.Wait();
     bool ans = true;
@@ -844,10 +829,7 @@ class SequentialTableReaderBackgroundImpl:
     base_reader_ = NULL;
     producer_sem_.Signal();
 
-    if (pthread_join(thread_, NULL) != 0) {
-      KALDI_WARN << "Error rejoining thread.";
-      return false;
-    }
+    thread_.join();
     return ans;
   }
   ~SequentialTableReaderBackgroundImpl() {
@@ -866,7 +848,7 @@ class SequentialTableReaderBackgroundImpl:
   // that the producer (background thread) waits on.
   Semaphore consumer_sem_;
   Semaphore producer_sem_;
-  pthread_t thread_;
+  std::thread thread_;
   SequentialTableReaderImplBase<Holder> *base_reader_;
 
 };
@@ -948,7 +930,7 @@ void SequentialTableReader<Holder>::FreeCurrent() {
 
 
 template<class Holder>
-const typename SequentialTableReader<Holder>::T &
+typename SequentialTableReader<Holder>::T &
 SequentialTableReader<Holder>::Value() {
   CheckImpl();
   return impl_->Value();  // This may throw (if EnsureObjectLoaded() returned false you
@@ -1484,8 +1466,8 @@ class TableWriterBothImpl: public TableWriterImplBase<Holder> {
 template<class Holder>
 TableWriter<Holder>::TableWriter(const std::string &wspecifier): impl_(NULL) {
   if (wspecifier != "" && !Open(wspecifier))
-    KALDI_ERR << "Failed to open for writing: " << wspecifier
-              << ": " << strerror(errno);
+    KALDI_ERR << "Failed to open table for writing with wspecifier: " << wspecifier
+              << ": errno (in case it's relevant) is: " << strerror(errno);
 }
 
 template<class Holder>

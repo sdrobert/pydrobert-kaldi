@@ -2,7 +2,6 @@
 
 // Copyright 2009-2011  Microsoft Corporation;  Saarland University;
 //                      Jan Silovsky;  Yanmin Qian
-//                2016  Sean Robertson
 
 // See ../../COPYING for clarification regarding multiple authors
 //
@@ -40,20 +39,23 @@ typedef float   BaseFloat;
 // we find in the future lacks stdint.h
 #include <stdint.h>
 
-// namespace kaldi {
-//   using ::int16;
-//   using ::int32;
-//   using ::int64;
-//   using ::uint16;
-//   using ::uint32;
-//   using ::uint64;
-//   typedef float   float32;
-//   typedef double double64;
-// }  // end namespace kaldi
+// for discussion on what to do if you need compile kaldi
+// without OpenFST, see the bottom of this this file
+//#include <fst/types.h>
+//
+//namespace kaldi {
+//  using ::int16;
+//  using ::int32;
+//  using ::int64;
+//  using ::uint16;
+//  using ::uint32;
+//  using ::uint64;
+//  typedef float   float32;
+//  typedef double double64;
+//}  // end namespace kaldi
 
 // In a theoretical case you decide compile Kaldi without the OpenFST
 // comment the previous namespace statement and uncomment the following
-// sdrobert(2017): yes please
 namespace kaldi {
   typedef int8_t   int8;
   typedef int16_t  int16;
