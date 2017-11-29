@@ -21,35 +21,42 @@
 %{
 
 #include "base/kaldi-error.h"
-#include <mutex>
 
 namespace kaldi {
   static PyObject *g_py_log_handler = NULL;
   
   void SetPythonLogHandler(PyObject *py_func) {
+    Py_BEGIN_ALLOW_THREADS;
     Py_XDECREF(g_py_log_handler);
     g_py_log_handler = py_func;
     if (g_py_log_handler) {
       SetLogHandler([]
         (const LogMessageEnvelope &envelope, const char * message)
         {
+          PyGILState_STATE gstate;
+          int acquire_gil = PyEval_ThreadsInitialized();
+          if (acquire_gil)
+            gstate = PyGILState_Ensure();
           PyObject *envelope_obj = Py_BuildValue(
             "(issi)",
             envelope.severity,
             envelope.func, envelope.file, envelope.line
           );
           PyObject *arg_list = Py_BuildValue("(Os)", envelope_obj, message);
-          // TODO(sdrobert): stack trace, maybe?
           PyObject *result = PyObject_CallObject(g_py_log_handler, arg_list);
           Py_DECREF(arg_list);
           Py_DECREF(envelope_obj);
           Py_XDECREF(result);
+          if (acquire_gil)
+            PyGILState_Release(gstate);
         }
       );
     } else {
       SetLogHandler(NULL);
     }
+
     Py_XINCREF(py_func);
+    Py_END_ALLOW_THREADS;
   }
 
   void VerboseLog(long lvl, const char * message) {

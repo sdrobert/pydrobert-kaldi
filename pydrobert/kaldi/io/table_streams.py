@@ -417,13 +417,16 @@ class _KaldiSequentialSimpleReader(KaldiSequentialReader):
     }
 
     def __init__(self, path, kaldi_dtype):
+        super(_KaldiSequentialSimpleReader, self).__init__(path, kaldi_dtype)
         kaldi_dtype = KaldiDataType(kaldi_dtype)
         instance = self._dtype_to_cls[kaldi_dtype.value]()
-        self.closed = True
-        if not instance.Open(path):
+        if self.background:
+            opened = instance.OpenThreaded(path)
+        else:
+            opened = instance.Open(path)
+        if not opened:
             raise IOError('Unable to open for sequential read')
         self._internal = instance
-        super(_KaldiSequentialSimpleReader, self).__init__(path, kaldi_dtype)
         self.binary &= self._internal.IsBinary()
 
     def done(self):
@@ -450,13 +453,19 @@ class _KaldiSequentialSimpleReader(KaldiSequentialReader):
             raise IOError('I/O operation on closed file.')
         elif self.done():
             return False
+        elif self.background:
+            self._internal.NextThreaded()
+            return True
         else:
             self._internal.Next()
             return True
 
     def close(self):
         if not self.closed:
-            self._internal.Close()
+            if self.background:
+                self._internal.CloseThreaded()
+            else:
+                self._internal.Close()
         self.closed = True
 
 
@@ -489,14 +498,13 @@ class _KaldiRandomAccessSimpleReader(KaldiRandomAccessReader):
     }
 
     def __init__(self, path, kaldi_dtype, utt2spk=''):
+        super(_KaldiRandomAccessSimpleReader, self).__init__(
+            path, kaldi_dtype, utt2spk=utt2spk)
         kaldi_dtype = KaldiDataType(kaldi_dtype)
         instance = self._dtype_to_cls[kaldi_dtype.value]()
-        self.closed = True
         if not instance.Open(path, utt2spk):
             raise IOError('Unable to open for random access read')
         self._internal = instance
-        super(_KaldiRandomAccessSimpleReader, self).__init__(
-            path, kaldi_dtype, utt2spk=utt2spk)
         self.binary &= self._internal.IsBinary()
 
     def __contains__(self, key):
@@ -545,13 +553,12 @@ class _KaldiSimpleWriter(KaldiWriter):
     }
 
     def __init__(self, path, kaldi_dtype):
+        super(_KaldiSimpleWriter, self).__init__(path, kaldi_dtype)
         kaldi_dtype = KaldiDataType(kaldi_dtype)
         instance = self._dtype_to_cls[kaldi_dtype.value]()
-        self.closed = True
         if not instance.Open(path):
             raise IOError('Unable to open for write')
         self._internal = instance
-        super(_KaldiSimpleWriter, self).__init__(path, kaldi_dtype)
         self.binary &= self._internal.IsBinary()
 
     def write(self, key, value):
@@ -569,6 +576,7 @@ class _KaldiSequentialWaveReader(KaldiSequentialReader):
     __doc__ = KaldiSequentialReader.__doc__
 
     def __init__(self, path, kaldi_dtype, value_style='b'):
+        super(_KaldiSequentialWaveReader, self).__init__(path, kaldi_dtype)
         self._value_calls = []
         if any(char not in 'bsd' for char in value_style):
             raise ValueError(
@@ -577,7 +585,11 @@ class _KaldiSequentialWaveReader(KaldiSequentialReader):
             instance = _i.SequentialWaveReader()
         else:
             instance = _i.SequentialWaveInfoReader()
-        if not instance.Open(path):
+        if self.background:
+            opened = instance.OpenThreaded(path)
+        else:
+            opened = instance.Open(path)
+        if not opened:
             raise IOError('Unable to open for sequential read')
         self._internal = instance
         for char in value_style:
@@ -587,7 +599,6 @@ class _KaldiSequentialWaveReader(KaldiSequentialReader):
                 self._value_calls.append(self._internal.SampFreq)
             else:
                 self._value_calls.append(self._internal.Duration)
-        super(_KaldiSequentialWaveReader, self).__init__(path, kaldi_dtype)
         self.binary = True
 
     def value(self):
@@ -618,13 +629,19 @@ class _KaldiSequentialWaveReader(KaldiSequentialReader):
             raise IOError('I/O operation on closed file.')
         elif self.done():
             return False
+        elif self.background:
+            self._internal.NextThreaded()
+            return True
         else:
             self._internal.Next()
             return True
 
     def close(self):
         if not self.closed:
-            self._internal.Close()
+            if self.background:
+                self._internal.CloseThreaded()
+            else:
+                self._internal.Close()
         self.closed = True
 
 
@@ -632,6 +649,8 @@ class _KaldiRandomAccessWaveReader(KaldiRandomAccessReader):
     __doc__ = KaldiRandomAccessReader.__doc__
 
     def __init__(self, path, kaldi_dtype, utt2spk='', value_style='b'):
+        super(_KaldiRandomAccessWaveReader, self).__init__(
+            path, kaldi_dtype, utt2spk=utt2spk)
         self._value_calls = []
         if any(char not in 'bsd' for char in value_style):
             raise ValueError(
@@ -640,7 +659,6 @@ class _KaldiRandomAccessWaveReader(KaldiRandomAccessReader):
             instance = _i.RandomAccessWaveReader()
         else:
             instance = _i.RandomAccessWaveInfoReader()
-        self.closed = True
         if not instance.Open(path, utt2spk):
             raise IOError('Unable to open for sequential read')
         self._internal = instance
@@ -651,8 +669,6 @@ class _KaldiRandomAccessWaveReader(KaldiRandomAccessReader):
                 self._value_calls.append(self._internal.SampFreq)
             else:
                 self._value_calls.append(self._internal.Duration)
-        super(_KaldiRandomAccessWaveReader, self).__init__(
-            path, kaldi_dtype, utt2spk=utt2spk)
         self.binary = True
 
     def __contains__(self, key):
@@ -681,12 +697,11 @@ class _KaldiTokenWriter(KaldiWriter):
     __doc__ = KaldiWriter.__doc__
 
     def __init__(self, path, kaldi_dtype):
+        super(_KaldiTokenWriter, self).__init__(path, kaldi_dtype)
         instance = _i.TokenWriter()
-        self.closed = True
         if not instance.Open(path):
             raise IOError('Unable to open for write')
         self._internal = instance
-        super(_KaldiTokenWriter, self).__init__(path, kaldi_dtype)
         self.binary = False
 
     def write(self, key, value):
@@ -711,13 +726,12 @@ class _KaldiTokenVectorWriter(KaldiWriter):
     __doc__ = KaldiWriter.__doc__
 
     def __init__(self, path, kaldi_dtype, error_on_str=True):
+        super(_KaldiTokenVectorWriter, self).__init__(path, kaldi_dtype)
         self._error_on_str = error_on_str
         instance = _i.TokenVectorWriter()
-        self.closed = True
         if not instance.Open(path):
             raise IOError('Unable to open for write')
         self._internal = instance
-        super(_KaldiTokenVectorWriter, self).__init__(path, kaldi_dtype)
         self.binary = False
 
     def write(self, key, value):

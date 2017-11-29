@@ -21,7 +21,6 @@
 // See the Apache 2 License for the specific language governing permissions and
 // limitations under the License.
 
-#include "base/kaldi-utils.h"
 #include "matrix/kaldi-matrix.h"
 #include "matrix/sp-matrix.h"
 #include "matrix/jama-svd.h"
@@ -1489,7 +1488,7 @@ void Matrix<Real>::Read(std::istream & is, bool binary, bool add) {
     ReadToken(is, binary, &token);
     if (token != my_token) {
       specific_error << ": Expected token " << my_token
-                     << ", got " << StringToReadable(token);
+                     << ", got " << token;
       goto bad;
     }
     int32 rows, cols;
@@ -1523,7 +1522,7 @@ void Matrix<Real>::Read(std::istream & is, bool binary, bool add) {
     if (str == "[]") { Resize(0, 0); return; } // Be tolerant of variants.
     else if (str != "[") {
       specific_error << ": Expected \"[\", got \""
-                     << StringToReadable(str) << '"';
+                     << str << '"';
       goto bad;
     }
     // At this point, we have read "[".
@@ -1595,7 +1594,7 @@ void Matrix<Real>::Read(std::istream & is, bool binary, bool add) {
           KALDI_WARN << "Reading NaN value into matrix.";
         } else {
           specific_error << "Expecting numeric matrix data, got "
-                         << StringToReadable(str);
+                         << str;
           goto cleanup;
         }
       }

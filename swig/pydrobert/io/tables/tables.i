@@ -31,13 +31,40 @@ namespace kaldi {
   template <class Holder> class SequentialTableReader {
     public:
       typedef typename Holder::T T;
-      bool Open(const std::string &rspecifier);
       bool Done();
       std::string Key();
-      void Next();
       bool IsOpen() const;
       bool Close();
+      bool Open(const std::string &rspecifier);
+      void Next();
       // const T &Value();
+      %extend {
+        bool OpenThreaded(const std::string &rspecifier) {
+          // If we're trying to open a "background" sequential table reader, we
+          // have to initialize python threads. We do this lazily since there's
+          // a performance penalty.
+          PyEval_InitThreads();
+          bool ret;
+          Py_BEGIN_ALLOW_THREADS;
+          ret = $self->Open(rspecifier);
+          Py_END_ALLOW_THREADS;
+          return ret;
+        };
+
+        void NextThreaded() {
+          Py_BEGIN_ALLOW_THREADS;
+          $self->Next();
+          Py_END_ALLOW_THREADS;
+        };
+
+        bool CloseThreaded() {
+          bool ret;
+          Py_BEGIN_ALLOW_THREADS;
+          ret = $self->Close();
+          Py_END_ALLOW_THREADS;
+          return ret;
+        }
+      }
   };
   template <class Holder> class RandomAccessTableReaderMapped {
     public:

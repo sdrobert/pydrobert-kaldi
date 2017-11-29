@@ -131,12 +131,7 @@ namespace kaldi {
   };
 }
 
-EXTEND_RW_WITH_IS_BINARY(kaldi::SequentialTableReader, kaldi::WaveHolder);
-EXTEND_RW_WITH_IS_BINARY(kaldi::RandomAccessTableReaderMapped, kaldi::WaveHolder);
-EXTEND_RW_WITH_IS_BINARY(kaldi::TableWriter, kaldi::WaveHolder);
-%template(SequentialWaveReader) kaldi::SequentialTableReader<kaldi::WaveHolder >;
-%template(RandomAccessWaveReaderMapped) kaldi::RandomAccessTableReaderMapped<kaldi::WaveHolder >;
-%template(WaveWriter) kaldi::TableWriter<kaldi::WaveHolder >;
+TEMPLATE_WITH_NAME_AND_HOLDER_TYPE(Wave, kaldi::WaveHolder);
 
 EXTEND_RW_WITH_IS_BINARY(kaldi::SequentialTableReader, kaldi::WaveInfoHolder);
 EXTEND_RW_WITH_IS_BINARY(kaldi::RandomAccessTableReaderMapped, kaldi::WaveInfoHolder);

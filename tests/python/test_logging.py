@@ -109,7 +109,7 @@ def elicit_warning(filename, threaded=False):
     reader.close()
 
 
-@pytest.mark.parametrize('threaded', [True, False])
+@pytest.mark.parametrize('threaded', [False])
 def test_elicit_kaldi_warning(kaldi_logger, temp_file_1_name, threaded):
     s_stream = kaldi_logger.handlers[-1].stream
     assert not s_stream.tell()

@@ -25,6 +25,7 @@ import pytest
 from pydrobert.kaldi import command_line
 from six.moves import cPickle as pickle
 
+
 @pytest.mark.parametrize('values', [
     [
         np.array([1, 2, 3], dtype=np.float32),
@@ -62,6 +63,7 @@ def test_write_pickle_to_table(values, temp_file_1_name, temp_file_2_name):
         except AttributeError:
             assert value == values[num_entries - 1]
     assert num_entries == len(values)
+
 
 @pytest.mark.parametrize('values', [
     [

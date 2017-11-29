@@ -67,22 +67,23 @@ from pydrobert.kaldi.io.enums import KaldiDataType
     ('B', False),
 ])
 @pytest.mark.parametrize('is_text', [True, False])
-def test_read_write(temp_file_1_name, dtype, value, is_text):
-    specifier = None
-    if is_text:
-        specifier = 'ark,t:{}'.format(temp_file_1_name)
-    else:
-        specifier = 'ark:{}'.format(temp_file_1_name)
+@pytest.mark.parametrize('bg', [True, False])
+def test_read_write(temp_file_1_name, dtype, value, is_text, bg):
+    opts = ['', 't'] if is_text else ['']
+    specifier = 'ark' + ','.join(opts) + ':' + temp_file_1_name
     writer = io_open(specifier, dtype, mode='w')
     writer.write('a', value)
     writer.close()
+    if bg:
+        opts += ['bg']
+        specifier = 'ark' + ','.join(opts) + ':' + temp_file_1_name
     reader = io_open(specifier, dtype)
     once = True
     for read_value in iter(reader):
         assert once, "Multiple values"
-        if dtype in ('bv', 'bm', 'fv', 'fm', 'dv', 'dm', 'b', 'd', 'bpv'):
+        try:
             assert np.allclose(read_value, value)
-        else:
+        except TypeError:
             assert read_value == value
         once = False
     reader.close()
@@ -142,27 +143,67 @@ def test_invalid_tv_does_not_segfault(temp_file_1_name):
     ('B', True)
 ])
 @pytest.mark.parametrize('is_text', [True, False])
-@pytest.mark.parametrize('bg', [pytest.mark.skip(True), False])
-def test_incorrect_open_read(temp_file_1_name, ktype, value, is_text, bg):
+@pytest.mark.parametrize('bg', [True, False])
+def test_incorrect_open_read(
+        temp_file_1_name, temp_file_2_name, ktype, value, is_text, bg):
     if ktype == 'wm' and is_text:
         pytest.skip("WaveMatrix can only be written as binary")
     opts = ['', 't'] if is_text else ['']
-    specifier = 'ark' + ','.join(opts) + ':' + temp_file_1_name
-    with io_open(specifier, ktype, mode='w') as writer:
-        writer.write('0', value)
+    specifier_1 = 'ark' + ','.join(opts) + ':' + temp_file_1_name
+    specifier_2 = 'ark' + ','.join(opts) + ':' + temp_file_2_name
+    with io_open(specifier_1, ktype, mode='w') as writer_1, io_open(
+            specifier_2, ktype, mode='w') as writer_2:
+        writer_1.write('0', value)
+        writer_2.write('0', value)
     if bg:
         opts += ['bg']
-    specifier = 'ark' + ','.join(opts) + ':' + temp_file_1_name
+        specifier_1 = 'ark' + ','.join(opts) + ':' + temp_file_1_name
+        specifier_2 = 'ark' + ','.join(opts) + ':' + temp_file_2_name
     for bad_ktype in KaldiDataType:
-        print(bad_ktype)
         try:
-            with io_open(specifier, bad_ktype) as reader:
+            with io_open(specifier_1, bad_ktype) as reader:
                 next(reader)
         except Exception:
             # sometimes it'll work, and the expected output will be
             # correct (in the case of basic types). We don't care. All
             # we care about here is that we don't segfault
             pass
+    # now we add some garbage data to the end of the file and try to
+    # iterate through. Chances are this will end in failure (hopefully
+    # not a segfault)
+    with open(temp_file_1_name, mode='ab') as writer:
+        writer.write(np.random.bytes(1000))
+    try:
+        with io_open(specifier_1, ktype) as reader:
+            list(reader)
+    except Exception:
+        pass
+    # do the same, but only corrupt *after* the key
+    with open(temp_file_2_name, mode='ab') as writer:
+        writer.write(b'1 ' + np.random.bytes(1000))
+    try:
+        with io_open(specifier_2, ktype) as reader:
+            list(reader)
+    except Exception:
+        pass
+
+
+def test_invalid_scp(temp_file_1_name):
+    # make sure invalid scp files don't segfault
+    with open(temp_file_1_name, mode='wb') as writer:
+        writer.write(np.random.bytes(1000))
+    try:
+        with io_open('scp:' + temp_file_1_name) as reader:
+            next(reader)
+    except Exception:
+        pass
+    with open(temp_file_1_name, mode='wb') as writer:
+        writer.write(b'foo ' + np.random.bytes(1000))
+    try:
+        with io_open('scp:' + temp_file_1_name) as reader:
+            next(reader)
+    except Exception:
+        pass
 
 
 @pytest.mark.parametrize('dtype,value', [

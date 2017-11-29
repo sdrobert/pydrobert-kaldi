@@ -49,7 +49,7 @@ def test_chained(temp_file_1_name):
                 assert read == obj
 
 
-@pytest.mark.parametrize('dtype,value', [
+@pytest.mark.parametrize('ktype,value', [
     ('bv', []),
     ('bm', [[]]),
     ('bv', [np.infty]),
@@ -85,12 +85,12 @@ def test_chained(temp_file_1_name):
     ('B', False),
 ])
 @pytest.mark.parametrize('binary', [True, False])
-def test_read_write_valid(temp_file_1_name, dtype, value, binary):
+def test_read_write_valid(temp_file_1_name, ktype, value, binary):
     with io_open(temp_file_1_name, mode='w', header=False) as outp:
-        outp.write(value, dtype, write_binary=binary)
+        outp.write(value, ktype, write_binary=binary)
     with io_open(temp_file_1_name, header=False) as inp:
-        read_value = inp.read(dtype, read_binary=binary)
-    if dtype in ('bv', 'bm', 'fv', 'fm', 'dv', 'dm', 'b', 'd', 'bpv'):
+        read_value = inp.read(ktype, read_binary=binary)
+    if ktype in ('bv', 'bm', 'fv', 'fm', 'dv', 'dm', 'b', 'd', 'bpv'):
         assert np.allclose(read_value, value)
     else:
         assert read_value == value
@@ -118,7 +118,7 @@ def test_write_read_numpy_versions(temp_file_1_name, ktype, dtype, value):
         assert value == act_value
 
 
-@pytest.mark.parametrize('dtype,value', [
+@pytest.mark.parametrize('ktype,value', [
     ('bv', ['a', 2, 3]),
     ('bv', 'abc'),
     ('bv', [[1, 2]]),
@@ -141,7 +141,7 @@ def test_write_read_numpy_versions(temp_file_1_name, ktype, dtype, value):
     ('bpv', ((1,), (2, 3))),
 ])
 @pytest.mark.parametrize('binary', [True, False])
-def test_read_write_invalid(temp_file_1_name, dtype, value, binary):
+def test_write_invalid(temp_file_1_name, ktype, value, binary):
     outp = io_open(temp_file_1_name, mode='w')
     with pytest.raises(Exception):
-        outp.write(value, dtype, write_binary=binary)
+        outp.write(value, ktype, write_binary=binary)
