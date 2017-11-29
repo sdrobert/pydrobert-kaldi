@@ -42,15 +42,12 @@ deploy_script:
   - ps: >-
       if ($env:APPVEYOR_REPO_BRANCH -eq "master")
       {
-        git fetch --unshallow
         $env:LABEL = main
-        $env:VERSION = $full_version.split("-")[0].TrimStart("v");
       }
       else
       {
         $env:LABEL = $env:APPVEYOR_REPO_BRANCH
-        $env:VERSION = dev
       }
   - ps: $env:ANACONDA_PATH = (Join-Path $env:MINICONDA_PATH Scripts\anaconda)
   - ps: $env:TARS = (Join-Path -Path $env:MINICONDA_PATH -ChildPath 'conda-bld\win-64\pydrobert-kaldi-*.tar.bz2' -Resolve)
-  - ps: cmd /c "$env:ANACONDA_PATH 2>&1" -t $env:ANACONDA_TOKEN upload -u sdrobert --register $env:TARS -l $env:LABEL
+  - ps: cmd /c "$env:ANACONDA_PATH 2>&1" -t $env:ANACONDA_TOKEN upload -u sdrobert --register $env:TARS

@@ -85,12 +85,15 @@ Simply::
 
 Which installs binaries with MKL BLAS. If ``nomkl`` is installed into the
 environment, either an OpenBLAS version (Linux) or Accelerate (OSX) version is
-installed. ``nomkl`` is not supported by windows.
+installed. Should work for Python 2.7, 3.4, 3.5, and 3.6 on Linux and OSX.
+Windows is limited to 3.5 and 3.6 for the time being.
 
 Bleeding-edge builds from the dev branch are saved under the label ``dev`` on
 the Anaconda cloud::
 
    conda install -c sdrobert/label/dev pydrobert-kaldi
+
+``dev`` builds only exist for 2.7 and 3.6.
 
 Alternatively, to build through PyPI, you'll need to point the install to a BLAS
 library::
@@ -105,7 +108,8 @@ library::
 
 You'll need either GCC or Clang plus Swig >= 3.0.8 for this.
 
-I plan on getting Windows working some time in the future.
+I'd like to try to get 2.7 working for Windows, but I need c++11 support.
+Suggestions?
 
 License
 -------
