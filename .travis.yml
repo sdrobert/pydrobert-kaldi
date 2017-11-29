@@ -7,6 +7,8 @@ env:
   - PY_VER=3.6
 before_install:
   - git fetch --tags
+  - git describe --tags
+  - exit 1
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       if [[ "$PY_VER" == "2.7" ]]; then
         wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
