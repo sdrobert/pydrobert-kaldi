@@ -14,14 +14,14 @@ environment:
 
 init:
   - ps: >-
-    if ($env:APPVEYOR_REPO_BRANCH -eq "master")
-    {
-      $env:LABEL = main
-    }
-    else
-    {
-      $env:LABEL = dev
-    }
+      if ($env:APPVEYOR_REPO_BRANCH -eq "master")
+      {
+        $env:LABEL = main
+      }
+      else
+      {
+        $env:LABEL = dev
+      }
   - ps: echo $env:LABEL
   - exit 1
   - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
