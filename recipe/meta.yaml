@@ -21,7 +21,6 @@ requirements:
     - setuptools
     - setuptools_scm
     - swig >=3.0.8
-    - pytest-runner
 {% if blas_impl == 'mkl' %}
     - mkl
     - mkl-include
