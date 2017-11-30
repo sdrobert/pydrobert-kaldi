@@ -13,6 +13,17 @@ environment:
     #   MINICONDA_PATH: "C:\\Miniconda3-x64"
 
 init:
+  - ps: >-
+    if ($env:APPVEYOR_REPO_BRANCH -eq "master")
+    {
+      $env:LABEL = main
+    }
+    else
+    {
+      $env:LABEL = dev
+    }
+  - ps: echo $env:LABEL
+  - exit 1
   - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
   - cmd: conda config --set always_yes yes --set changeps1 no
   - cmd: conda update -q --all
@@ -39,15 +50,6 @@ test_script:
   - pytest
 
 deploy_script:
-  - ps: >-
-      if ($env:APPVEYOR_REPO_BRANCH -eq "master")
-      {
-        $env:LABEL = main
-      }
-      else
-      {
-        $env:LABEL = dev
-      }
   - ps: $env:ANACONDA_PATH = (Join-Path $env:MINICONDA_PATH Scripts\anaconda)
   - ps: $env:TARS = (Join-Path -Path $env:MINICONDA_PATH -ChildPath 'conda-bld\win-64\pydrobert-kaldi-*.tar.bz2' -Resolve)
   - ps: cmd /c "$env:ANACONDA_PATH 2>&1" -t $env:ANACONDA_TOKEN upload -u sdrobert --register $env:TARS --label $env:LABEL --force
