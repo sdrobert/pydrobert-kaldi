@@ -16,14 +16,13 @@ init:
   - ps: >-
       if ($env:APPVEYOR_REPO_BRANCH -eq "master")
       {
-        $env:LABEL = main
+        $env:LABEL = "main"
       }
       else
       {
-        $env:LABEL = dev
+        $env:LABEL = "dev"
       }
   - ps: echo $env:LABEL
-  - exit 1
   - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
   - cmd: conda config --set always_yes yes --set changeps1 no
   - cmd: conda update -q --all
