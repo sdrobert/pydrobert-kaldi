@@ -17,4 +17,5 @@ anaconda -t ${ANACONDA_TOKEN} upload \
   -u sdrobert \
   --register \
   ${HOME}/miniconda/conda-bld/*/pydrobert-kaldi-*.tar.bz2 \
-  -l $label
+  -l $label \
+  --force

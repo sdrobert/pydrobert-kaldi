@@ -46,8 +46,8 @@ deploy_script:
       }
       else
       {
-        $env:LABEL = $env:APPVEYOR_REPO_BRANCH
+        $env:LABEL = dev
       }
   - ps: $env:ANACONDA_PATH = (Join-Path $env:MINICONDA_PATH Scripts\anaconda)
   - ps: $env:TARS = (Join-Path -Path $env:MINICONDA_PATH -ChildPath 'conda-bld\win-64\pydrobert-kaldi-*.tar.bz2' -Resolve)
-  - ps: cmd /c "$env:ANACONDA_PATH 2>&1" -t $env:ANACONDA_TOKEN upload -u sdrobert --register $env:TARS
+  - ps: cmd /c "$env:ANACONDA_PATH 2>&1" -t $env:ANACONDA_TOKEN upload -u sdrobert --register $env:TARS0 --label $env:LABEL --force
