@@ -17,7 +17,7 @@ source:
 requirements:
   host:
     - python {{ python }}
-    - numpy
+    - numpy >= 1.11.3
     - setuptools
     - setuptools_scm
     - swig >=3.0.8
@@ -32,7 +32,9 @@ requirements:
   run:
     # let link libraries be downstream deps
     - python {{ python }}
-    - {{ pin_compatible('numpy', max_pin='x.x') }}
+    # there have been no major changes in the api yet. We'll see how long
+    # this lasts us
+    - {{ pin_compatible('numpy', max_pin='x') }}
     - future
     - six
     - enum34                               [py2k]
