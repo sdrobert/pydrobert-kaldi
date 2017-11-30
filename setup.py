@@ -23,6 +23,7 @@ from os import walk
 from setuptools import setup
 from setuptools.command.build_ext import build_ext
 from setuptools.extension import Extension
+from sys import argv
 from sys import maxsize
 from sys import version_info
 
@@ -249,7 +250,9 @@ for base_dir, _, files in walk(SRC_DIR):
 INSTALL_REQUIRES = ['numpy', 'six', 'future']
 if version_info < (3, 0):
     INSTALL_REQUIRES.append('enum34')
-SETUP_REQUIRES = ['pytest-runner', 'setuptools_scm']
+SETUP_REQUIRES = ['setuptools_scm']
+if {'pytest', 'test', 'ptr'}.intersection(argv):
+    SETUP_REQUIRES += ['pytest-runner']
 TESTS_REQUIRE = ['pytest']
 
 KALDI_LIBRARY = Extension(
