@@ -1,5 +1,4 @@
-# doesn't matter
-version: {branch}-{build}
+version: build.{build}.branch.{branch}
 
 environment:
   matrix:
