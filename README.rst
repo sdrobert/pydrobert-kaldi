@@ -3,7 +3,7 @@ pydrobert-kaldi
 ===============
 
 .. image:: https://travis-ci.org/sdrobert/pydrobert-kaldi.svg?branch=master
-.. image:: https://ci.appveyor.com/api/projects/status/3lfk37i0xjgsk6ty/branch/master
+.. image:: https://ci.appveyor.com/api/projects/status/lvjhj9pgju90wn8j?svg=true
 
 .. warning:: This is student-driven code, so don't expect a stable API. I'll try
    to use semantic versioning, but the best way to keep functionality stable is
@@ -87,13 +87,6 @@ Which installs binaries with MKL BLAS. If ``nomkl`` is installed into the
 environment, either an OpenBLAS version (Linux) or Accelerate (OSX) version is
 installed. Should work for Python 2.7, 3.4, 3.5, and 3.6 on Linux and OSX.
 Windows is limited to 3.5 and 3.6 for the time being.
-
-Bleeding-edge builds from the dev branch are saved under the label ``dev`` on
-the Anaconda cloud::
-
-   conda install -c sdrobert/label/dev pydrobert-kaldi
-
-``dev`` builds only exist for 2.7 and 3.6.
 
 Alternatively, to build through PyPI, you'll need to point the install to a BLAS
 library::

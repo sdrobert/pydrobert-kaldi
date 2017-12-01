@@ -6,7 +6,6 @@ env:
   - PY_VER=2.7
   - PY_VER=3.6
 before_install:
-  - while ! git describe --tags 2>&1 > /dev/null; do git fetch --deepen 50; done
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       if [[ "$PY_VER" == "2.7" ]]; then
         wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
@@ -35,34 +34,7 @@ script:
   - pytest
 deploy:
   - provider: script
-    script: source deactivate || true; bash recipe/anaconda_deploy.sh main
+    script: source deactivate || true; bash recipe/anaconda_deploy.sh
     skip_cleanup: true
     on:
-      branch: master
-  - provider: script
-    script: source deactivate || true; bash recipe/anaconda_deploy.sh dev
-    skip_cleanup: true
-    on:
-      branch: dev
-# install:
-#   - sudo apt-get install libopenblas-dev
-#   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-#       wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-#     else
-#       wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-#     fi
-#   - bash miniconda.sh -b -p $HOME/miniconda
-#   - export PATH="$HOME/miniconda/bin:$PATH"
-#   - hash -r
-#   - conda config --set always_yes yes --set changeps1 no
-#   - conda config --add channels anaconda
-#   - conda update -q --all
-#   - conda info -a
-#   - conda install conda-build
-#   - export CONDA_PY=${TRAVIS_PYTHON_VERSION}
-#   - conda build . --no-test
-#   - conda create -n test python=${TRAVIS_PYTHON_VERSION} pytest -y
-#   - source activate test
-#   - conda install pydrobert-kaldi --use-local
-# script: 
-#   - pytest
+      tags: master

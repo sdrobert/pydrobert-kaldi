@@ -1,9 +1,11 @@
-{% set version = environ.get('GIT_DESCRIBE_TAG', '0.0').replace('v','') %}
 {% if environ.get('TRAVIS', False) %}
+  {% set version = environ.get('TRAVIS_TAG', '0.0').replace('v', '') %}
   {% set build_num = environ['TRAVIS_BUILD_NUMBER'] %}
 {% elif environ.get('APPVEYOR', False) %}
+  {% set version = environ.get('APPVEYOR_REPO_TAG_NAME', '0.0').replace('v', '') %}
   {% set build_num = environ['APPVEYOR_BUILD_NUMBER'] %}
-{% else %}  
+{% else %}
+  {% set version = environ.get('GIT_DESCRIBE_TAG', '0.0').replace('v','') %}
   {% set build_num = environ.get('GIT_DESCRIBE_NUMBER', 0) %}
 {% endif %}
 # blas_impl one of openblas, mkl, or accelerate
