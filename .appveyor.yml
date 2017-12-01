@@ -1,4 +1,5 @@
-version: 0.0.{build}
+# doesn't matter
+version: {branch}-{build}
 
 environment:
   matrix:
@@ -8,6 +9,9 @@ environment:
     - image: Visual Studio 2015
       PY_VER: 3.5
       MINICONDA_PATH: "C:\\Miniconda3-x64"
+    # 3.4 ought to work, and 2.7 ought not to work, but not because it's missing
+    # the visual studio compiler. I'll attribute this to growing pains of
+    # Conda Build 3. Either way, I'm commenting them out
     # - image: Visual Studio 2010
     #   PY_VER: 3.4
     #   MINICONDA_PATH: "C:\\Miniconda3-x64"
@@ -32,15 +36,6 @@ init:
   - cmd: conda install conda-build anaconda-client
 
 install:
-  - ps: >-
-      if ($env:APPVEYOR_REPO_TAG -eq "true")
-      {
-        Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
-      }
-      else
-      {
-        Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_COMMIT.Substring(0, 7))"
-      }
   - cmd: conda build recipe --no-test --python %PY_VER%
   - cmd: conda create -n test python=%PY_VER% pytest
   - cmd: activate test
