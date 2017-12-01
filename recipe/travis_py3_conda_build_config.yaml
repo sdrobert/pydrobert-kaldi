@@ -1,3 +1,4 @@
+# This covers the remainder of py3 builds in travis when deploying
 python:
   - 3.4
   - 3.5

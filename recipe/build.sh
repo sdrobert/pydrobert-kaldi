@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [ ! -z "${NOMKL}" ] && [ ${NOMKL} = 1 ]; then
-  if [ `uname` = "Darwin" ]; then
-    export ACCELERATE=1
-  else
-    export OPENBLASROOT="${CONDA_PREFIX}"
-  fi
-else
+if [ $blas_impl = "mkl" ]; then
   export MKLROOT="${CONDA_PREFIX}"
+elif [ $blas_impl = "accelerate" ]; then
+  export ACCELERATE=1
+elif [ $blas_impl = "openblas" ]; then
+  export OPENBLASROOT="${CONDA_PREFIX}"
+else
+  1>&2 echo Unknown blas_impl
+  exit 1
 fi
 
 ${PYTHON} setup.py install \
