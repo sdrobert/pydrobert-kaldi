@@ -16,25 +16,24 @@ source:
 
 requirements:
   host:
-    - python {{ python }}
-    - numpy >=1.11.3
+    - python
+    - numpy 1.11.3
     - setuptools
     - setuptools_scm
     - swig >=3.0.8
 {% if blas_impl == 'mkl' %}
-    - mkl
-    - mkl-include
+    - mkl-devel
 {% elif blas_impl == 'openblas' %}
-    - openblas
+    - openblas-devel
 {% endif %}
   build:
     - {{ compiler('cxx') }}
   run:
     # let link libraries be downstream deps
-    - python {{ python }}
-    # there have been no major changes in the api yet. We'll see how long
-    # this lasts us
-    - {{ pin_compatible('numpy', max_pin='x') }}
+    - python
+    # there have been no major changes in the api since 1.11.3 (currently at
+    # 1.13). We'll see how long this lasts us
+    - {{ pin_compatible('numpy') }}
     - future
     - six
     - enum34                               [py2k]
@@ -63,4 +62,5 @@ about:
   home: https://github.com/sdrobert/pydrobert-kaldi
   license: Apache 2.0
   license_file: LICENSE
+  summary: Kaldi Swig bindings for Python
   summary: Kaldi Swig bindings for Python
