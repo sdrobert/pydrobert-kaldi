@@ -1,2 +1,26 @@
+# Only one of these is built by a given environment in the CI before testing,
+# which is why blas_impl are commented out. If you want to build everything at
+# once, uncomment them
 blas_impl:
   - mkl
+# - accelerate [osx]
+# - openblas   [linux]
+python:
+  - 2.7
+  - 3.4
+  - 3.5
+  - 3.6
+vc:
+  - 9
+  - 10
+  - 14
+  - 14
+vc_feat:
+  - vc9
+  - vc10
+  - vc14
+  - vc14
+zip_keys:
+  - python
+  - vc
+  - vc_feat
