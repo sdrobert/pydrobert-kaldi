@@ -1,5 +1,5 @@
 {% if environ.get('TRAVIS', False) %}
-  {% set version = environ.get('TRAVIS_TAG', '0.0').replace('v', '') %}
+  {% set version = environ.get('TRAVIS_BRANCH', '0.0').replace('v', '') %}
   {% set build_num = environ['TRAVIS_BUILD_NUMBER'] %}
 {% elif environ.get('APPVEYOR', False) %}
   {% set version = environ.get('APPVEYOR_REPO_TAG_NAME', '0.0').replace('v', '') %}
