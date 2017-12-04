@@ -111,7 +111,10 @@ def blas_setup(roots, library_names, headers, extra_entries_on_success):
         root = path.abspath(root)
         for root_name, _, base_names in walk(root):
             for base_name in base_names:
-                library_name = base_name[3:].split('.')[0]
+                if platform.system() == 'Windows':
+                    library_name = base_name.split('.')[0]
+                else:
+                    library_name = base_name[3:].split('.')[0]
                 if library_name in library_names and \
                         not library_names[library_name]:
                     library_names[library_name] = True
@@ -186,14 +189,21 @@ def custom_blas_setup(blas_includes, blas_libraries):
                     include_dir))
     library_names = set()
     library_dirs = set()
+    ldflags = set()
     candidate_blas_types = set()
     for blas_library in blas_libraries:
         if path.isfile(blas_library):
             library_name = path.basename(blas_library)
+            if platform.system() == 'Windows':
+                library_names.add(library_name.split('.')[0])
+            elif platform.system() == 'Linux':
+                ldflags.add('-l:{}'.format(library_name))
+            else:
+                library_names.add(library_name[3:].split('.'))
             library_dirs.add(path.abspath(path.dirname(blas_library)))
         else:
             library_name = blas_library
-        library_names.add(library_name)
+            library_names.add(library_name)
         for blas_type in ('atlas', 'mkl', 'openblas', 'lapacke', 'clapack'):
             if blas_type in library_name:
                 candidate_blas_types.add(blas_type)
@@ -223,6 +233,7 @@ def custom_blas_setup(blas_includes, blas_libraries):
     ret['BLAS_LIBRARIES'] = list(library_names)
     ret['BLAS_LIBRARY_DIRS'] = list(library_dirs)
     ret['BLAS_INCLUDES'] = list(blas_includes)
+    ret['LD_FLAGS'] = ret.get('LD_FLAGS', []) + list(ldflags)
     return ret
 
 
@@ -274,11 +285,11 @@ elif NUM_BLAS_OPTS:
             raise Exception(
                 'Both BLAS_LIBRARIES and BLAS_INCLUDES must be set if one '
                 'is set')
-        custom_blas_setup(BLAS_INCLUDES, BLAS_LIBRARIES)
+        BLAS_DICT = custom_blas_setup(BLAS_INCLUDES, BLAS_LIBRARIES)
     elif CLAPACK_ROOT:
-        clapack_setup(CLAPACK_ROOT)
+        BLAS_DICT = clapack_setup(CLAPACK_ROOT)
     elif LAPACKE_ROOT:
-        lapacke_setup(LAPACKE_ROOT)
+        BLAS_DICT = lapacke_setup(LAPACKE_ROOT)
     elif platform.system() == 'Darwin':
         BLAS_DICT = accelerate_setup()
     else:
