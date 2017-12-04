@@ -7,7 +7,3 @@ blas_impl:
   - mkl
   - openblas   [linux]
   - accelerate [osx]
-matrix:
-  exclude:
-    - python: 3.6
-      blas_impl: mkl

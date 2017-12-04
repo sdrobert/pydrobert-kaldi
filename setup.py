@@ -15,6 +15,7 @@
 from __future__ import print_function
 
 import platform
+import shlex
 
 from codecs import open
 from os import environ
@@ -149,7 +150,7 @@ def atlas_setup(roots):
     )
 
 
-def blas_lapacke_setup(roots):
+def lapacke_setup(roots):
     return blas_setup(
         roots,
         ('blas', 'lapack', 'lapacke'),
@@ -158,7 +159,7 @@ def blas_lapacke_setup(roots):
     )
 
 
-def blas_clapack_setup(roots):
+def clapack_setup(roots):
     return blas_setup(
         roots,
         ('blas', 'lapack', 'f2c', 'clapack'),
@@ -172,6 +173,55 @@ def accelerate_setup():
         'DEFINES': [('HAVE_CLAPACK', None)],
         'LD_FLAGS': ['-framework', 'Accelerate'],
     }
+
+def custom_blas_setup(blas_includes, blas_libraries):
+    # blas includes must be a directory/directories. Blas libraries
+    # could be the library names or paths to the libraries themselves.
+    for include_dir in blas_includes:
+        if not path.isdir(include_dir):
+            raise Exception(
+                'path "{}" in BLAS_INCLUDES is not a directory'.format(
+                    include_dir))
+    library_names = set()
+    library_dirs = set()
+    candidate_blas_types = set()
+    for blas_library in blas_libraries:
+        if path.isfile(blas_library):
+            library_name = path.basename(blas_library)
+            library_dirs.add(path.abspath(path.dirname(blas_library)))
+        else:
+            library_name = blas_library
+        library_names.add(library_name)
+        for blas_type in ('atlas', 'mkl', 'openblas', 'lapacke', 'clapack'):
+            if blas_type in library_name:
+                candidate_blas_types.add(blas_type)
+    if not len(candidate_blas_types):
+        raise Exception(
+            'Could not determine appropriate BLAS type for libraries listed '
+            'in BLAS_LIBRARIES')
+    elif len(candidate_blas_types) != 1:
+        raise Exception(
+            'BLAS_LIBRARIES contains libraries that could refer to any '
+            'of {}'.format(candidate_blas_types))
+    blas_type = candidate_blas_types.pop()
+    # we need to check if the requisite libraries are present in the
+    # inferred directories & get the appropriate defines. We then force
+    # *our* directories and libraries. Any problems with this should be
+    # caught at compile/link time
+    if blas_type == 'atlas':
+        ret = atlas_setup(library_dirs | blas_includes)
+    elif blas_type == 'mkl':
+        ret = mkl_setup(library_dirs | blas_includes)
+    elif blas_type == 'openblas':
+        ret = openblas_setup(library_dirs | blas_includes)
+    elif blas_type == 'lapacke':
+        ret = lapacke_setup(library_dirs | blas_includes)
+    else:
+        ret = clapack_setup(library_dirs | blas_includes)
+    ret['BLAS_LIBRARIES'] = list(library_names)
+    ret['BLAS_LIBRARY_DIRS'] = list(library_dirs)
+    ret['BLAS_INCLUDES'] = list(include_dirs)
+    return ret
 
 
 PWD = path.abspath(path.dirname(__file__))
@@ -195,28 +245,40 @@ else:
     LIBRARIES = []
 LD_FLAGS = []
 
-MKL_ROOT = environ.get('MKLROOT', None)
-OPENBLAS_ROOT = environ.get('OPENBLASROOT', None)
-ATLAS_ROOT = environ.get('ATLASROOT', None)
-CLAPACK_ROOT = environ.get('CLAPACKROOT', None)
-LAPACKE_ROOT = environ.get('LAPACKEROOT', None)
+MKL_ROOT = shlex.split(environ.get('MKLROOT', ''))
+OPENBLAS_ROOT = shlex.split(environ.get('OPENBLASROOT', ''))
+ATLAS_ROOT = shlex.split(environ.get('ATLASROOT', ''))
+CLAPACK_ROOT = shlex.split(environ.get('CLAPACKROOT', ''))
+LAPACKE_ROOT = shlex.split(environ.get('LAPACKEROOT', ''))
 USE_ACCELERATE = environ.get('ACCELERATE', None)
-if MKL_ROOT or OPENBLAS_ROOT or ATLAS_ROOT or USE_ACCELERATE:
-    if sum(
-            x is not None for x in (
-                MKL_ROOT, OPENBLAS_ROOT, ATLAS_ROOT, USE_ACCELERATE,
-                CLAPACK_ROOT, LAPACKE_ROOT
-            )) != 1:
-        raise Exception(
-            'Only one of MKLROOT, ATLASROOT, ACCELERATE, or '
-            'OPENBLASROOT should be set')
+BLAS_INCLUDES = shlex.split(environ.get('BLAS_INCLUDES', ''))
+BLAS_LIBRARIES = shlex.split(environ.get('BLAS_LIBRARIES', ''))
+NUM_BLAS_OPTS = sum(bool(x) for x in (
+    MKL_ROOT, OPENBLAS_ROOT, ATLAS_ROOT, USE_ACCELERATE,
+    CLAPACK_ROOT, LAPACKE_ROOT, BLAS_INCLUDES, BLAS_LIBRARIES
+))
+if NUM_BLAS_OPTS > 1:
+    raise Exception(
+        'Only one of MKLROOT, ATLASROOT, ACCELERATE, or '
+        'OPENBLASROOT should be set')
+elif NUM_BLAS_OPTS:
     if MKL_ROOT:
         BLAS_DICT = mkl_setup(
-            [MKL_ROOT], environ.get('MKL_THREADING_TYPE', None))
+            MKL_ROOT, environ.get('MKL_THREADING_TYPE', None))
     elif OPENBLAS_ROOT:
-        BLAS_DICT = openblas_setup([OPENBLAS_ROOT])
+        BLAS_DICT = openblas_setup(OPENBLAS_ROOT)
     elif ATLAS_ROOT:
-        BLAS_DICT = atlas_setup([ATLAS_ROOT])
+        BLAS_DICT = atlas_setup(ATLAS_ROOT)
+    elif BLAS_INCLUDES or BLAS_LIBRARIES:
+        if bool(BLAS_INCLUDES) != bool(BLAS_LIBRARIES):
+            raise Exception(
+                'Both BLAS_LIBRARIES and BLAS_INCLUDES must be set if one '
+                'is set')
+        custom_blas_setup(BLAS_INCLUDES, BLAS_LIBRARIES)
+    elif CLAPACK_ROOT:
+        clapack_setup(CLAPACK_ROOT)
+    elif LAPACKE_ROOT:
+        lapacke_setup(LAPACKE_ROOT)
     elif platform.system() == 'Darwin':
         BLAS_DICT = accelerate_setup()
     else:
@@ -296,8 +358,8 @@ class CustomBuildExtCommand(build_ext):
             ('atlas', 'HAVE_ATLAS', atlas_setup),
             # numpy only cares about lapack, not c wrappers. It uses
             # f77blas, after all
-            ('blas_opt', 'HAVE_LAPACKE', blas_lapacke_setup),
-            ('blas_opt', 'HAVE_CLAPACK', blas_clapack_setup),
+            ('blas_opt', 'HAVE_LAPACKE', lapacke_setup),
+            ('blas_opt', 'HAVE_CLAPACK', clapack_setup),
         ]
         if platform.system() == 'Darwin':
             blas_to_check.append(

@@ -1,10 +1,12 @@
 #! /bin/bash
 
 if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-  conda build recipe -m recipe/travis_py2_conda_build_config.yaml
+  mv recipe/travis_py2_conda_build_config.yaml recipe/conda_build_config.yaml
 else
-  conda build recipe -m recipe/travis_py3_conda_build_config.yaml
+  mv recipe/travis_py3_conda_build_config.yaml recipe/conda_build_config.yaml
 fi
+rm recipe/travis_*.yaml
+conda build recipe --skip-existing
 
 anaconda -t ${ANACONDA_TOKEN} upload \
   -u sdrobert \
