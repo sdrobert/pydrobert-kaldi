@@ -111,7 +111,10 @@ def blas_setup(roots, library_names, headers, extra_entries_on_success):
         root = path.abspath(root)
         for root_name, _, base_names in walk(root):
             for base_name in base_names:
-                library_name = base_name[3:].split('.')[0]
+                if platform.system() == 'Windows':
+                    library_name = base_name.split('.')[0]
+                else:
+                    library_name = base_name[3:].split('.')[0]
                 if library_name in library_names and \
                         not library_names[library_name]:
                     library_names[library_name] = True
@@ -189,7 +192,10 @@ def custom_blas_setup(blas_includes, blas_libraries):
     candidate_blas_types = set()
     for blas_library in blas_libraries:
         if path.isfile(blas_library):
-            library_name = path.basename(blas_library)
+            if platform.system() == 'Windows':
+                library_name = path.basename(blas_library)
+            else:
+                library_name = path.basename(blas_library)[3:]
             library_dirs.add(path.abspath(path.dirname(blas_library)))
         else:
             library_name = blas_library
