@@ -204,7 +204,6 @@ def custom_blas_setup(blas_includes, blas_libraries):
         else:
             library_name = blas_library
             library_names.add(library_name)
-        library_names.add(library_name)
         for blas_type in ('atlas', 'mkl', 'openblas', 'lapacke', 'clapack'):
             if blas_type in library_name:
                 candidate_blas_types.add(blas_type)
