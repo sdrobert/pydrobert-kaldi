@@ -194,10 +194,12 @@ def custom_blas_setup(blas_includes, blas_libraries):
     for blas_library in blas_libraries:
         if path.isfile(blas_library):
             library_name = path.basename(blas_library)
-            if platform.system() == 'linux':
+            if platform.system() == 'Windows':
+                library_names.add(library_name.split('.')[0])
+            elif platform.system() == 'Linux':
                 ldflags.add('-l:{}'.format(library_name))
             else:
-                library_names.add(library_name)
+                library_names.add(library_name[3:].split('.'))
             library_dirs.add(path.abspath(path.dirname(blas_library)))
         else:
             library_name = blas_library
