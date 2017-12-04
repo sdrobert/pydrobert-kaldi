@@ -259,6 +259,7 @@ else:
 LD_FLAGS = []
 
 MKL_ROOT = shlex.split(environ.get('MKLROOT', ''))
+print(MKL_ROOT, environ.get('MKLROOT', ''))
 OPENBLAS_ROOT = shlex.split(environ.get('OPENBLASROOT', ''))
 ATLAS_ROOT = shlex.split(environ.get('ATLASROOT', ''))
 CLAPACK_ROOT = shlex.split(environ.get('CLAPACKROOT', ''))
