@@ -174,9 +174,11 @@ def accelerate_setup():
         'LD_FLAGS': ['-framework', 'Accelerate'],
     }
 
+
 def custom_blas_setup(blas_includes, blas_libraries):
     # blas includes must be a directory/directories. Blas libraries
     # could be the library names or paths to the libraries themselves.
+    blas_includes = set(blas_includes)
     for include_dir in blas_includes:
         if not path.isdir(include_dir):
             raise Exception(
@@ -220,7 +222,7 @@ def custom_blas_setup(blas_includes, blas_libraries):
         ret = clapack_setup(library_dirs | blas_includes)
     ret['BLAS_LIBRARIES'] = list(library_names)
     ret['BLAS_LIBRARY_DIRS'] = list(library_dirs)
-    ret['BLAS_INCLUDES'] = list(include_dirs)
+    ret['BLAS_INCLUDES'] = list(blas_includes)
     return ret
 
 
