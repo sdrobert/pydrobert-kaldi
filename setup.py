@@ -255,12 +255,10 @@ BLAS_INCLUDES = shlex.split(environ.get('BLAS_INCLUDES', ''))
 BLAS_LIBRARIES = shlex.split(environ.get('BLAS_LIBRARIES', ''))
 NUM_BLAS_OPTS = sum(bool(x) for x in (
     MKL_ROOT, OPENBLAS_ROOT, ATLAS_ROOT, USE_ACCELERATE,
-    CLAPACK_ROOT, LAPACKE_ROOT, BLAS_INCLUDES, BLAS_LIBRARIES
+    CLAPACK_ROOT, LAPACKE_ROOT, BLAS_LIBRARIES
 ))
 if NUM_BLAS_OPTS > 1:
-    raise Exception(
-        'Only one of MKLROOT, ATLASROOT, ACCELERATE, or '
-        'OPENBLASROOT should be set')
+    raise Exception('Only one BLAS type should be specified')
 elif NUM_BLAS_OPTS:
     if MKL_ROOT:
         BLAS_DICT = mkl_setup(
