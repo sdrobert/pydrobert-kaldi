@@ -274,11 +274,11 @@ elif NUM_BLAS_OPTS:
             raise Exception(
                 'Both BLAS_LIBRARIES and BLAS_INCLUDES must be set if one '
                 'is set')
-        custom_blas_setup(BLAS_INCLUDES, BLAS_LIBRARIES)
+        BLAS_DICT = custom_blas_setup(BLAS_INCLUDES, BLAS_LIBRARIES)
     elif CLAPACK_ROOT:
-        clapack_setup(CLAPACK_ROOT)
+        BLAS_DICT = clapack_setup(CLAPACK_ROOT)
     elif LAPACKE_ROOT:
-        lapacke_setup(LAPACKE_ROOT)
+        BLAS_DICT = lapacke_setup(LAPACKE_ROOT)
     elif platform.system() == 'Darwin':
         BLAS_DICT = accelerate_setup()
     else:
