@@ -33,6 +33,7 @@ from pydrobert.kaldi.io.util import parse_kaldi_input_path
 
 __all__ = [
     'batch_data',
+    'Data',
     'ShuffledData',
     'SequentialData',
 ]
