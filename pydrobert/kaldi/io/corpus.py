@@ -503,6 +503,7 @@ class Data(Iterable, Sized):
                     subsamples=subsamples,
                     batch_size=self.batch_size,
                     axis=self.batch_axis if subsamples else self.batch_axis[0],
+                    pad_mode=self.batch_pad_mode,
                     cast_to_array=(
                         self.batch_cast_to_array if subsamples else
                         self.batch_cast_to_array[0]),
