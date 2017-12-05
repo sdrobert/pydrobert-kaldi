@@ -15,12 +15,12 @@
 from __future__ import print_function
 
 import platform
-import shlex
 
 from codecs import open
 from os import environ
 from os import path
 from os import walk
+from re import findall
 from setuptools import setup
 from setuptools.command.build_ext import build_ext
 from setuptools.extension import Extension
@@ -29,6 +29,50 @@ from sys import maxsize
 from sys import version_info
 
 IS_64_BIT = maxsize > 2 ** 32
+ON_WINDOWS = platform.system() == 'Windows'
+
+
+# modified this bad boy from
+# https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex
+def cmdline_split(s, platform=not ON_WINDOWS):
+    """Multi-platform variant of shlex.split() for command-line splitting.
+    For use with subprocess, for argv injection etc. Using fast REGEX.
+
+    platform: 'this' = auto from current platform;
+              1 = POSIX;
+              0 = Windows/CMD
+              (other values reserved)
+    """
+    if platform:
+        RE_CMD_LEX = r'''"((?:\\["\\]|[^"])*)"|'([^']*)'|(\\.)|(&&?|\|\|?|\d?\>|[<])|([^\s'"\\&|<>]+)|(\s+)|(.)'''
+    else:
+        RE_CMD_LEX = r'''"((?:""|\\["\\]|[^"])*)"?()|(\\\\(?=\\*")|\\")|(&&?|\|\|?|\d?>|[<])|([^\s"&|<>]+)|(\s+)|(.)'''
+    args = []
+    accu = None   # collects pieces of one arg
+    for qs, qss, esc, pipe, word, white, fail in findall(RE_CMD_LEX, s):
+        if word:
+            pass   # most frequent
+        elif esc:
+            word = esc[1]
+        elif white or pipe:
+            if accu is not None:
+                args.append(accu)
+            if pipe:
+                args.append(pipe)
+            accu = None
+            continue
+        elif fail:
+            raise ValueError("invalid or incomplete shell string")
+        elif qs:
+            word = qs.replace('\\"', '"').replace('\\\\', '\\')
+            if platform == 0:
+                word = word.replace('""', '"')
+        else:
+            word = qss   # may be even empty; must be last
+        accu = (accu or '') + word
+    if accu is not None:
+        args.append(accu)
+    return args
 
 
 def mkl_setup(roots, mkl_threading=None):
@@ -47,7 +91,7 @@ def mkl_setup(roots, mkl_threading=None):
         root = path.abspath(root)
         for root_name, _, base_names in walk(root):
             for base_name in base_names:
-                if platform.system() == 'Windows':
+                if ON_WINDOWS:
                     library_name = base_name.split('.')[0]
                 else:
                     library_name = base_name[3:].split('.')[0]
@@ -111,7 +155,7 @@ def blas_setup(roots, library_names, headers, extra_entries_on_success):
         root = path.abspath(root)
         for root_name, _, base_names in walk(root):
             for base_name in base_names:
-                if platform.system() == 'Windows':
+                if ON_WINDOWS:
                     library_name = base_name.split('.')[0]
                 else:
                     library_name = base_name[3:].split('.')[0]
@@ -194,7 +238,7 @@ def custom_blas_setup(blas_includes, blas_libraries):
     for blas_library in blas_libraries:
         if path.isfile(blas_library):
             library_name = path.basename(blas_library)
-            if platform.system() == 'Windows':
+            if ON_WINDOWS:
                 library_names.add(library_name.split('.')[0])
             elif platform.system() == 'Linux':
                 ldflags.add('-l:{}'.format(library_name))
@@ -258,14 +302,14 @@ else:
     LIBRARIES = []
 LD_FLAGS = []
 
-MKL_ROOT = shlex.split(environ.get('MKLROOT', ''))
-OPENBLAS_ROOT = shlex.split(environ.get('OPENBLASROOT', ''))
-ATLAS_ROOT = shlex.split(environ.get('ATLASROOT', ''))
-CLAPACK_ROOT = shlex.split(environ.get('CLAPACKROOT', ''))
-LAPACKE_ROOT = shlex.split(environ.get('LAPACKEROOT', ''))
+MKL_ROOT = cmdline_split(environ.get('MKLROOT', ''))
+OPENBLAS_ROOT = cmdline_split(environ.get('OPENBLASROOT', ''))
+ATLAS_ROOT = cmdline_split(environ.get('ATLASROOT', ''))
+CLAPACK_ROOT = cmdline_split(environ.get('CLAPACKROOT', ''))
+LAPACKE_ROOT = cmdline_split(environ.get('LAPACKEROOT', ''))
 USE_ACCELERATE = environ.get('ACCELERATE', None)
-BLAS_INCLUDES = shlex.split(environ.get('BLAS_INCLUDES', ''))
-BLAS_LIBRARIES = shlex.split(environ.get('BLAS_LIBRARIES', ''))
+BLAS_INCLUDES = cmdline_split(environ.get('BLAS_INCLUDES', ''))
+BLAS_LIBRARIES = cmdline_split(environ.get('BLAS_LIBRARIES', ''))
 NUM_BLAS_OPTS = sum(bool(x) for x in (
     MKL_ROOT, OPENBLAS_ROOT, ATLAS_ROOT, USE_ACCELERATE,
     CLAPACK_ROOT, LAPACKE_ROOT, BLAS_LIBRARIES

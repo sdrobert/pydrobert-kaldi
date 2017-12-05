@@ -20,6 +20,7 @@ from __future__ import print_function
 
 import argparse
 import logging
+import platform
 import sys
 
 from shlex import split
@@ -304,7 +305,12 @@ class KaldiParser(argparse.ArgumentParser):
             super(KaldiParser, self).error(message)
 
     def convert_arg_line_to_args(self, arg_line):
-        for arg in split(arg_line, comments=True):
+        # this won't work for Windows-style commenting, quotations, etc.
+        # However, for the sake of arg file parsing, this should
+        # suffice - we just want the user to be able to express
+        # Windows paths in the file
+        for arg in split(
+                arg_line, comments=True, posix=platform.system() != 'Windows'):
             yield arg
 
     @kaldi_vlog_level_cmd_decorator
