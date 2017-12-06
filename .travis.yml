@@ -27,14 +27,14 @@ before_install:
   - conda install conda-build anaconda-client
   - conda create -n test python=${PY_VER} pytest
 install:
-  - conda build recipe --no-test --python ${PY_VER}
+  - conda build recipe --no-test --python ${PY_VER} -m recipe/ci_build.yaml
   - source activate test
   - conda install pydrobert-kaldi --use-local
 script:
   - pytest
 deploy:
   - provider: script
-    script: source deactivate || true; bash recipe/anaconda_deploy.sh
+    script: source deactivate || true; bash recipe/travis_deploy.sh
     skip_cleanup: true
     on:
       tags: true

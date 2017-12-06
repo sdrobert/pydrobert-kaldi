@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# this is used by CI when deploying for py3
 python:
-  - 2.7
   - 3.4
   - 3.5
   - 3.6
