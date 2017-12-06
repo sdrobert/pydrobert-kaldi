@@ -1,6 +1,0 @@
-# this covers the remainder of py3 builds in travis when deploying
-python:
-  - 2.7
-blas_impl:
-  - openblas   [linux]
-  - accelerate [osx]

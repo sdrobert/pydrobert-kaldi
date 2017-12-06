@@ -12,11 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-python:
-  - 2.7
-  - 3.4
-  - 3.5
-  - 3.6
+# this is used by continuous integration when building/testing. We let it
+# choose the python version
 blas_impl:
   - mkl
-  - openblas

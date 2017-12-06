@@ -1,3 +1,17 @@
+# Copyright 2017 Sean Robertson
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 {% if environ.get('TRAVIS', False) %}
   {% set version = environ.get('TRAVIS_BRANCH', '0.0').replace('v', '') %}
   {% set build_num = environ['TRAVIS_BUILD_NUMBER'] %}
@@ -8,7 +22,6 @@
   {% set version = environ.get('GIT_DESCRIBE_TAG', '0.0').replace('v','') %}
   {% set build_num = environ.get('GIT_DESCRIBE_NUMBER', 0) %}
 {% endif %}
-# blas_impl one of openblas, mkl, or accelerate
 
 package:
   name: pydrobert-kaldi
@@ -20,47 +33,30 @@ source:
 requirements:
   host:
     - python {{ python }}
-    - vc {{ vc }}                          [win]
     - numpy 1.11.3
-{% if blas_impl == 'mkl' %}
-    - mkl-devel
-{% else %}
-    - nomkl
-{%if blas_impl == 'openblas' %}
-    - openblas-devel
-{% endif %}
-{% endif %}
-  build:
+    - {{ blas_impl }}-devel
+    - nomkl                                # [blas_impl != 'mkl']
     - setuptools
     - setuptools_scm
     - swig >=3.0.8
+  build:
     - {{ compiler('cxx') }}
   run:
+    # *-devel packages provide library packages as run_exports
     - python {{ python }}
-    - vc {{ vc }}                          [win]
-{% if blas_impl == 'mkl' %}
-    - mkl
-{% else %}
-    - nomkl
-{%if blas_impl == 'openblas' %}
-    - libopenblas
-{% endif %}
-{% endif %}
     # there have been no major changes in the api since 1.11.3 (currently at
     # 1.13). We'll see how long this lasts us
     - {{ pin_compatible('numpy') }}
     - future
     - six
-    - enum34                               [py2k]
+    - enum34                               # [py2k]
 
 build:
+  skip: True                               # [win and blas_impl != 'mkl']
   number: {{ build_num }}
   detect_binary_files_with_prefix: False
   features:
-{% if blas_impl != 'mkl' %}
-    - nomkl
-{% endif %}
-    - {{ vc_feat }}                        [win]
+    - nomkl                                # [blas_impl != 'mkl']
 
 test:
   source_files:
@@ -78,5 +74,4 @@ about:
   home: https://github.com/sdrobert/pydrobert-kaldi
   license: Apache 2.0
   license_file: LICENSE
-  summary: Kaldi Swig bindings for Python
   summary: Kaldi Swig bindings for Python
