@@ -2,7 +2,7 @@ set -e
 
 echo "From travis deploy: ${PY_VER} $1"
 
-if [ "${PY_VER}" == "2.7" ]; then
+if [ "${PY_VER}" = "2.7" ]; then
   echo "In py2 block"
   # conda build recipe --skip-existing -m recipe/ci_py2_deploy.yaml
 else
