@@ -36,7 +36,6 @@ deploy:
   - provider: script
     script: . deactivate; . recipe/travis_deploy.sh || exit 1
     skip_cleanup: true
-    # on:
-    #   tags: true
     on:
-      branch: dev
+      tags: true
+
