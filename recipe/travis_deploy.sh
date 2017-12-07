@@ -2,7 +2,10 @@
 
 set -e
 
-if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+echo ${PY_VER}
+exit 1
+
+if [[ "${PY_VER}" == "2.7" ]]; then
   conda build recipe --skip-existing -m recipe/ci_py2_deploy.yaml
 else
   conda build recipe --skip-existing -m recipe/ci_py3_deploy.yaml
