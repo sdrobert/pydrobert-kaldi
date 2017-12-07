@@ -6,8 +6,6 @@ env:
   - PY_VER=2.7
   - PY_VER=3.6
 before_install:
-  - echo ${PY_VER}
-  - . recipe/travis_deploy.sh ${PY_VER}
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       if [[ "$PY_VER" == "2.7" ]]; then
         wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
@@ -21,22 +19,22 @@ before_install:
         wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
       fi
     fi
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q --all
-  - conda install conda-build anaconda-client
-  - conda create -n test python=${PY_VER} pytest
-install:
-  - conda build recipe --no-test --python ${PY_VER} -m recipe/ci_build.yaml
-  - . activate test || exit 1
-  - conda install pydrobert-kaldi --use-local
-script:
-  - pytest
+#   - bash miniconda.sh -b -p $HOME/miniconda
+#   - export PATH="$HOME/miniconda/bin:$PATH"
+#   - hash -r
+#   - conda config --set always_yes yes --set changeps1 no
+#   - conda update -q --all
+#   - conda install conda-build anaconda-client
+#   - conda create -n test python=${PY_VER} pytest
+# install:
+#   - conda build recipe --no-test --python ${PY_VER} -m recipe/ci_build.yaml
+#   - . activate test || exit 1
+#   - conda install pydrobert-kaldi --use-local
+# script:
+#   - pytest
 deploy:
   - provider: script
-    script: . deactivate; . recipe/travis_deploy.sh
+    script: . recipe/travis_deploy.sh ${PY_VER} || exit 1
     skip_cleanup: true
     on:
       tags: true
