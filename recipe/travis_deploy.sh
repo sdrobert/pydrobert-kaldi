@@ -1,8 +1,6 @@
-#! /bin/bash
-
 set -e
 
-if [[ "${PY_VER}" == "2.7" ]]; then
+if [ "${PY_VER}" = "2.7" ]; then
   conda build recipe --skip-existing -m recipe/ci_py2_deploy.yaml
 else
   conda build recipe --skip-existing -m recipe/ci_py3_deploy.yaml
