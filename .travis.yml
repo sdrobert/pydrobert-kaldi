@@ -28,13 +28,13 @@ before_install:
   - conda create -n test python=${PY_VER} pytest
 install:
   - conda build recipe --no-test --python ${PY_VER} -m recipe/ci_build.yaml
-  - source activate test
+  - . activate test || exit 1
   - conda install pydrobert-kaldi --use-local
 script:
   - pytest
 deploy:
   - provider: script
-    script: source deactivate || true; bash recipe/travis_deploy.sh
+    script: . deactivate; bash recipe/travis_deploy.sh
     skip_cleanup: true
     on:
       tags: true
