@@ -5,20 +5,20 @@ language: generic # not true
 env:
   - PY_VER=2.7
   - PY_VER=3.6
-before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      if [[ "$PY_VER" == "2.7" ]]; then
-        wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-      else
-        wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-      fi
-    elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      if [[ "$PY_VER" == "2.7" ]]; then
-        wget https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -O miniconda.sh;
-      else
-        wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
-      fi
-    fi
+# before_install:
+#   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+#       if [[ "$PY_VER" == "2.7" ]]; then
+#         wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+#       else
+#         wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+#       fi
+#     elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+#       if [[ "$PY_VER" == "2.7" ]]; then
+#         wget https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -O miniconda.sh;
+#       else
+#         wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
+#       fi
+#     fi
 #   - bash miniconda.sh -b -p $HOME/miniconda
 #   - export PATH="$HOME/miniconda/bin:$PATH"
 #   - hash -r
@@ -34,7 +34,7 @@ before_install:
 #   - pytest
 deploy:
   - provider: script
-    script: . recipe/travis_deploy.sh ${PY_VER} || exit 1
+    script: . recipe/travis_deploy.sh || exit 1
     skip_cleanup: true
-    on:
-      tags: true
+    # on:
+    #   tags: true
