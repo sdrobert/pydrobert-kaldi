@@ -6,6 +6,8 @@ env:
   - PY_VER=2.7
   - PY_VER=3.6
 before_install:
+  - echo ${PY_VER}
+  - . recipe/travis_deploy.sh ${PY_VER}
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       if [[ "$PY_VER" == "2.7" ]]; then
         wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
