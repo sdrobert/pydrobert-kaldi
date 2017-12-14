@@ -13,7 +13,7 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
- 
+
 */
 %module(package="pydrobert.kaldi") internal
 
@@ -24,8 +24,8 @@
 
 #include "base/version.h"
 
+%include "stdint.i"
 %include "typemaps.i"
-// %include "stdint.i" // causes weird mapping issues in vectors
 %include "std_string.i"
 %include "std_vector.i"
 %include "std_pair.i"
@@ -54,10 +54,10 @@
 %template() std::vector<std::string >;
 // we support the combinations of basic types/vectors that have typedefs in
 // table-types.h
-%template() std::vector<long >;
-%template() std::vector<std::vector<long > >;
-%template() std::pair<long, long >;
-%template() std::vector<std::pair<long, long > >;
+%template() std::vector<int32_t >;
+%template() std::vector<std::vector<int32_t > >;
+%template() std::pair<int32_t, int32_t >;
+%template() std::vector<std::pair<int32_t, int32_t > >;
 %template() std::pair<double, double >;
 %template() std::vector<std::pair<double, double > >;
 %template() std::pair<float, float >;

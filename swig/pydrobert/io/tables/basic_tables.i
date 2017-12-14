@@ -13,7 +13,7 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
- 
+
 */
 
 %{
@@ -48,14 +48,14 @@ TEMPLATE_WITH_NAME_AND_HOLDER_TYPE(Name, HolderName);
 %enddef
 
 // int
-%template() kaldi::BasicHolder<long >;
-BASIC_TABLE_TEMPLATE_WITH_NAME_AND_TYPE(Int32, kaldi::BasicHolder<long >, long);
-%template() kaldi::BasicVectorHolder<long >;
-BASIC_TABLE_TEMPLATE_WITH_NAME_AND_TYPE(Int32Vector, kaldi::BasicVectorHolder<long >, std::vector<long >);
-%template() kaldi::BasicVectorVectorHolder<long >;
-BASIC_TABLE_TEMPLATE_WITH_NAME_AND_TYPE(Int32VectorVector, kaldi::BasicVectorVectorHolder<long >, std::vector<std::vector<long > >);
-%template() kaldi::BasicPairVectorHolder<long >;
-BASIC_TABLE_TEMPLATE_WITH_NAME_AND_TYPE(Int32PairVector, kaldi::BasicPairVectorHolder<long >, std::vector<std::pair<long, long > >);
+%template() kaldi::BasicHolder<int32_t >;
+BASIC_TABLE_TEMPLATE_WITH_NAME_AND_TYPE(Int32, kaldi::BasicHolder<int32_t >, int32_t);
+%template() kaldi::BasicVectorHolder<int32_t >;
+BASIC_TABLE_TEMPLATE_WITH_NAME_AND_TYPE(Int32Vector, kaldi::BasicVectorHolder<int32_t >, std::vector<int32_t >);
+%template() kaldi::BasicVectorVectorHolder<int32_t >;
+BASIC_TABLE_TEMPLATE_WITH_NAME_AND_TYPE(Int32VectorVector, kaldi::BasicVectorVectorHolder<int32_t >, std::vector<std::vector<int32_t > >);
+%template() kaldi::BasicPairVectorHolder<int32_t >;
+BASIC_TABLE_TEMPLATE_WITH_NAME_AND_TYPE(Int32PairVector, kaldi::BasicPairVectorHolder<int32_t >, std::vector<std::pair<int32_t, int32_t > >);
 
 // double
 %template(DoubleHolder) kaldi::BasicHolder<double >;
