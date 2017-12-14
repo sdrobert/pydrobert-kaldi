@@ -13,7 +13,7 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
- 
+
 */
 
 %{
@@ -270,10 +270,10 @@ EXTEND_IO_WITH_REAL(double, Double)
 %enddef
 
 // int
-EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(Int32, kaldi::BasicHolder<long >, long);
-EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(Int32Vector, kaldi::BasicVectorHolder<long >, std::vector<long >);
-EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(Int32VectorVector, kaldi::BasicVectorVectorHolder<long >, std::vector<std::vector<long > >);
-EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(Int32PairVector, kaldi::BasicPairVectorHolder<long >, std::vector<std::pair<long, long > >);
+EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(Int32, kaldi::BasicHolder<int32_t >, int32_t);
+EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(Int32Vector, kaldi::BasicVectorHolder<int32_t >, std::vector<int32_t >);
+EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(Int32VectorVector, kaldi::BasicVectorVectorHolder<int32_t >, std::vector<std::vector<int32_t > >);
+EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(Int32PairVector, kaldi::BasicPairVectorHolder<int32_t >, std::vector<std::pair<int32_t, int32_t > >);
 
 // double
 EXTEND_IO_WITH_BASIC_NAME_AND_TYPE(Double, kaldi::BasicHolder<double >, double);

@@ -112,21 +112,24 @@ def kaldi_logger_decorator(func):
     return _new_func
 
 
-def register_logger_for_kaldi(name):
+def register_logger_for_kaldi(logger):
     '''Register logger to receive Kaldi's messages
 
     See module docstring for more info
 
     Parameters
     ----------
-    name : str
-        logger name. When a new message comes along from Kaldi, the
-        callback will send a message to ``logging.getLogger(name)``
+    logger : str or logger
+        Either the logger or its name. When a new message comes along from
+        Kaldi, the callback will send a message to the logger
     '''
     # set verbosity as high as we can and let the loggers filter out
     # what they want
     _set_verbose_level(2147483647)
-    _REGISTERED_LOGGER_NAMES.add(name)
+    try:
+        _REGISTERED_LOGGER_NAMES.add(logger.name)
+    except AttributeError:
+        _REGISTERED_LOGGER_NAMES.add(logger)
 
 
 def deregister_logger_for_kaldi(name):
