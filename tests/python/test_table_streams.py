@@ -111,6 +111,19 @@ def test_write_read_numpy_versions(temp_file_1_name, ktype, dtype, value):
         assert value == act_value
 
 
+def test_write_int32_correct_size(temp_file_1_name):
+    with io_open('ark:' + temp_file_1_name, 'i', mode='w') as writer:
+        writer.write('9', 182)
+    # size should be 9
+    # 2 bytes for '9 '
+    # 2 byte for binary marker \0B
+    # 1 byte for size of type in bytes (4)
+    # 4 bytes for actual int
+    with open(temp_file_1_name, 'rb') as file_obj:
+        buf = file_obj.read()
+    assert len(buf) == 9
+
+
 def test_invalid_tv_does_not_segfault(temp_file_1_name):
     # weird bug I found
     tv = 'foo bar'
