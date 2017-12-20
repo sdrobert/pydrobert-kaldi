@@ -26,6 +26,27 @@ from pydrobert.kaldi import command_line
 from six.moves import cPickle as pickle
 
 
+def test_can_parse_equals():
+    parser = command_line.KaldiParser()
+    parser.add_argument('--foo', type=int, default=1)
+    assert parser.parse_args([]).foo == 1
+    assert parser.parse_args(['--foo', '2']).foo == 2
+    assert parser.parse_args(['--foo=2']).foo == 2
+
+
+def test_config(temp_file_1_name):
+    with open(temp_file_1_name, mode='w') as conf_file:
+        conf_file.write('--foo 2\n')
+        conf_file.write('#--foo 3\n')
+        conf_file.write('#--foo 4\n')
+    parser = command_line.KaldiParser()
+    parser.add_argument('--foo', type=int, default=1)
+    assert parser.parse_args([]).foo == 1
+    assert parser.parse_args(['--config', temp_file_1_name]).foo == 2
+    assert parser.parse_args(
+        ['--foo', '4', '--config', temp_file_1_name]).foo == 4
+
+
 @pytest.mark.parametrize('values', [
     [
         np.array([1, 2, 3], dtype=np.float32),
