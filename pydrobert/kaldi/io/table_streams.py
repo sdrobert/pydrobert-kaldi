@@ -45,7 +45,7 @@ __all__ = [
 
 def open_table_stream(
         path, kaldi_dtype, mode='r', error_on_str=True,
-        utt2spk='', value_style='b'):
+        utt2spk='', value_style='b', cache=False):
     '''Factory function to open a kaldi table
 
     This function finds the correct `KaldiTable` according to the args
@@ -99,6 +99,11 @@ def open_table_stream(
         `'s'`, and/or `'d'` will cause the reader to return a tuple of
         that information. If `value_style` is only one character, the
         result will not be contained in a tuple.
+    cache : bool
+        Whether to cache all values in a dict as they are retrieved.
+        Only applicable to random access readers. This can be very
+        expensive for large tables and redundant if reading from an
+        archive directly (as opposed to a script).
 
     Returns
     -------
@@ -120,13 +125,18 @@ def open_table_stream(
         else:
             table = _KaldiSequentialSimpleReader(path, kaldi_dtype)
     elif mode == 'r+':
+        if cache:
+            wrapper_func = _random_access_reader_memoize
+        else:
+            def wrapper_func(cls):
+                return cls
         if kaldi_dtype.value == 'wm':
-            table = _KaldiRandomAccessWaveReader(
+            table = wrapper_func(_KaldiRandomAccessWaveReader)(
                 path, kaldi_dtype, utt2spk=utt2spk,
                 value_style=value_style
             )
         else:
-            table = _KaldiRandomAccessSimpleReader(
+            table = wrapper_func(_KaldiRandomAccessSimpleReader)(
                 path, kaldi_dtype, utt2spk=utt2spk)
     elif mode in ('w', 'w+'):
         if kaldi_dtype.value == 't':
@@ -285,6 +295,7 @@ class KaldiSequentialReader(KaldiTable, Iterator):
     def __iter__(self):
         return self
 
+
 class KaldiRandomAccessReader(KaldiTable, Container):
     """Read-only access to values of table by key
 
@@ -346,6 +357,31 @@ class KaldiRandomAccessReader(KaldiTable, Container):
 
     def writable(self):
         return False
+
+
+def _random_access_reader_memoize(cls):
+    '''A class decorator for KaldiRandomAccessReader that caches items'''
+
+    class _Wrapper(cls):
+        def __init__(self, path, kaldi_dtype, utt2spk=''):
+            self.cache_dict = dict()
+            super(_Wrapper, self).__init__(path, kaldi_dtype, utt2spk=utt2spk)
+
+        def __contains__(self, key):
+            return (
+                key in self.cache_dict or
+                super(_Wrapper, self).__contains__(key)
+            )
+
+        def __getitem__(self, key):
+            try:
+                return self.cache_dict[key]
+            except KeyError:
+                value = super(_Wrapper, self).__getitem__(key)
+                self.cache_dict[key] = value
+                return value
+    _Wrapper.__doc__ = cls.__doc__
+    return _Wrapper
 
 
 class KaldiWriter(KaldiTable):
