@@ -18,11 +18,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import logging
+
 import numpy as np
 import pydrobert.kaldi.io as kaldi_io
 import pytest
 
 from pydrobert.kaldi import command_line
+from pydrobert.kaldi.logging import kaldi_lvl_to_logging_lvl
 from six.moves import cPickle as pickle
 
 
@@ -45,6 +48,16 @@ def test_config(temp_file_1_name):
     assert parser.parse_args(['--config', temp_file_1_name]).foo == 2
     assert parser.parse_args(
         ['--foo', '4', '--config', temp_file_1_name]).foo == 4
+
+
+def test_verbosity():
+    logger = logging.getLogger('this_should_not_be_used')
+    parser = command_line.KaldiParser(logger=logger)
+    assert logger.level == kaldi_lvl_to_logging_lvl(0)
+    parser.parse_args(['-v', '-1'])
+    assert logger.level == kaldi_lvl_to_logging_lvl(-1)
+    parser.parse_args(['-v', '9'])
+    assert logger.level == kaldi_lvl_to_logging_lvl(9)
 
 
 @pytest.mark.parametrize('values', [
