@@ -38,7 +38,7 @@ __all__ = ['open']
 
 def open(
         path, kaldi_dtype=None, mode='r', error_on_str=True,
-        utt2spk='', value_style='b', header=True):
+        utt2spk='', value_style='b', header=True, cache=False):
     """Factory function for initializing and opening kaldi streams
 
     This function provides a general interface for opening kaldi
@@ -66,4 +66,4 @@ def open(
     else:
         return open_table_stream(
             path, kaldi_dtype, mode=mode, error_on_str=error_on_str,
-            utt2spk=utt2spk, value_style=value_style)
+            utt2spk=utt2spk, value_style=value_style, cache=cache)

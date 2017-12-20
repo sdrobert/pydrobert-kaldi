@@ -124,6 +124,25 @@ def test_write_int32_correct_size(temp_file_1_name):
     assert len(buf) == 9
 
 
+def test_cache(temp_file_1_name):
+    with io_open('ark:' + temp_file_1_name, 'B', mode='w') as writer:
+        writer.write('a', True)
+        writer.write('b', False)
+    with io_open('ark:' + temp_file_1_name, 'B', mode='r+', cache=True) as r:
+        assert r.cache_dict == dict()
+        assert 'a' not in r.cache_dict
+        assert 'a' in r
+        assert r['a']
+        assert r.cache_dict == {'a': True}
+        assert 'a' in r.cache_dict
+        assert 'b' not in r.cache_dict
+        assert 'b' in r
+        assert not r['b']
+        assert r.cache_dict == {'a': True, 'b': False}
+        r.cache_dict['b'] = True
+        assert r['b']
+
+
 def test_invalid_tv_does_not_segfault(temp_file_1_name):
     # weird bug I found
     tv = 'foo bar'
