@@ -20,7 +20,6 @@ from __future__ import print_function
 
 import argparse
 import logging
-import platform
 import sys
 
 import numpy as np
@@ -46,6 +45,8 @@ __all__ = [
     'kaldi_wxfilename_arg_type',
     'kaldi_dtype_arg_type',
     'kaldi_bool_arg_type',
+    'parse_kaldi_config_file',
+    'kaldi_config_arg_type',
     'numpy_dtype_arg_type',
     'KaldiVerbosityAction',
     'KaldiParser',
