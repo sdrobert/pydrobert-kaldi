@@ -236,7 +236,7 @@ class KaldiVerbosityAction(argparse.Action):
             self, option_strings, dest, default=logging.INFO, required=False,
             help='Verbose level (higher->more logging)', metavar=None):
         super(KaldiVerbosityAction, self).__init__(
-            option_strings, dest, nargs=1, default=default,
+            option_strings, dest, nargs=None, default=default,
             type=int, required=required, help=help, metavar=metavar)
 
     def __call__(self, parser, namespace, values, option_string=None):
