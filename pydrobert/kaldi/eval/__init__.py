@@ -12,8 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# this is used by CI when deploying for py2.7
-python:
-  - 2.7
-blas_impl:
-  - openblas
+'''Tools related to evaluating models'''
+
+__author__ = "Sean Robertson"
+__email__ = "sdrobert@cs.toronto.edu"
+__license__ = "Apache 2.0"
+__copyright__ = "Copyright 2017 Sean Robertson"
+
+__all__ = [
+    'util',
+    'command_line',
+]

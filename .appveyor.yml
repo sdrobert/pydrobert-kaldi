@@ -26,27 +26,32 @@ init:
       {
         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
       }
-  - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
-  - cmd: conda config --set always_yes yes --set changeps1 no
-  - cmd: conda update -q --all
-  - cmd: conda install conda-build anaconda-client
+  - call %MINICONDA_PATH%\Scripts\activate.bat
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q --all
+  - conda install conda-build anaconda-client
 
 install:
-  - cmd: conda build recipe --no-test --python %PY_VER% -m recipe\ci_build.yaml
-  - cmd: conda create -n test python=%PY_VER% pytest
-  - cmd: activate test
-  - cmd: conda install pydrobert-kaldi --use-local
+  - conda build recipe --no-test --python %PY_VER% -m recipe\ci_build.yaml --output-folder dist
+  # - conda create -n test python=%PY_VER% pytest
+  # - activate test
+  # - dir dist
+  # - conda install -c file://%cd%\dist\ pydrobert-kaldi
 
 build: false
 
 test_script:
-  - pytest
+  - conda build --test dist\win-64\pydrobert-*
 
-deploy_script:
-    - ps: >-
-        if ($env:APPVEYOR_REPO_TAG -eq "true")
-        {
-          $env:ANACONDA_PATH = (Join-Path $env:MINICONDA_PATH Scripts\anaconda)
-          $env:TARS = (Join-Path -Path $env:MINICONDA_PATH -ChildPath 'conda-bld\win-64\pydrobert-kaldi-*.tar.bz2' -Resolve)
-          cmd /c "$env:ANACONDA_PATH 2>&1" -t $env:ANACONDA_TOKEN upload -u sdrobert --register $env:TARS
-        }
+artifacts:
+  - path: dist
+
+deploy:
+  provider: GitHub
+  description: pydrobert-kaldi version $(appveyor_build_version) for Windows
+  artifact: dist
+  auth_token:
+    secure: QlAHDK+8kEoeqnpg7+GcCOeNfDLT4Vvuoy60Rsh8ncOQTA7sLUnzL4H5tOxE5gmn
+  on:
+    branch: master
+    appveyor_reop_tag: true

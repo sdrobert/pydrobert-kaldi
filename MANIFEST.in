@@ -1,0 +1,3 @@
+include swig/pydrobert/kaldi_wrap.cpp
+exclude .gitignore .travis.yml .appveyor.yml
+prune recipe

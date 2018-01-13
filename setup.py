@@ -15,8 +15,10 @@
 from __future__ import print_function
 
 import platform
+import sys
 
 from codecs import open
+from distutils.spawn import find_executable
 from os import environ
 from os import path
 from os import walk
@@ -24,11 +26,8 @@ from re import findall
 from setuptools import setup
 from setuptools.command.build_ext import build_ext
 from setuptools.extension import Extension
-from sys import argv
-from sys import maxsize
-from sys import version_info
 
-IS_64_BIT = maxsize > 2 ** 32
+IS_64_BIT = sys.maxsize > 2 ** 32
 ON_WINDOWS = platform.system() == 'Windows'
 
 
@@ -360,16 +359,31 @@ if platform.system() == 'Darwin':
 with open(path.join(PWD, 'README.rst'), encoding='utf-8') as f:
     LONG_DESCRIPTION = f.read()
 
-SRC_FILES = [path.join(SWIG_DIR, 'pydrobert', 'kaldi.i')]
+SRC_FILES = []
+if find_executable('swig'):
+    SRC_FILES.append(path.join(SWIG_DIR, 'pydrobert', 'kaldi.i'))
+elif path.exists(path.join(SWIG_DIR, 'pydrobert', 'kaldi_wrap.cpp')):
+    print(
+        'SWIG could not be found, but kaldi_wrap.cpp exists. Using that',
+        file=sys.stderr
+    )
+    SRC_FILES.append(path.join(SWIG_DIR, 'pydrobert', 'kaldi_wrap.cpp'))
+else:
+    print(
+        'SWIG could not be found and kaldi_wrap.cpp does not exist. Cannot '
+        'succeed', file=sys.stderr)
+    sys.exit(1)
 for base_dir, _, files in walk(SRC_DIR):
     SRC_FILES += [path.join(base_dir, f) for f in files if f.endswith('.cc')]
 
-INSTALL_REQUIRES = ['numpy', 'six', 'future']
-if version_info < (3, 0):
-    INSTALL_REQUIRES.append('enum34')
+INSTALL_REQUIRES = ['numpy >= 1.11.3', 'six', 'future']
 SETUP_REQUIRES = ['setuptools_scm']
-if {'pytest', 'test', 'ptr'}.intersection(argv):
-    SETUP_REQUIRES += ['pytest-runner']
+if {'pytest', 'test', 'ptr'}.intersection(sys.argv):
+    SETUP_REQUIRES.append('pytest-runner')
+try:
+    import numpy
+except ImportError:
+    SETUP_REQUIRES.append('numpy == 1.11.3')
 TESTS_REQUIRE = ['pytest']
 
 KALDI_LIBRARY = Extension(
@@ -461,12 +475,12 @@ class CustomBuildExtCommand(build_ext):
         if not found_blas:
             raise Exception('Unable to find BLAS library via numpy')
 
-    def run(self):
+    def finalize_options(self):
+        build_ext.finalize_options(self)
         import numpy
         if not len(BLAS_DICT):
             self.look_for_blas()
         self.include_dirs.append(numpy.get_include())
-        build_ext.run(self)
 
 
 setup(
@@ -480,17 +494,21 @@ setup(
     license='Apache 2.0',
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'Intended Audience :: Researchers',
-        'License :: OSI Approved :: Apache 2.0',
+        'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
-    packages=['pydrobert', 'pydrobert.kaldi', 'pydrobert.kaldi.io'],
+    packages=[
+        'pydrobert',
+        'pydrobert.kaldi',
+        'pydrobert.kaldi.io',
+        'pydrobert.kaldi.feat',
+        'pydrobert.kaldi.eval',
+    ],
     cmdclass={'build_ext': CustomBuildExtCommand},
     setup_requires=SETUP_REQUIRES,
     install_requires=INSTALL_REQUIRES,
@@ -503,6 +521,13 @@ setup(
             'write_table_to_pickle',
             'write-pickle-to-table = pydrobert.kaldi.command_line:'
             'write_pickle_to_table',
+            'compute-error-rate = pydrobert.kaldi.command_line:'
+            'compute_error_rate',
+            'normalize-feat-lens = pydrobert.kaldi.command_line:'
+            'normalize_feat_lens',
         ]
+    },
+    extras_require={
+        ':python_version<"3.4"': ['enum34'],
     }
 )

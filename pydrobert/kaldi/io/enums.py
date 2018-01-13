@@ -18,7 +18,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from enum import Enum # need enum34 for python 2.7
+from enum import Enum  # need enum34 for python 2.7
 
 from pydrobert.kaldi._internal import kDoubleIsBase as _DOUBLE_IS_BASE
 
@@ -33,6 +33,7 @@ __all__ = [
     'WxfilenameType',
     'TableType',
 ]
+
 
 class KaldiDataType(Enum):
     """Enumerates the data types stored and retrieved by Kaldi IO
@@ -140,6 +141,7 @@ class KaldiDataType(Enum):
         else:
             return False
 
+
 class RxfilenameType(Enum):
     '''The type of stream to read, based on an extended filename'''
 
@@ -158,10 +160,11 @@ class RxfilenameType(Enum):
     OffsetFileInput = 4
     '''Input is from a file on disk, read from a specific offset'''
 
+
 class WxfilenameType(Enum):
     '''The type of stream to write, based on an extended filename'''
 
-    InvaldOutput = 0
+    InvalidOutput = 0
     '''An invalid stream'''
 
     FileOutput = 1
@@ -172,6 +175,7 @@ class WxfilenameType(Enum):
 
     PipedOutput = 3
     '''Output is being piped to some command'''
+
 
 class TableType(Enum):
     '''The type of table a stream points to'''

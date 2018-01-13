@@ -43,8 +43,7 @@ from __future__ import division
 from __future__ import print_function
 
 import logging
-
-from sys import stderr
+import sys
 
 from pydrobert.kaldi._internal import SetPythonLogHandler as _set_log_handler
 from pydrobert.kaldi._internal import SetVerboseLevel as _set_verbose_level
@@ -198,7 +197,7 @@ def _kaldi_logging_handler(envelope, message):
             logger.log(
                 py_severity, message, extra={'kaldi_envelope': envelope})
     elif envelope[0] < 0:
-        print(message, file=stderr)
+        print(message, file=sys.stderr)
 
 
 def kaldi_lvl_to_logging_lvl(lvl):

@@ -12,52 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Pytests for `pydrobert.kaldi.test_commands`"""
+"""Pytests for `pydrobert.kaldi.feats.command_line`"""
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import logging
-
 import numpy as np
-import pydrobert.kaldi.io as kaldi_io
 import pytest
 
-from pydrobert.kaldi import command_line
-from pydrobert.kaldi.logging import kaldi_lvl_to_logging_lvl
+from pydrobert.kaldi.feat import command_line
+from pydrobert.kaldi.io import open as kaldi_open
+from pydrobert.kaldi.io.util import infer_kaldi_data_type
 from six.moves import cPickle as pickle
-
-
-def test_can_parse_equals():
-    parser = command_line.KaldiParser()
-    parser.add_argument('--foo', type=int, default=1)
-    assert parser.parse_args([]).foo == 1
-    assert parser.parse_args(['--foo', '2']).foo == 2
-    assert parser.parse_args(['--foo=2']).foo == 2
-
-
-def test_config(temp_file_1_name):
-    with open(temp_file_1_name, mode='w') as conf_file:
-        conf_file.write('--foo 2\n')
-        conf_file.write('#--foo 3\n')
-        conf_file.write('#--foo 4\n')
-    parser = command_line.KaldiParser()
-    parser.add_argument('--foo', type=int, default=1)
-    assert parser.parse_args([]).foo == 1
-    assert parser.parse_args(['--config', temp_file_1_name]).foo == 2
-    assert parser.parse_args(
-        ['--foo', '4', '--config', temp_file_1_name]).foo == 4
-
-
-def test_verbosity():
-    logger = logging.getLogger('this_should_not_be_used')
-    parser = command_line.KaldiParser(logger=logger)
-    assert logger.level == kaldi_lvl_to_logging_lvl(0)
-    parser.parse_args(['-v', '-1'])
-    assert logger.level == kaldi_lvl_to_logging_lvl(-1)
-    parser.parse_args(['-v', '9'])
-    assert logger.level == kaldi_lvl_to_logging_lvl(9)
 
 
 @pytest.mark.parametrize('values', [
@@ -78,7 +45,7 @@ def test_verbosity():
 ])
 def test_write_pickle_to_table(values, temp_file_1_name, temp_file_2_name):
     if len(values):
-        kaldi_dtype = kaldi_io.util.infer_kaldi_data_type(values[0]).value
+        kaldi_dtype = infer_kaldi_data_type(values[0]).value
     else:
         kaldi_dtype = 'bm'
     with open(temp_file_1_name, 'wb') as pickle_file:
@@ -87,7 +54,7 @@ def test_write_pickle_to_table(values, temp_file_1_name, temp_file_2_name):
     ret_code = command_line.write_pickle_to_table(
         [temp_file_1_name, 'ark:' + temp_file_2_name, '-o', kaldi_dtype])
     assert ret_code == 0
-    kaldi_reader = kaldi_io.open('ark:' + temp_file_2_name, kaldi_dtype, 'r')
+    kaldi_reader = kaldi_open('ark:' + temp_file_2_name, kaldi_dtype, 'r')
     num_entries = 0
     for key, value in kaldi_reader.items():
         num_entries = int(key) + 1
@@ -117,10 +84,10 @@ def test_write_pickle_to_table(values, temp_file_1_name, temp_file_2_name):
 ])
 def test_write_table_to_pickle(values, temp_file_1_name, temp_file_2_name):
     if len(values):
-        kaldi_dtype = kaldi_io.util.infer_kaldi_data_type(values[0]).value
+        kaldi_dtype = infer_kaldi_data_type(values[0]).value
     else:
         kaldi_dtype = 'bm'
-    with kaldi_io.open('ark:' + temp_file_1_name, kaldi_dtype, 'w') as writer:
+    with kaldi_open('ark:' + temp_file_1_name, kaldi_dtype, 'w') as writer:
         for num, value in enumerate(values):
             writer.write(str(num), value)
     ret_code = command_line.write_table_to_pickle(
@@ -141,3 +108,46 @@ def test_write_table_to_pickle(values, temp_file_1_name, temp_file_2_name):
     except EOFError:
         pass
     assert num_entries == len(values)
+
+
+def test_normalize_feat_lens(
+        temp_file_1_name, temp_file_2_name, temp_file_3_name):
+    feats_a = np.random.random((10, 4))
+    feats_b = np.random.random((5, 4))
+    feats_c = np.random.random((4, 4))
+    with kaldi_open('ark:' + temp_file_1_name, 'dm', 'w') as feats_in_writer:
+        feats_in_writer.write('A', feats_a)
+        feats_in_writer.write('B', feats_b)
+        feats_in_writer.write('C', feats_c)
+    with kaldi_open('ark:' + temp_file_2_name, 'i', 'w') as len_in_writer:
+        len_in_writer.write('A', 9)
+        len_in_writer.write('B', 7)
+        len_in_writer.write('C', 4)
+    ret_code = command_line.normalize_feat_lens([
+        'ark:' + temp_file_1_name,
+        'ark:' + temp_file_2_name,
+        'ark:' + temp_file_3_name,
+        '--type=dm',
+        '--pad-mode=zero',
+    ])
+    assert ret_code == 0
+    with kaldi_open('ark:' + temp_file_3_name, 'dm') as feats_out_reader:
+        out_a = next(feats_out_reader)
+        out_b = next(feats_out_reader)
+        out_c = next(feats_out_reader)
+        assert out_a.shape == (9, 4)
+        assert np.allclose(out_a, feats_a[:9])
+        assert out_b.shape == (7, 4)
+        assert np.allclose(out_b[:5], feats_b)
+        assert np.allclose(out_b[5:], 0)
+        assert out_c.shape == (4, 4)
+        assert np.allclose(out_c, feats_c)
+    ret_code = command_line.normalize_feat_lens([
+        'ark:' + temp_file_1_name,
+        'ark:' + temp_file_2_name,
+        'ark:' + temp_file_3_name,
+        '--type=dm',
+        '--tolerance=1',
+        '--strict=true',
+    ])
+    assert ret_code == 1

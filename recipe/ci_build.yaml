@@ -16,3 +16,4 @@
 # choose the python version
 blas_impl:
   - mkl
+  - nomkl [not win]

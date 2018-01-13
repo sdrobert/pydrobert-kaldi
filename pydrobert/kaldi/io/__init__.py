@@ -47,11 +47,30 @@ please consult `dtypes.KaldiDataTypes`.
 from __future__ import absolute_import
 
 import abc
+import locale
+import warnings
 
+from pydrobert.kaldi import KaldiLocaleWarning
 from six import with_metaclass
 
-from pydrobert.kaldi.io.util import parse_kaldi_input_path
-from pydrobert.kaldi.io.util import parse_kaldi_output_path
+__author__ = "Sean Robertson"
+__email__ = "sdrobert@cs.toronto.edu"
+__license__ = "Apache 2.0"
+__copyright__ = "Copyright 2017 Sean Robertson"
+
+__all__ = [
+    'KaldiIOBase',
+    'duck_streams',
+    'table_streams',
+    'enums',
+    'util',
+    'corpus',
+    'open',
+    'argparse',
+]
+
+if locale.getdefaultlocale() != (None, None):
+    warnings.warn(KaldiLocaleWarning.LOCALE_MESSAGE, KaldiLocaleWarning)
 
 
 class KaldiIOBase(object, with_metaclass(abc.ABCMeta)):
@@ -107,6 +126,8 @@ class KaldiIOBase(object, with_metaclass(abc.ABCMeta)):
     '''
 
     def __init__(self, path):
+        from pydrobert.kaldi.io.util import parse_kaldi_input_path
+        from pydrobert.kaldi.io.util import parse_kaldi_output_path
         self.path = path
         self.closed = False
         if self.readable():
@@ -144,21 +165,40 @@ class KaldiIOBase(object, with_metaclass(abc.ABCMeta)):
     def __exit__(self, exception_type, exception_val, trace):
         self.close()
 
-# We expose the functionality of 'open' directly in the io package, but
-# everything else sticks in its own submodule
-from pydrobert.kaldi.io import _open
-from pydrobert.kaldi.io._open import *
 
-__author__ = "Sean Robertson"
-__email__ = "sdrobert@cs.toronto.edu"
-__license__ = "Apache 2.0"
-__copyright__ = "Copyright 2017 Sean Robertson"
+def open(
+        path, kaldi_dtype=None, mode='r', error_on_str=True,
+        utt2spk='', value_style='b', header=True, cache=False):
+    """Factory function for initializing and opening kaldi streams
 
-__all__ = [
-    'KaldiIOBase',
-    'duck_streams',
-    'table_streams',
-    'enums',
-    'util',
-    'corpus',
-] + _open.__all__
+    This function provides a general interface for opening kaldi
+    streams. Kaldi streams are either simple input/output of kaldi
+    objects (the basic stream) or key-value readers and writers
+    (tables).
+
+    When `path` starts with ``ark:`` or ``scp:`` (possibly with
+    modifiers before the colon), a table is opened. Otherwise, a basic
+    stream is opened.
+
+    See also
+    --------
+    pydrobert.kaldi.io.table_streams.open_table_stream
+        For information on opening tables
+    pydrobert.kaldi.io.basic.open_duck_stream
+        For information on opening basic streams
+    """
+    from pydrobert.kaldi.io.enums import TableType
+    from pydrobert.kaldi.io.util import parse_kaldi_input_path
+    from pydrobert.kaldi.io.util import parse_kaldi_output_path
+    from pydrobert.kaldi.io.duck_streams import open_duck_stream
+    from pydrobert.kaldi.io.table_streams import open_table_stream
+    if 'r' in mode:
+        table_type = parse_kaldi_input_path(path)[0]
+    else:
+        table_type = parse_kaldi_output_path(path)[0]
+    if table_type == TableType.NotATable:
+        return open_duck_stream(path, mode=mode, header=header)
+    else:
+        return open_table_stream(
+            path, kaldi_dtype, mode=mode, error_on_str=error_on_str,
+            utt2spk=utt2spk, value_style=value_style, cache=cache)

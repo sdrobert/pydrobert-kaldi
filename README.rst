@@ -63,7 +63,7 @@ stack traces from Kaldi C++ code, and there are a variety of decorators to
 finagle the kaldi logging patterns to python logging patterns, or vice versa.
 
 You'd likely want to explicitly handle logging when creating new kaldi-style
-commands for command line. ``pydrobert.kaldi.command_line`` provides
+commands for command line. ``pydrobert.kaldi.io.argparse`` provides
 ``KaldiParser``, an ``ArgumentParser`` tailored to Kaldi inputs/outputs. It is
 used by a few command-line entry points added by this package. They are:
 
@@ -72,6 +72,12 @@ write-table-to-pickle
   attempts at reaching a paper deadline.
 write-pickle-to-table
   Write the contents of of a pickle file(s) to a kaldi table.
+normalize-feat-lens
+  Ensure that features have the same length as some reference by truncating
+  or appending frames.
+compute-error-rate
+  Compute an error rate between reference and hypothesis texts, such as a WER
+  or PER.
 
 Installation
 ------------

@@ -41,6 +41,14 @@ def temp_file_2_name():
     os.remove(temp.name)
 
 
+@pytest.fixture
+def temp_file_3_name():
+    temp = NamedTemporaryFile(suffix='_2', delete=False)
+    temp.close()
+    yield temp.name
+    os.remove(temp.name)
+
+
 @pytest.fixture(autouse=True)
 def logging_cleanup():
     yield

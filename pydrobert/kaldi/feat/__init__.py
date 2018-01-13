@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# this is used by CI when deploying for py3
-python:
-  - 3.4
-  - 3.5
-  - 3.6
-blas_impl:
-  - mkl
-  - openblas
+'''Access to kaldi routines/types involving features'''
+
+__author__ = "Sean Robertson"
+__email__ = "sdrobert@cs.toronto.edu"
+__license__ = "Apache 2.0"
+__copyright__ = "Copyright 2017 Sean Robertson"
+
+__all__ = [
+    'command_line'
+]

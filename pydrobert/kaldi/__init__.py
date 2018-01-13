@@ -12,25 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Contains python/cython access to Kaldi.
-
-See ``README.rst`` for more info.
-
-Note:
-    Kaldi tools usually run with 'C' locale. To make sure::
-
-        $ export LC_ALL=C
-
-    is called before you use any Kaldi utilities, importing this module
-    prints a warning to stderr if it detects any other locale.
-"""
+"""Python access to kaldi"""
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-
-import locale
-import warnings
 
 from pkg_resources import DistributionNotFound
 from pkg_resources import get_distribution
@@ -40,15 +26,21 @@ __email__ = "sdrobert@cs.toronto.edu"
 __license__ = "Apache 2.0"
 __copyright__ = "Copyright 2016 Sean Robertson"
 
-__all__ = ['io']
+__all__ = [
+    'io',
+    'KaldiLocaleWarning',
+    'command_line',
+    'util',
+]
 
 try:
     __version__ = get_distribution(__name__).version
 except DistributionNotFound:
     __version__ = 'dev'
 
-LOCALE_MESSAGE = """\
+
+class KaldiLocaleWarning(Warning):
+    '''Class used when LC_ALL != 'C' when pydrobert.kaldi.io is imported'''
+    LOCALE_MESSAGE = """\
 It looks like you did not 'export LC_ALL=C' before you started python.
 This is important to do if you plan on using kaldi's sorted tables at all."""
-if locale.getdefaultlocale() != (None, None):
-    warnings.warn(LOCALE_MESSAGE)
