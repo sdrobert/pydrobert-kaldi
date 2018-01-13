@@ -40,8 +40,6 @@ __all__ = [
 
 
 def _handle_sub_batch(sub_batch, axis, pad_mode, pad_kwargs):
-    '''Put together a sub-batch according to the rules outlined in batch_data\
-    '''
     assert len(sub_batch)
     try:
         first_dtype = sub_batch[0].dtype
@@ -84,21 +82,22 @@ def batch_data(
         cast_to_array=None, pad_mode=None, **pad_kwargs):
     '''Generate batched data from an input generator
 
-    Takes some fixed number of samples from ``input_iter``, encapsulates
+    Takes some fixed number of samples from `input_iter`, encapsulates
     them, and yields them.
 
-    If ``subsamples`` is ``True``, data from ``input_iter`` are expected to
-    be encapsulated in fixed-length sequences (e.g. (feat, label,
-    len)). Each sample will be batched separately into a sub-batch
-    and returned in a tuple (e.g. (feat_batch, label_batch, len_batch)).
+    If `subsamples` is ``True``, data from `input_iter` are expected to
+    be encapsulated in fixed-length sequences (e.g. ``(feat, label,
+    len)``). Each sample will be batched separately into a sub-batch
+    and returned in a tuple (e.g. ``(feat_batch, label_batch,
+    len_batch)``).
 
     The format of a (sub-)batch depends on the properties of its
     samples:
-    1. If ``cast_to_array`` applies to this sub-batch (see Parameters),
-       cast it to a numpy array of the target type.
+    1. If `cast_to_array` applies to this sub-batch, cast it to a numpy
+       array of the target type.
     2. If all samples in the (sub-)batch are numpy arrays of the same
        type and shape, samples are stacked in a bigger numpy array
-       along the axis specified by ``axis`` (see Parameters).
+       along the axis specified by `axis` (see Parameters).
     3. If all samples are numpy arrays of the same type but variable
        length and `pad_mode` is specified, pad all sample arrays to
        the right such that they all have the same (supremum) shape, then
@@ -109,29 +108,33 @@ def batch_data(
     ----------
     input_iter :
         An iterator over samples
-    subsamples : bool
+    subsamples : bool, optional
+        `input_iter` yields tuples to be divided into different
+        sub-batches if ``True``
     batch_size : int, optional
         The size of batches, except perhaps the last one. If not set or
-        0, will yield samples (casting and encapsulating in tuples when
-        necessary).
-    axis : int or sequence
+        ``0``, will yield samples (casting and encapsulating in tuples
+        when necessary)
+    axis : int or sequence, optional
         Where to insert the batch index/indices into the shape/shapes of
-        the inputs. If a sequence, subsamples must be True and input_iter
-        should yield samples of the same length as axis. If an int and
-        subsamples is True, the same axis will be used for all sub-samples.
+        the inputs. If a sequence, `subsamples` must be ``True`` and
+        `input_iter` should yield samples of the same length as axis. If
+        an ``int`` and subsamples is ``True``, the same axis will be
+        used for all sub-samples.
     cast_to_array : numpy.dtype or sequence, optional
         Dictates whether data should be cast to numpy arrays and of
-        what type. If a sequence, subsamples must be True and input_iter
-        should yield samples of the same length as cast_to_array. If a
-        single value and subsamples is True, the same value will be used
-        for all sub-samples. Value(s) of None indicate no casting should
-        be done for this (sub-)sample. Other values will be used to cast
-        (sub-)samples to numpy arrays.
+        what type. If a sequence, `subsamples` must be ``True`` and
+        `input_iter` should yield samples of the same length as
+        `cast_to_array`. If a single value and `subsamples` is ``True``,
+        the same value will be used for all sub-samples. Value(s) of
+        ``None`` indicate no casting should be done for this
+        (sub-)sample. Other values will be used to cast (sub-)samples to
+        numpy arrays
     pad_mode : str or function, optional
         If set, inputs within a batch will be padded on the end to
         match the largest shapes in the batch. How the inputs are
         padded matches the argument to ``numpy.pad``. If not set, will
-        raise a ValueError if they don't all have the same shape
+        raise a ``ValueError`` if they don't all have the same shape
     pad_kwargs : Keyword arguments, optional
         Additional keyword arguments are passed along to ``numpy.pad``
         if padding.
@@ -236,15 +239,15 @@ class Data(Iterable, Sized):
     used like this::
 
     >>> data = DataSubclass(
-        'scp:feats.scp', 'scp:labels.scp', batch_size=10)
+    ...     'scp:feats.scp', 'scp:labels.scp', batch_size=10)
     >>> for feat_batch, label_batch in data:
     >>>     pass  # do something
     >>> for feat_batch, label_batch in data:
     >>>     pass  # do something again
 
-    Where `DataSubclass` is some subclass of this virtual class. Calling
-    iter() on this class (which occurs implicitly in for-loops) will
-    generate a new iterator over the entire data set.
+    Where ``DataSubclass`` is some subclass of this virtual class.
+    Calling ``iter()`` on an instance (which occurs implicitly in
+    for-loops) will generate a new iterator over the entire data set.
 
     Extended Summary
     ----------------
@@ -263,28 +266,28 @@ class Data(Iterable, Sized):
 
     All tables are assumed to index data using the same keys.
 
-    If ``batch_size`` is set, data are stacked in batches along a new
-    axis. The keyword arguments ``batch_axis``, ``batch_pad_mode``, and
+    If `batch_size` is set, data are stacked in batches along a new
+    axis. The keyword arguments `batch_axis`, `batch_pad_mode`, and
     any remaining keywords are sent to this module's ``batch_data``
-    function. If ``batch_size`` is None or zero, samples are returned
+    function. If `batch_size` is ``None`` or ``0``, samples are returned
     one-by-one. Data are always cast to numpy arrays before being
     returned. Consult that function for more information on batching.
 
-    If only one table is specified and neither ``axis_lengths`` or
-    ``add_key`` is specified, iterators will be of a batch of the
+    If only one table is specified and neither `axis_lengths` or
+    `add_key` is specified, iterators will be of a batch of the
     table's data directly. Otherwise, iterators yield "batches" of
     tuples containing "sub-batches" from each respective data source.
     Sub-batches belonging to the same batch share the same subset of
     ordered keys.
 
-    If ``add_key`` is ``True``, a sub-batch of referrent keys is added
+    If `add_key` is ``True``, a sub-batch of referrent keys is added
     as the first element of a batch tuple.
 
     For batched sequence-to-sequence tasks, it is often important to
     know the original length of data before padding. Setting
-    ``axis_lengths`` adds one or more sub-batches to the end of a
+    `axis_lengths` adds one or more sub-batches to the end of a
     batch tuple with this information. These sub-batches are filled
-    with signed 32-bit integers. ``axis_lengths`` can be one of:
+    with signed 32-bit integers. `axis_lengths` can be one of:
 
     1. An integer specifying an axis from the first table to get the
        lengths of.
@@ -293,7 +296,7 @@ class Data(Iterable, Sized):
     3. A sequence of pairs of integers. Sub-batches will be appended
        to the batch tuple in that order
 
-    Note that axes in ``axis_lengths`` index the axes in individual
+    Note that axes in `axis_lengths` index the axes in individual
     samples, not the batch. For instance, if ``batch_axis == 0`` and
     ``axis_lengths == 0``, then the last sub-batch will refer to the
     pre-padded value of sub-batch 0's axis 1 (``batch[0].shape[1]``).
@@ -301,6 +304,9 @@ class Data(Iterable, Sized):
     The length of this object is the number of batches it serves per
     epoch.
 
+    '''
+
+    _DATA_PARAMS_DOC = '''\
     Parameters
     ----------
     table
@@ -311,19 +317,19 @@ class Data(Iterable, Sized):
     add_key : bool
         If ``True``, will insert sub-samples into the 0th index of
         each sample sequence that specify the key that this sample was
-        indexed by
+        indexed by. Defaults to ``False``
     axis_lengths : int or sequence, optional
         If set, sub-batches of axis lengths will be appended to the end
-        of a batch tuple.
+        of a batch tuple
     batch_axis : int or sequence
         The axis or axes (in the case of multiple tables) along which
         samples are stacked in (sub-)batches. batch_axis should take
         into account axis length and key sub-batches when applicable.
-        Defaults to 0
+        Defaults to ``0``
     batch_cast_to_array : dtype or sequence, optional
         A numpy type or sequence of types to cast each (sub-)batch to.
         ``None`` values indicate no casting should occur.
-        batch_cast_to_array should take into acount axis length and
+        `batch_cast_to_array` should take into acount axis length and
         key sub-batches when applicable
     batch_kwargs : Keyword arguments, optional
         Additional keyword arguments to pass to ``batch_data``
@@ -331,39 +337,55 @@ class Data(Iterable, Sized):
         If set, pads samples in (sub-)batches according to this
         ``numpy.pad`` strategy when samples do not have the same length
     batch_size : int, optional
-        The number of samples per (sub-)batch
-    ignore_missing : bool
-        If True and some provided table does not have some key, that
+        The number of samples per (sub-)batch. Defaults to ``None``,
+        which means samples are served without batching
+    ignore_missing : bool, optional
+        If ``True`` and some provided table does not have some key, that
         key will simply be ignored. Otherwise, a missing key raises a
         ValueError. Default to ``False``
+    '''
 
+    _DATA_ATTRIBUTES_DOC = '''\
     Attributes
     ----------
+    num_samples
+    num_batches
     table_specifiers : tuple
-        A tuple of triples indicating of rspecifier, kaldi_dtype, and
-        open_kwargs for each table
+        A tuple of triples indicating ``(rspecifier, kaldi_dtype, 
+        open_kwargs)`` for each table
     add_key : bool
+        Whether a sub-batch of table keys has been prepended to existing
+        sub-batches
     axis_lengths : tuple
         A tuple of pairs for each axis-length sub-batch requested. Each
-        pair is (sub_batch_idx, axis).
+        pair is ``(sub_batch_idx, axis)``.
     batch_axis : tuple
         A tuple of length num_sub indicating which axis (sub-)samples
         will be arrayed along in a given (sub-)batch when all
         (sub-)samples are (or are cast to) fixed length numpy arrays of
         the same type
     batch_cast_to_array : tuple
-        A tuple of length num_sub indicating what numpy types, if any
+        A tuple of length `num_sub` indicating what numpy types, if any
         (sub-)samples should be cast to. Values of ``None`` indicate
         no casting should be done on that (sub-)sample
     batch_kwargs : dict
+        Additional keyword arguments to pass to ``batch_data``
     batch_pad_mode : str or None
+        If set, pads samples in (sub-)batches according to this
+        ``numpy.pad`` strategy when samples do not have the same length
     batch_size : int or None
+        The number of samples per (sub-)batch
     ignore_missing : bool
+        If ``True`` and some provided table does not have some key, that
+        key will simply be ignored. Otherwise, a missing key raises a
+        ValueError
     num_sub : int
         The number of sub-batches per batch. If > 1, batches are
         yielded as tuples of sub-batches. This number accounts for
         key, table, and axis-length sub-batches
     '''
+
+    Data.__doc__ += _DATA_PARAMS_DOC + '\n' + _DATA_ATTRIBUTES_DOC
 
     def __init__(self, table, *additional_tables, **kwargs):
         table_specifiers = [table]
@@ -527,29 +549,26 @@ class ShuffledData(Data):
 
     .. note:: For efficiency, it is highly recommended to use scripts
               to access tables rather than archives.
+    '''
 
-    Additional Parameters
-    ---------------------
+    ShuffledData.__doc__ += Data._DATA_PARAMS_DOC + '''\
     key_list : sequence, optional
         A master list of keys. No other keys will be queried. If not
         specified, the key list will be inferred by passing through the
         first table once
     rng : int or numpy.random.RandomState, optional
-        Either a RandomState object or a seed to create a RandomState
-        object. It will be used to shuffle the list of keys
+        Either a ``RandomState`` object or a seed to create a
+        ``RandomState`` object. It will be used to shuffle the list of
+        keys
+    '''
 
-    Additional Attributes
-    ---------------------
+    ShuffledData.__doc__ += '\n' + Data._DATA_ATTRIBUTES_DOC + '''\
     key_list : tuple
+        The master list of keys
     rng : numpy.random.RandomState
+        Used to shuffle the list of keys every epoch
     table_holders : tuple
         A tuple of table readers opened in random access mode
-
-    See Also
-    --------
-    pydrobert.kaldi.io.corups.Data
-        For a general description of these iterables, their arguments,
-        attributes, etc.
     '''
 
     def __init__(self, table, *additional_tables, **kwargs):
@@ -599,6 +618,8 @@ class ShuffledData(Data):
                     self._num_samples += 1
         return self._num_samples
 
+    num_samples.__doc__ = Data.num_samples.__doc__
+
     def sample_generator_for_epoch(self):
         shuffled_keys = np.array(self.key_list)
         self.rng.shuffle(shuffled_keys)
@@ -633,6 +654,8 @@ class ShuffledData(Data):
         elif self._num_samples != num_samples:
             raise IOError('Different number of samples from last time!')
 
+    sample_generator_for_epoch.__doc__ = Data.num_samples.__doc__
+
 
 class SequentialData(Data):
     '''Provides iterators to read data sequentially
@@ -640,8 +663,8 @@ class SequentialData(Data):
     Tables are always assumed to be sorted so reading can proceed in
     lock-step.
 
-    ..warning:: Each time an iterator is requested, new sequential
-                readers are opened. Be careful with stdin!
+    .. warning:: Each time an iterator is requested, new sequential
+                 readers are opened. Be careful with stdin!
     '''
 
     def __init__(self, table, *additional_tables, **kwargs):
