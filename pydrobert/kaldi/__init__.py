@@ -28,9 +28,11 @@ __copyright__ = "Copyright 2016 Sean Robertson"
 
 __all__ = [
     'io',
+    'feat',
+    'eval',
+    'logging',
     'KaldiLocaleWarning',
     'command_line',
-    'util',
 ]
 
 try:

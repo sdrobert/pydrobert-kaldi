@@ -5,22 +5,22 @@ pydrobert-kaldi
 .. image:: https://travis-ci.org/sdrobert/pydrobert-kaldi.svg?branch=master
 .. image:: https://ci.appveyor.com/api/projects/status/lvjhj9pgju90wn8j?svg=true
 
-.. warning:: This is student-driven code, so don't expect a stable API. I'll try
-   to use semantic versioning, but the best way to keep functionality stable is
-   by forking.
+**This is student-driven code, so don't expect a stable API. I'll try to use
+semantic versioning, but the best way to keep functionality stable is by
+forking.**
 
 What is it?
 -----------
 
 Some Kaldi_ SWIG_ bindings for Python. I started this project because I wanted
 to seamlessly incorporate Kaldi's I/O mechanism into the gamut of Python-based
-data science packages (e.g. Theano, Tensorflow, CNTK, PyTorch, etc.). The
-code base is expanding to wrap more of Kaldi's feature processing and
-mathematical functions, but is unlikely to include modelling or decoding.
+data science packages (e.g. Theano, Tensorflow, CNTK, PyTorch, etc.). The code
+base is expanding to wrap more of Kaldi's feature processing and mathematical
+functions, but is unlikely to include modelling or decoding.
 
-Eventually, I plan on adding hooks for Kaldi audio features and
-pre-/post-processing. However, I have no plans on porting any code involving
-modelling or decoding.
+Eventually, I plan on adding hooks for Kaldi audio features and pre-/post-
+processing. However, I have no plans on porting any code involving modelling or
+decoding.
 
 Input/Output
 ------------
@@ -32,19 +32,19 @@ Most I/O can be performed with the ``pydrobert.kaldi.io.open`` function:
 >>>     for matrix in f:
 >>>         pass # do something
 
-``open`` is a factory function that determines the appropriate underlying stream
-to open, much like Python's built-in ``open``. The data types we can read (here,
-a BaseMatrix) are listed in ``pydrobert.kaldi.io.enums.KaldiDataType``. Big
-data types, like matrices and vectors, are piped into Numpy_ arrays. Passing
-an extended filename  (e.g. paths to files on discs, '-' for stdin/stdout,
-'gzip -c a.ark.gz |', etc.) opens a stream from which data types can be read
-one-by-one and in the order they were written. Alternatively, prepending the
-extended filename with "ark[,[option_a[,option_b...]]:" or "scp[,...]:" and
-specifying a data type allows one to open a Kaldi table for iterator-like
-sequential reading (``mode='r'``), dict-like random access reading
-(``mode='r+'``), or writing (``mode='w'``). For more information on the open
-function, consult the docstring. Information on `Kaldi I/O`_ can be found on
-their website.
+``open`` is a factory function that determines the appropriate underlying
+stream to open, much like Python's built-in ``open``. The data types we can
+read (here, a ``BaseMatrix``) are listed in
+``pydrobert.kaldi.io.enums.KaldiDataType``. Big data types, like matrices and
+vectors, are piped into Numpy_ arrays. Passing an extended filename  (e.g.
+paths to files on discs, ``'-'`` for stdin/stdout, ``'gzip -c a.ark.gz |'``,
+etc.) opens a stream from which data types can be read one-by-one and in the
+order they were written. Alternatively, prepending the extended filename with
+``'ark[,[option_a[,option_b...]]:'`` or ``'scp[,...]:'`` and specifying a data
+type allows one to open a Kaldi table for iterator-like sequential reading
+(``mode='r'``), dict-like random access reading (``mode='r+'``), or writing
+(``mode='w'``). For more information on the open function, consult the
+docstring. Information on `Kaldi I/O`_ can be found on their website.
 
 The submodule ``pydrobert.kaldi.io.corpus`` contains useful wrappers around
 Kaldi I/O to serve up batches of data to, say, a neural network:
@@ -58,9 +58,10 @@ Logging and CLI
 
 By default, Kaldi error, warning, and critical messages are piped to standard
 error. The ``pydrobert.kaldi.logging`` submodule provides hooks into python's
-native logging interface: the ``logging`` module. The ``KaldiLogger`` can handle
-stack traces from Kaldi C++ code, and there are a variety of decorators to
-finagle the kaldi logging patterns to python logging patterns, or vice versa.
+native logging interface: the ``logging`` module. The ``KaldiLogger`` can
+handle stack traces from Kaldi C++ code, and there are a variety of decorators
+to finagle the kaldi logging patterns to python logging patterns, or vice
+versa.
 
 You'd likely want to explicitly handle logging when creating new kaldi-style
 commands for command line. ``pydrobert.kaldi.io.argparse`` provides
@@ -106,9 +107,6 @@ library::
    # see setup.py for more options
 
 You'll need either GCC or Clang plus Swig >= 3.0.8 for this.
-
-I'd like to try to get 2.7 working for Windows, but I need c++11 support.
-Suggestions?
 
 License
 -------

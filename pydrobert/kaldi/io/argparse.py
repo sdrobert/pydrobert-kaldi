@@ -53,12 +53,7 @@ __all__ = [
 
 
 def kaldi_rspecifier_arg_type(string):
-    '''Make sure string is a valid rspecifier
-
-    Raises
-    ------
-    argparse.ArgumentTypeError
-    '''
+    '''argument type to make sure string is a valid rspecifier'''
     table_type, _, _, _ = kaldi_io_util.parse_kaldi_input_path(string)
     if table_type == kaldi_io_enums.TableType.NotATable:
         raise argparse.ArgumentTypeError('Not a valid rspecifier')
@@ -66,12 +61,7 @@ def kaldi_rspecifier_arg_type(string):
 
 
 def kaldi_wspecifier_arg_type(string):
-    '''Make sure string is a valid wspecifier
-
-    Raises
-    ------
-    argparse.ArgumentTypeError
-    '''
+    '''argument type to make sure string is a valid wspecifier'''
     table_type, _, _, _ = kaldi_io_util.parse_kaldi_output_path(string)
     if table_type == kaldi_io_enums.TableType.NotATable:
         raise argparse.ArgumentTypeError('Not a valid wspecifier')
@@ -79,12 +69,7 @@ def kaldi_wspecifier_arg_type(string):
 
 
 def kaldi_rxfilename_arg_type(string):
-    '''Make sure string is a valid extended readable file name
-
-    Raises
-    ------
-    argparse.ArgumentTypeError
-    '''
+    '''argument type to make sure string is a valid extended readable file'''
     table_type, _, rxfilename_type, _ = kaldi_io_util.parse_kaldi_input_path(
         string)
     if table_type != kaldi_io_enums.TableType.NotATable:
@@ -97,12 +82,7 @@ def kaldi_rxfilename_arg_type(string):
 
 
 def kaldi_wxfilename_arg_type(string):
-    '''Make sure string is a valid extended writable file name
-
-    Raises
-    ------
-    argparse.ArgumentTypeError
-    '''
+    '''argument type to make sure string is a valid extended readable file'''
     table_type, _, wxfilename_type, _ = kaldi_io_util.parse_kaldi_output_path(
         string)
     if table_type != kaldi_io_enums.TableType.NotATable:
@@ -115,12 +95,7 @@ def kaldi_wxfilename_arg_type(string):
 
 
 def kaldi_dtype_arg_type(string):
-    '''Make sure string refers to a KaldiDataType and return it
-
-    Raises
-    ------
-    argparse.ArgumentTypeError
-    '''
+    '''argument type for string reps of KaldiDataType'''
     try:
         ret = kaldi_io_enums.KaldiDataType(string)
     except ValueError:
@@ -133,12 +108,7 @@ def kaldi_dtype_arg_type(string):
 
 
 def kaldi_bool_arg_type(string):
-    '''Make sure string is either "true"/"t" or "false"/"f", return bool
-
-    Raises
-    ------
-    argparse.ArumentTypeError
-    '''
+    '''argument type for bool strings of "true","t","false", or "f"'''
     if string in ("true", "t"):
         return True
     elif string in ("false", "f"):
@@ -149,12 +119,7 @@ def kaldi_bool_arg_type(string):
 
 
 def numpy_dtype_arg_type(string):
-    '''Make sure string refers to a numpy data type, returns that type
-
-    Raises
-    ------
-    argparse.ArgumentTypeError
-    '''
+    '''argument type for string reps of numpy dtypes'''
     try:
         ret = np.dtype(string)
     except TypeError as error:
@@ -177,18 +142,13 @@ def parse_kaldi_config_file(file_path, allow_space=True):
     ----------
     file_path : str
         Points to the config file in question
-    allow_spaces : bool
-        If True, treat the first space on a line as splitting key and
-        value if no equals sign exists on the line. If false, no equals
-        sign will chunk the whole line (as if a boolean flag). Kaldi
-        does not split on spaces, but python does. Note that
-        allow_spaces does not split the entire line on spaces, unlike
+    allow_spaces : bool, optional
+        If ``True``, treat the first space on a line as splitting key
+        and value if no equals sign exists on the line. If ``False``, no
+        equals sign will chunk the whole line (as if a boolean flag).
+        Kaldi does not split on spaces, but python does. Note that
+        `allow_spaces` does not split the entire line on spaces, unlike
         shell arguments.
-
-    Raises
-    ------
-    ValueError
-        If config file has formatting issues
     '''
     args = []
     with open(file_path) as config_file:
@@ -221,12 +181,12 @@ def parse_kaldi_config_file(file_path, allow_space=True):
 class KaldiVerbosityAction(argparse.Action):
     '''Read kaldi-style verbosity levels, setting logger to python level
 
-    Kaldi verbosities tend to range from [-3, 9]. This action takes in a kaldi
-    verbosity level and converts it to python logging levels with
+    Kaldi verbosities tend to range from [-3, 9]. This action takes in a
+    kaldi verbosity level and converts it to python logging levels with
     `pydrobert.kaldi.logging.kaldi_lvl_to_logging_lvl`
 
-    If the parser has a `logger` attribute, the logger will be set to the new
-    level.
+    If the parser has a `logger` attribute, the `logger` will be set to
+    the new level.
     '''
 
     def __init__(
@@ -250,97 +210,102 @@ class KaldiParser(argparse.ArgumentParser):
     '''Kaldi-compatible wrapper for argument parsing
 
     KaldiParser intends to make command-line entry points in python more
-    compatible with kaldi command-line scripts. It makes the following changes
-    to argparse.ArgumentParser:
+    compatible with kaldi command-line scripts. It makes the following
+    changes to ``argparse.ArgumentParser``:
 
-    1. Creates a logging.Formatter instance that formats messages
-       similarly to kaldi using the 'prog' keyword as the program name.
-    2. Sets the default help and usage locations to sys.stderr (instead
-       of out)
-    3. Registers 'kaldi_bool', 'kaldi_rspecifier', 'kaldi_wspecifier',
-       'kaldi_wxfilename', 'kaldi_rxfilename', 'kaldi_config',
-       'kaldi_dtype', and 'numpy_dtype' as argument types
-    4. Registers `kaldi_verbose` a an action
-    5. Adds `logger`, `update_formatters`, `add_config`, and `add_verbose`
-       parameters to initialization (see below)
+    1. Creates a ``logging.Formatter`` instance that formats messages
+       similarly to kaldi using the `prog` keyword as the program name.
+    2. Sets the default help and usage locations to ``sys.stderr``
+       (instead of ``sys.stdout``)
+    3. Registers ``'kaldi_bool'``, ``'kaldi_rspecifier'``,
+       ``'kaldi_wspecifier'``, ``'kaldi_wxfilename'``,
+       ``'kaldi_rxfilename'``, ``'kaldi_config'``, ``'kaldi_dtype'``,
+       and ``'numpy_dtype'`` as argument types
+    4. Registers ``'kaldi_verbose'`` as an action
+    5. Adds `logger`, `update_formatters`, `add_config`, and
+       `add_verbose` parameters to initialization (see below)
     6. Wraps `parse_args` and `parse_known_args` with
-       `kaldi_vlog_level_cmd_decorator` (so loggers use the right level names
-       on error)
+       ``kaldi_vlog_level_cmd_decorator`` (so loggers use the right
+       level names on error)
 
     KaldiParser differs from kaldi's command line parsing in a few key
     ways. First, though '=' syntax is supported, the parser will also
     group using the command-line splitting (on unquoted whitespace). For
-    the KaldiParser, ``--foo bar`` and ``--foo=bar`` are equivalent
+    the ``KaldiParser``, ``--foo bar`` and ``--foo=bar`` are equivalent
     (assuming foo takes one optional argument), whereas, in Kaldi,
     ``--foo bar`` would be parsed as the boolean flag ``--foo`` followed
     by a positional with value ``bar``. This ambiguity is the source of
     the next difference: boolean flags. Because kaldi command-line
     parsing splits around ``=``, it can use ``--foo=true`` and ``--foo``
     interchangeably. To avoid gobbling up a positional argument,
-    KaldiParser allows for only one type of boolean flag syntax. For
+    ``KaldiParser`` allows for only one type of boolean flag syntax. For
     the former, use ``action='store_true'`` in `add_argument`. For the
     latter, use ``type='kaldi_bool'``.
-
 
     Parameters
     ----------
     prog : str, optional
-        Name of the program. Defaults to sys.argv[0]
+        Name of the program. Defaults to ``sys.argv[0]``
     usage : str, optional
         A usage message. Default: auto-generated from arguments
     description : str, optional
         A description of what the program does
     epilog : str, optional
         Text following the argument descriptions
-    parents :
+    parents : sequence, optional
         Parsers whose arguments should be copied into this one
     formatter_class : argparse.HelpFormatter
-        class for printing help messages
-    prefix_chars : str
+        Class for printing help messages
+    prefix_chars : str, optional
         Characters that prefix optional arguments
     fromfile_prefix_chars : str, optional
         Characters that prefix files containing additional arguments
     argument_default : optional
         The default value for all arguments
-    conflict_handler : {'error', 'resolve'}
+    conflict_handler : {'error', 'resolve'}, optional
         String indicating how to handle conflicts
-    add_help : bool
-        Add a -h/--help option
-    add_verbose : bool
-        Add a -v/--verbose option. The option requires an integer
+    add_help : bool, optional
+        Add a ``-h/--help`` option
+    add_verbose : bool, optional
+        Add a ``-v/--verbose`` option. The option requires an integer
         argument specifying a verbosiy level at the same degrees as
         Kaldi. The level will be converted to the appropriate python
         level when parsed
-    add_config : bool
-        Whether to add the standard '--config' option to the
-        parser. If True, a first-pass will extract all config file
+    add_config : bool, optional
+        Whether to add the standard ``--config`` option to the
+        parser. If ``True``, a first-pass will extract all config file
         options and put them at the beginning of the argument string
         to be re-parsed.
-    add_print_args : bool
-        Whether to add the standard '--print-args' to the parser. If
-        True, a first-pass of the will search for the value of
-        '--print-args' and, if True, will print that value to stderr
-        (only on `parse_args`, not `parse_known_args`)
-    update_formatters : bool
-        If logger is set, the logger's handlers' formatters will be set
-        to a kaldi-style formatter
+    add_print_args : bool, optional
+        Whether to add the standard ``--print-args`` to the parser. If
+        ``True``, a first-pass of the will search for the value of
+        ``--print-args`` and, if ``True``, will print that value to
+        stderr (only on `parse_args`, not `parse_known_args`)
+    update_formatters : bool, optional
+        If `logger` is set, the logger's handlers' formatters will be
+        set to a kaldi-style formatter
     logger : logging.Logger, optional
         Errors will be written to this logger when parse_args fails. If
-        `add_verbose` has been set to True, the logger will be set to
-        the appropriate python level if verbose is set (note: the logger
-        will be set to the default level - INFO - on initialization).
+        `add_verbose` has been set to ``True``, the logger will be set
+        to the appropriate python level if verbose is set (note: the
+        logger will be set to the default level - ``INFO`` - on
+        initialization)
     version : str, optional
-        A version string to use for logs. If not set, the
-        pydrobert.kaldi version will be used by default
+        A version string to use for logs. If not set,
+        ``pydrobert.kaldi.__version__`` will be used by default
 
     Attributes
     ----------
     logger : logging.Logger
+        The logger this parse was printing out to
     formatter : logging.Formatter
         A log formatter that formats with kaldi-style headers
     add_config : bool
+        Whether this parser has a ``--config`` flag
     add_print_args : bool
+        Whether this parser has a ``--print-args`` flag
     version : str
+        Version string used by this parser and `logger`
     '''
 
     def __init__(
@@ -397,10 +362,14 @@ class KaldiParser(argparse.ArgumentParser):
             file = sys.stderr
         super(KaldiParser, self).print_help(file=file)
 
+    print_help.__doc__ = argparse.ArgumentParser.print_help.__doc__
+
     def print_usage(self, file=None):
         if file is None:
             file = sys.stderr
         super(KaldiParser, self).print_usage(file=file)
+
+    print_usage.__doc__ = argparse.ArgumentParser.print_usage.__doc__
 
     def error(self, message):
         if self.logger:
@@ -409,6 +378,8 @@ class KaldiParser(argparse.ArgumentParser):
             self.exit(2)
         else:
             super(KaldiParser, self).error(message)
+
+    error.__doc__ = argparse.ArgumentParser.error.__doc__
 
     @kaldi_vlog_level_cmd_decorator
     def parse_known_args(self, args=None, namespace=None):
@@ -467,3 +438,5 @@ class KaldiParser(argparse.ArgumentParser):
             ns, remainder = super(KaldiParser, self).parse_known_args(
                 args=args, namespace=namespace)
         return ns, remainder
+
+    parse_known_args.__doc__ = argparse.ArgumentParser.parse_known_args.__doc__

@@ -38,26 +38,30 @@ __all__ = [
     'infer_kaldi_data_type',
 ]
 
+
 def parse_kaldi_input_path(path):
     '''Determine the characteristics of an input stream by its path
+
+    Returns a 4-tuple of the following information:
+
+    1. If path is not an rspecifier (``TableType.NotATable``):
+
+       a. Classify path as an rxfilename
+       b. return a tuple of ``(TableType, path, RxfilenameType,
+          dict())``
+
+    2. else:
+
+       a. Put all rspecifier options (once, sorted, called_sorted,
+          permissive, background) into a dictionary
+       b. Extract the embedded rxfilename and classify it
+       c. return a tuple of ``(TableType, rxfilename,
+          RxfilenameType, options)``
 
     Parameters
     ----------
     path : str
-        A string that would be passed to `pydrobert.kaldi.io.open`
-
-    Returns
-    -------
-    A 4-tuple of the following information
-    1. If path is not an rspecifier (TableType.NotATable)
-       a. Classify path as an rxfilename
-       b. return a tuple of (TableType, path, RxfilenameType, dict())
-    2. else
-       a. Put all rspecifier options (once, sorted, called_sorted,
-          permissive, background) into a dictionary
-       b. Extract the embedded rxfilename and classify it
-       c. return a tuple of (TableType, rxfilename, RxfilenameType,
-          options)
+        A string that would be passed to ``pydrobert.kaldi.io.open``
     '''
     cpp_ret = _i.ParseInputPath(path)
     table_type = TableType(cpp_ret[0])
@@ -75,34 +79,41 @@ def parse_kaldi_input_path(path):
         }
     return (table_type, rxfilename, rx_type, options)
 
+
 def parse_kaldi_output_path(path):
     '''Determine the charactersistics of an output stram by its path
+
+    Returns a 4-tuple of the following information
+
+    1. If path is not a wspecifier (``TableType.NotATable``)
+
+       a. Classify path as a wxfilename
+       b. return a tuple of ``(TableType, path, WxfilenameType,
+          dict())``
+
+    2. If path is an archive or script
+
+       a. Put all wspecifier options (binary, flush, permissive)
+          into a dictionary
+       b. Extract the embedded wxfilename and classify it
+       c. return a tuple of ``(TableType, wxfilename,
+          WxfilenameType, options)``
+
+    3. If path contains both an archive and a script
+       (``TableType.BothTables``)
+
+       a. Put all wspecifier options (binary, flush, permissive)
+          into a dictionary
+       b. Extract both embedded wxfilenames and classify them
+       c. return a tuple of
+          ``(TableType, (arch_wxfilename, script_wxfilename),
+          (arch_WxfilenameType, script_WxfilenameType), options)``
+
 
     Parameters
     ----------
     path : str
-        A string that would be passed to `pydrobert.kaldi.io.open`
-
-    Returns
-    -------
-    A 4-tuple of the following information
-    1. If path is not a wspecifier (TableType.NotATable)
-       a. Classify path as a wxfilename
-       b. return a tuple of (TableType, path, WxfilenameType, dict())
-    2. If path is an archive or script
-       a. Put all wspecifier options (binary, flush, permissive) into a
-          dictionary
-       b. Extract the embedded wxfilename and classify it
-       c. return a tuple of (TableType, wxfilename, WxfilenameType,
-          options)
-    3. If path contains both an archive and a script
-       (TableType.BothTables)
-       a. Put all wspecifier options (binary, flush, permissive) into a
-          dictionary
-       b. Extract both embedded wxfilenames and classify them
-       c. return a tuple of
-          (TableType, (arch_wxfilename, script_wxfilename),
-          (arch_WxfilenameType, script_WxfilenameType), options)
+        A string that would be passed to ``pydrobert.kaldi.io.open``
     '''
     cpp_ret = _i.ParseOutputPath(path)
     table_type = TableType(cpp_ret[0])
@@ -121,6 +132,7 @@ def parse_kaldi_output_path(path):
             'permissive': cpp_ret[-1],
         }
     return (table_type, wxfilenames, wx_types, options)
+
 
 def infer_kaldi_data_type(obj):
     '''Infer the appropriate kaldi data type for this object
@@ -148,7 +160,7 @@ def infer_kaldi_data_type(obj):
     +------------------------------+---------------------+
     | 1-dim numpy array of int32   | Int32Vector         |
     +------------------------------+---------------------+
-    | 2-dim numpy array of int32*  | Int32VectorVector   |
+    | 2-dim numpy array of int32\* | Int32VectorVector   |
     +------------------------------+---------------------+
     | (matrix-like, float or int)  | WaveMatrix**        |
     +------------------------------+---------------------+
@@ -158,7 +170,7 @@ def infer_kaldi_data_type(obj):
     +------------------------------+---------------------+
     | 1-dim py container of ints   | Int32Vector         |
     +------------------------------+---------------------+
-    | 2-dim py container of ints*  | Int32VectorVector   |
+    | 2-dim py container of ints\* | Int32VectorVector   |
     +------------------------------+---------------------+
     | 2-dim py container of pairs  | BasePairVector      |
     | of floats                    |                     |
@@ -168,10 +180,11 @@ def infer_kaldi_data_type(obj):
     | vector-like python container | DoubleVector        |
     +------------------------------+---------------------+
 
-    *The same data types could represent a `Double` or an
-    `Int32PairVector`, respectively. Care should be taken in these cases.
+    \*The same data types could represent a ``Double`` or an
+    ``Int32PairVector``, respectively. Care should be taken in these
+    cases.
 
-    **The first element is the wave data, the second its sample
+    \*\*The first element is the wave data, the second its sample
     frequency. The wave data can be a 2d numpy float array of the same
     precision as ``KaldiDataType.BaseMatrix``, or a matrix-like python
     container of floats and/or ints.
@@ -208,12 +221,12 @@ def infer_kaldi_data_type(obj):
             elif obj.dtype == np.int32:
                 return KaldiDataType.Int32Vector
         elif len(obj) == 2 and \
-                len(obj[0].shape) == 2 and \
-                (obj[0].dtype == np.float32 and \
-                    not KaldiDataType.BaseMatrix.is_double) or \
-                (obj[0].dtype == np.float64 and \
-                    KaldiDataType.BaseMatrix.is_double) and \
-                (isinstance(obj[1], int) or isinstance(obj[1], float)):
+                len(obj[0].shape) == 2 and (
+                    obj[0].dtype == np.float32 and
+                    not KaldiDataType.BaseMatrix.is_double) or (
+                    obj[0].dtype == np.float64 and
+                    KaldiDataType.BaseMatrix.is_double) and (
+                    isinstance(obj[1], int) or isinstance(obj[1], float)):
             return KaldiDataType.WaveMatrix
     except AttributeError:
         pass

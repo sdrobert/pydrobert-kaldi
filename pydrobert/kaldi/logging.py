@@ -20,21 +20,22 @@ directly to stderr. Any ``logging.Logger`` instance can register with
 logger is registered to receive Kaldi messages, messages will no longer
 be sent to stderr by default. Kaldi codes are converted to ``logging``
 codes according to the following chart
-   +----------------+------------+
-   | logging        | kaldi      |
-   +================+============+
-   | CRITICAL(50+)  | -3+        |
-   +----------------+------------+
-   | ERROR(40-49)   | -2         |
-   +----------------+------------+
-   | WARNING(30-39) | -1         |
-   +----------------+------------+
-   | INFO(20-29)    | 0          |
-   +----------------+------------+
-   | DEBUG(10-19)   | 1          |
-   +----------------+------------+
-   | 9 down to 1    | 2 up to 10 |
-   +----------------+------------+
+
++----------------+------------+
+| logging        | kaldi      |
++================+============+
+| CRITICAL(50+)  | -3+        |
++----------------+------------+
+| ERROR(40-49)   | -2         |
++----------------+------------+
+| WARNING(30-39) | -1         |
++----------------+------------+
+| INFO(20-29)    | 0          |
++----------------+------------+
+| DEBUG(10-19)   | 1          |
++----------------+------------+
+| 9 down to 1    | 2 up to 10 |
++----------------+------------+
 
 """
 
@@ -66,9 +67,9 @@ __all__ = [
 class KaldiLogger(logging.getLoggerClass()):
     """Logger subclass that overwrites log info with kaldi's
 
-    Setting the `Logger` class of the python module `logging` (thru
-    ``logging.setLoggerClass``) to `KaldiLogger` will allow new loggers
-    to intercept messages from Kaldi and inject Kaldi's trace
+    Setting the ``Logger`` class of the python module ``logging`` (thru
+    ``logging.setLoggerClass``) to ``KaldiLogger`` will allow new
+    loggers to intercept messages from Kaldi and inject Kaldi's trace
     information into the record. With this injection, the logger will
     point to the location in Kaldi's source that the message originated
     from. Without it, the logger will point to a location within this
@@ -96,6 +97,8 @@ class KaldiLogger(logging.getLoggerClass()):
         record = super(KaldiLogger, self).makeRecord(*args, **kwargs)
         return record
 
+    makeRecord.__doc__ = logging.getLoggerClass().__doc__
+
 
 def kaldi_logger_decorator(func):
     '''Sets the default logger class to KaldiLogger over the func call'''
@@ -119,8 +122,8 @@ def register_logger_for_kaldi(logger):
     Parameters
     ----------
     logger : str or logger
-        Either the logger or its name. When a new message comes along from
-        Kaldi, the callback will send a message to the logger
+        Either the logger or its name. When a new message comes along
+        from Kaldi, the callback will send a message to the logger
     '''
     # set verbosity as high as we can and let the loggers filter out
     # what they want
@@ -147,12 +150,15 @@ def deregister_all_loggers_for_kaldi():
 def kaldi_vlog_level_cmd_decorator(func):
     '''Decorator to rename, then revert, level names according to Kaldi [1]_
 
-    See pydrobert.kaldi for the conversion chart. After the return of
-    the function, the level names before the call are reverted. This
-    function is insensitive to renaming while the function executes
+    See ``pydrobert.kaldi.logging`` for the conversion chart. After the
+    return of the function, the level names before the call are
+    reverted. This function is insensitive to renaming while the
+    function executes
 
+    References
+    ----------
     .. [1] Povey, D., et al (2011). The Kaldi Speech Recognition
-           Toolkit. ASRU
+       Toolkit. ASRU
     '''
     def _new_func(*args, **kwargs):
         old_level_names = [logging.getLevelName(0)]
@@ -201,7 +207,7 @@ def _kaldi_logging_handler(envelope, message):
 
 
 def kaldi_lvl_to_logging_lvl(lvl):
-    '''Convert kaldi level to logging level. See module docstring'''
+    '''Convert kaldi level to logging level'''
     if lvl <= 1:
         lvl = lvl * -10 + 20
     else:
@@ -210,7 +216,7 @@ def kaldi_lvl_to_logging_lvl(lvl):
 
 
 def logging_lvl_to_kaldi_lvl(lvl):
-    '''Convert logging level to kaldi level. See module docstring'''
+    '''Convert logging level to kaldi level'''
     if lvl >= 10:
         lvl = max(-3, (lvl - 20) // -10)
     else:

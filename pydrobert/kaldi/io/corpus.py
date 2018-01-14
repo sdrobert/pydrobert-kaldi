@@ -93,6 +93,7 @@ def batch_data(
 
     The format of a (sub-)batch depends on the properties of its
     samples:
+
     1. If `cast_to_array` applies to this sub-batch, cast it to a numpy
        array of the target type.
     2. If all samples in the (sub-)batch are numpy arrays of the same
@@ -236,7 +237,7 @@ class Data(Iterable, Sized):
     '''Metaclass for data iterables
 
     A template for providing iterators over kaldi tables. They can be
-    used like this::
+    used like this
 
     >>> data = DataSubclass(
     ...     'scp:feats.scp', 'scp:labels.scp', batch_size=10)
@@ -249,8 +250,6 @@ class Data(Iterable, Sized):
     Calling ``iter()`` on an instance (which occurs implicitly in
     for-loops) will generate a new iterator over the entire data set.
 
-    Extended Summary
-    ----------------
     The class takes an arbitrary positive number of positional
     arguments on initialization, each a table to open. Each argument is
     one of:
@@ -306,7 +305,7 @@ class Data(Iterable, Sized):
 
     '''
 
-    _DATA_PARAMS_DOC = '''\
+    _DATA_PARAMS_DOC = '''
     Parameters
     ----------
     table
@@ -345,13 +344,15 @@ class Data(Iterable, Sized):
         ValueError. Default to ``False``
     '''
 
-    _DATA_ATTRIBUTES_DOC = '''\
+    _DATA_ATTRIBUTES_DOC = '''
     Attributes
     ----------
-    num_samples
-    num_batches
+    num_samples : int
+        Total number of samples to serve per epoch
+    num_batches : int
+        Total number of batches to serve per epoch
     table_specifiers : tuple
-        A tuple of triples indicating ``(rspecifier, kaldi_dtype, 
+        A tuple of triples indicating ``(rspecifier, kaldi_dtype,
         open_kwargs)`` for each table
     add_key : bool
         Whether a sub-batch of table keys has been prepended to existing
@@ -385,7 +386,7 @@ class Data(Iterable, Sized):
         key, table, and axis-length sub-batches
     '''
 
-    Data.__doc__ += _DATA_PARAMS_DOC + '\n' + _DATA_ATTRIBUTES_DOC
+    __doc__ += _DATA_PARAMS_DOC + '\n' + _DATA_ATTRIBUTES_DOC
 
     def __init__(self, table, *additional_tables, **kwargs):
         table_specifiers = [table]
@@ -547,11 +548,13 @@ class ShuffledData(Data):
     that list of keys and returns batches in that order. Appropriate for
     training data.
 
-    .. note:: For efficiency, it is highly recommended to use scripts
-              to access tables rather than archives.
+    Notes
+    -----
+        For efficiency, it is highly recommended to use scripts
+        to access tables rather than archives.
     '''
 
-    ShuffledData.__doc__ += Data._DATA_PARAMS_DOC + '''\
+    __doc__ += Data._DATA_PARAMS_DOC + '''
     key_list : sequence, optional
         A master list of keys. No other keys will be queried. If not
         specified, the key list will be inferred by passing through the
@@ -560,15 +563,17 @@ class ShuffledData(Data):
         Either a ``RandomState`` object or a seed to create a
         ``RandomState`` object. It will be used to shuffle the list of
         keys
+
     '''
 
-    ShuffledData.__doc__ += '\n' + Data._DATA_ATTRIBUTES_DOC + '''\
+    __doc__ += '\n' + Data._DATA_ATTRIBUTES_DOC + '''
     key_list : tuple
         The master list of keys
     rng : numpy.random.RandomState
         Used to shuffle the list of keys every epoch
     table_holders : tuple
         A tuple of table readers opened in random access mode
+
     '''
 
     def __init__(self, table, *additional_tables, **kwargs):
@@ -663,9 +668,14 @@ class SequentialData(Data):
     Tables are always assumed to be sorted so reading can proceed in
     lock-step.
 
-    .. warning:: Each time an iterator is requested, new sequential
-                 readers are opened. Be careful with stdin!
+    Warning
+    -------
+        Each time an iterator is requested, new sequential readers are
+        opened. Be careful with stdin!
+
     '''
+
+    __doc__ += Data._DATA_PARAMS_DOC + '\n' + Data._DATA_ATTRIBUTES_DOC
 
     def __init__(self, table, *additional_tables, **kwargs):
         super(SequentialData, self).__init__(
@@ -810,5 +820,10 @@ class SequentialData(Data):
                 self._num_samples)
         return self._num_samples
 
+    num_samples.__doc__ = Data.num_samples.__doc__
+
     def sample_generator_for_epoch(self):
         return self._sample_generator_for_epoch()
+
+    sample_generator_for_epoch.__doc__ = \
+        Data.sample_generator_for_epoch.__doc__

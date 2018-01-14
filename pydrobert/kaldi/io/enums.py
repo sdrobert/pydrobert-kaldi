@@ -36,19 +36,19 @@ __all__ = [
 
 
 class KaldiDataType(Enum):
-    """Enumerates the data types stored and retrieved by Kaldi IO
+    """Enumerates the data types stored and retrieved by Kaldi I/O
 
     This enumerable lists the types of data written and read to various
-    readers and writers. It is used in the factory method `open` to
-    dictate the subclass created.
+    readers and writers. It is used in the factory method
+    ``pydrobert.kaldi.io.open()`` to dictate the subclass created.
 
     Notes
     -----
     The "base float" mentioned in this documentation is the same type as
     ``kaldi::BaseFloat``, which was determined when Kaldi was built. The
-    easiest way to determine whether this is a double (64bit) or a float
-    (32bit) is by checking the value of
-    `KaldiDataType.BaseVector.is_double`.
+    easiest way to determine whether this is a double (64-bit) or a
+    float (32-bit) is by checking the value of
+    ``KaldiDataType.BaseVector.is_double()``.
     """
 
     BaseVector = 'bv'
@@ -72,7 +72,7 @@ class KaldiDataType(Enum):
     WaveMatrix = 'wm'
     """Inputs/outputs are wave file data, cast to base float 2D arrays
 
-    Wave matrices have the shape `(n_channels, n_samples)`. Kaldi will
+    Wave matrices have the shape ``(n_channels, n_samples)``. Kaldi will
     read PCM wave files, but will always convert the samples the base
     floats.
 

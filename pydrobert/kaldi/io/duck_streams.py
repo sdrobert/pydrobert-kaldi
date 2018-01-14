@@ -66,11 +66,6 @@ def open_duck_stream(path, mode='r', header=True):
         Setting this to True will either check for a 'binary header' in
         an input stream, or write a binary header for an output stream.
         If False, no check/write is performed
-
-    Raises
-    ------
-    ValueError
-    IOError
     '''
     if mode in ('r', 'r+'):
         return KaldiInput(path, header=header)
@@ -88,13 +83,10 @@ class KaldiInput(KaldiIOBase):
     Parameters
     ----------
     path : str
+        An extended readable file path
     header : bool
         If False, no attempt will be made to look for the "binary"
         header in the stream; it will be assumed binary
-
-    Raises
-    ------
-    IOError
     '''
 
     def __init__(self, path, header=True):
@@ -112,8 +104,12 @@ class KaldiInput(KaldiIOBase):
     def readable(self):
         return True
 
+    readable.__doc__ = KaldiIOBase.readable.__doc__
+
     def writable(self):
         return False
+
+    writable.__doc__ = KaldiIOBase.writable.__doc__
 
     def read(self, kaldi_dtype, value_style='b', read_binary=None):
         '''Read in one object from the stream
@@ -123,22 +119,18 @@ class KaldiInput(KaldiIOBase):
         kaldi_dtype : pydrobert.kaldi.enums.KaldiDataType
             The type of object to read
         value_style : str of {'b', 's', 'd'}, optional
-            `wm` readers can provide not only the audio buffer (`'b'`)
-            of a wave file, but its sampling rate (`'s'`), and/or
-            duration (in sec, `'d'`). Setting `value_style` to some
-            combination of `'b'`, `'s'`, and/or `'d'` will cause the
-            reader to return a tuple of that information. If
+            ``'wm'`` readers can provide not only the audio buffer
+            (``'b'``) of a wave file, but its sampling rate (``'s'``),
+            and/or duration (in sec, ``'d'``). Setting `value_style` to
+            some combination of ``'b'``, ``'s'``, and/or ``'d'`` will
+            cause the reader to return a tuple of that information. If
             `value_style` is only one character, the result will not be
             contained in a tuple
         read_binary : bool, optional
-            If set, the object will be read as either binary (True) or
-            text (False). The default behaviour is to read according to
-            the ``binary`` attribute. Ignored if there's only one way
-            to read the data
-
-        Raises
-        ------
-        IOError
+            If set, the object will be read as either binary (``True``)
+            or text (``False``). The default behaviour is to read
+            according to the `binary` attribute. Ignored if there's only
+            one way to read the data
         '''
         if self.closed:
             raise IOError('I/O operation on closed file.')
@@ -204,6 +196,8 @@ class KaldiInput(KaldiIOBase):
             self._internal.Close()
         self.closed = True
 
+    close.__doc__ = KaldiIOBase.close.__doc__
+
 
 class KaldiOutput(KaldiIOBase):
     '''A kaldi output stream from which objects can be written one at a time
@@ -211,13 +205,10 @@ class KaldiOutput(KaldiIOBase):
     Parameters
     ----------
     path : str
+        An extended writable file path
     header : bool
         Whether to write a header when opening the binary stream (True)
         or not.
-
-    Raises
-    ------
-    IOError
     '''
 
     def __init__(self, path, header=True):
@@ -229,8 +220,12 @@ class KaldiOutput(KaldiIOBase):
     def readable(self):
         return False
 
+    readable.__doc__ = KaldiIOBase.readable.__doc__
+
     def writable(self):
         return True
+
+    writable.__doc__ = KaldiIOBase.writable.__doc__
 
     def write(self, obj, kaldi_dtype, error_on_str=True, write_binary=True):
         '''Write one object to the stream
@@ -241,25 +236,26 @@ class KaldiOutput(KaldiIOBase):
             The object to write
         kaldi_dtype : pydrobert.kaldi.enums.KaldiDataType
             The type of object to write. The default is to infer this
-        error_on_str : bool
-            Token vectors (`'tv'`) accept sequences of whitespace-free
-            ASCII/UTF strings. A `str` is also a sequence of characters,
-            which may satisfy the token requirements. If
-            `error_on_str=True`, a `ValueError` is raised when writing a
-            `str` as a token vector. Otherwise a `str` can be written
+        error_on_str : bool, optional
+            Token vectors (``'tv'``) accept sequences of whitespace-free
+            ASCII/UTF strings. A ``str`` is also a sequence of
+            characters, which may satisfy the token requirements. If
+            `error_on_str` is ``True``, a ``ValueError`` is raised when
+            writing a ``str`` as a token vector. Otherwise a ``str``
+            can be written
         write_binary : bool, optional
-            The object will be written as binary (True) or text (False).
+            The object will be written as binary (``True``) or text
+            (``False``)
 
         Raises
         ------
         ValueError
             If unable to determine a proper data type
-        IOError
 
         See Also
         --------
         pydrobert.kaldi.io.util.infer_kaldi_data_type
-            Illustrates how different inputs are mapped to data types.
+            Illustrates how different inputs are mapped to data types
         '''
         if self.closed:
             raise IOError('I/O operation on closed file.')

@@ -93,12 +93,12 @@ def compute_error_rate(args=None):
     though the computation is the same. Given a reference and hypothesis
     sequence, the error rate is
 
-        Error Rate = (substitutions + insertions + deletions)
-                     / ref_tokens * 100%
+    >>> error_rate = (substitutions + insertions + deletions) / (
+    ...     ref_tokens * 100)
 
-    Where the number of substitutions (e.g. A B C -> A D C), deletions
-    (e.g. A B C -> A C), and insertions (e.g. A B C -> A D B C) are
-    determined by Levenshtein distance.
+    Where the number of substitutions (e.g. ``A B C -> A D C``),
+    deletions (e.g. ``A B C -> A C``), and insertions (e.g.
+    ``A B C -> A D B C``) are determined by Levenshtein distance.
     '''
     logger = logging.getLogger(sys.argv[0])
     if not logger.handlers:

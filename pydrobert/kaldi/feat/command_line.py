@@ -75,7 +75,7 @@ def _write_table_to_pickle_parse_args(args, logger):
 def write_table_to_pickle(args=None):
     '''Write a kaldi table to pickle file(s)
 
-    The inverse is write_pickle_to_table
+    The inverse is write-pickle-to-table
     '''
     logger = logging.getLogger(sys.argv[0])
     if not logger.handlers:

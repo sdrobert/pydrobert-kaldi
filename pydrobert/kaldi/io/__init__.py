@@ -14,10 +14,10 @@
 
 """Interfaces for Kaldi's readers and writers
 
-This subpackage contains a factory function, ``open``, which is intended
-to behave similarly to python's built-in ``open`` factory. ``open`` gives
-the specifics behind Kaldi's different read/write styles. Here, they
-are described in a general way.
+This subpackage contains a factory function, ``open()``, which is
+intended to behave similarly to python's built-in ``open()`` factory.
+``open()`` gives the specifics behind Kaldi's different read/write
+styles. Here, they are described in a general way.
 
 Kaldi's streams can be very exotic, including regular files, file
 offsets, stdin/out, and pipes.
@@ -30,18 +30,19 @@ the table analogy.
 
 Kaldi uses the table analogy to store and retrieve indexed data. In a
 nutshell, Kaldi uses archive ("ark") files to store binary or text data,
-and script files ("scp") to point *into* archives. Both use
-whitespace-free strings as keys. Scripts and archives do not have any
-built-in type checking, so it is necessary to specify the input/output
-type when the files are opened.
+and script files ("scp") to point *into* archives. Both use whitespace-
+free strings as keys. Scripts and archives do not have any built-in type
+checking, so it is necessary to specify the input/output type when the
+files are opened.
 
-A full account of Kaldi IO can be found on Kaldi's website under `Kaldi
-I/O Mechanisms`_.
+A full account of Kaldi IO can be found on Kaldi's website under
+`Kaldi I/O Mechanisms <http://kaldi-asr.org/doc/io.html>`_.
 
-For a description of the table types which can be read/written by Kaldi,
-please consult `dtypes.KaldiDataTypes`.
-
-.. _Kaldi I/O Mechanisms: http://kaldi-asr.org/doc2/io.html
+See Also
+--------
+pydrobert.kaldi.io.enums.KaldiDataTypes
+    For more information on the types of streams that can be read or
+    written
 """
 
 from __future__ import absolute_import
@@ -76,53 +77,54 @@ if locale.getdefaultlocale() != (None, None):
 class KaldiIOBase(object, with_metaclass(abc.ABCMeta)):
     '''IOBase for kaldi readers and writers
 
-    Similar to `io.IOBase`, but without a lot of the assumed
+    Similar to ``io.IOBase``, but without a lot of the assumed
     functionality.
 
     Arguments
     ---------
     path : str
-        The path passed to `pydrobert.kaldi.io.open`
+        The path passed to ``pydrobert.kaldi.io.open``. One of an
+        rspecifier, wspecifier, rxfilename, or wxfilename
 
     Attributes
     ----------
     path : str
+        The opened path
     table_type : pydrobert.kaldi.io.enums.TableType
+        The type of table that's being read/written (or ``NotATable``)
     xfilenames : str or tuple
+        The extended file names being read/written. For tables, this
+        excludes the ``'ark:'`` and ``'scp:'`` prefixes from path.
+        Usually there will be only one extended file name, unless the
+        path uses the special ``'ark,scp:'`` format to write both an
+        archive and script at the same time
     xtypes : pydrobert.kaldi.io.enums.{RxfilenameType, WxfilenameType}
              or tuple
+        The type of extended file name opened. Usually there will be
+        only one extended file name, unless the path uses the special
+        ``'ark,scp:'`` format to write both an archive and script at
+        the same time
     binary : bool
-        Whether this stream should use binary data (True) or text
-
-        .. warning:: a stream is under no obligation to encode data in
-           this way, though, in normal situations, it will
+        Whether this stream encodes binary data (``True``) or text
     closed : bool
-        True if this stream is closed
-
-    The following attributes exist for tables only
-
+        ``True`` if this stream is closed
     permissive : bool
-        True if invalid values will be treated as non-existent
-
-    The following attributes exist when the object is a table and is
-    readable:
-
+        ``True`` if invalid values will be treated as non-existent
+        (tables only)
     once : bool
-        True if each entry will only be read once (you must guarantee
-        this!)
+        ``True`` if each entry will only be read once (readable tables
+        only)
     sorted : bool
-        True if keys are sorted
+        ``True`` if keys are sorted (readable tables only)
     called_sorted : bool
-        True if entries will be read in sorted order (you must guarantee
-        this!)
+        ``True`` if entries will be read in sorted order (readable
+        tables only)
     background : bool
-        True if reading is not being performed on the main thread
-
-    The following attributes exist when the object is a table and
-    writable:
-
+        ``True`` if reading is not being performed on the main thread
+        (readable tables only)
     flush : bool
-        True if the stream is flushed after each write operation
+        ``True`` if the stream is flushed after each write operation
+        (writable tables only)
     '''
 
     def __init__(self, path):
@@ -176,7 +178,7 @@ def open(
     objects (the basic stream) or key-value readers and writers
     (tables).
 
-    When `path` starts with ``ark:`` or ``scp:`` (possibly with
+    When `path` starts with ``'ark:'`` or ``'scp:'`` (possibly with
     modifiers before the colon), a table is opened. Otherwise, a basic
     stream is opened.
 
