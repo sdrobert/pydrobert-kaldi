@@ -2,8 +2,10 @@
 pydrobert-kaldi
 ===============
 
-.. image:: https://travis-ci.org/sdrobert/pydrobert-kaldi.svg?branch=master
-.. image:: https://ci.appveyor.com/api/projects/status/lvjhj9pgju90wn8j?svg=true
+|travis| |appveyor| |readthedocs|
+
+`Read the latest docs <http://pydrobert-kaldi.readthedocs.io/en/latest>`_
+`Read the release docs <http://pydrobert-kaldi.readthedocs.io/en/stable>`_
 
 **This is student-driven code, so don't expect a stable API. I'll try to use
 semantic versioning, but the best way to keep functionality stable is by
@@ -124,3 +126,12 @@ fellows.
 .. _Swig: http://www.swig.org/
 .. _Numpy: http://www.numpy.org/
 .. _Conda: http://conda.pydata.org/docs/
+.. |travis| image:: https://travis-ci.org/sdrobert/pydrobert-kaldi.svg?branch=master
+            :target: https://travis-ci.org/sdrobert/pydrobert-kaldi
+            :alt: Travis Build Status
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/lvjhj9pgju90wn8j/branch/master?svg=true
+              :target: https://ci.appveyor.com/project/sdrobert/pydrobert-kaldi
+              :alt: AppVeyor Build Status
+.. |readthedocs| image:: https://readthedocs.org/projects/pydrobert-kaldi/badge/?version=latest
+                 :target: http://pydrobert-kaldi.readthedocs.io/en/latest
+                 :alt: Documentation Status

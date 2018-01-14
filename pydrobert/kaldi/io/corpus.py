@@ -623,8 +623,6 @@ class ShuffledData(Data):
                     self._num_samples += 1
         return self._num_samples
 
-    num_samples.__doc__ = Data.num_samples.__doc__
-
     def sample_generator_for_epoch(self):
         shuffled_keys = np.array(self.key_list)
         self.rng.shuffle(shuffled_keys)
@@ -820,10 +818,15 @@ class SequentialData(Data):
                 self._num_samples)
         return self._num_samples
 
-    num_samples.__doc__ = Data.num_samples.__doc__
-
     def sample_generator_for_epoch(self):
         return self._sample_generator_for_epoch()
 
     sample_generator_for_epoch.__doc__ = \
         Data.sample_generator_for_epoch.__doc__
+
+
+try:
+    SequentialData.num_samples.__doc__ = Data.num_samples.__doc__
+    ShuffledData.num_samples.__doc__ = Data.num_samples.__doc__
+except TypeError:
+    pass  # we're in python 2.7. Forget it. Suggestions?

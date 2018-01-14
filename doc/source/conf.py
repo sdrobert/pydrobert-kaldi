@@ -27,7 +27,18 @@ from __future__ import print_function
 
 import os
 import sys
+
+from unittest.mock import MagicMock
+
 sys.path.insert(0, os.path.abspath('../..'))
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+            return MagicMock()
+
+MOCK_MODULES = ['pydrobert.kaldi._internal', 'numpy']
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 # -- General configuration ------------------------------------------------
 
