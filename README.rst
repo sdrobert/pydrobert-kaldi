@@ -5,6 +5,7 @@ pydrobert-kaldi
 |travis| |appveyor| |readthedocs|
 
 `Read the latest docs <http://pydrobert-kaldi.readthedocs.io/en/latest>`_
+
 `Read the release docs <http://pydrobert-kaldi.readthedocs.io/en/stable>`_
 
 **This is student-driven code, so don't expect a stable API. I'll try to use
