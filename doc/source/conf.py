@@ -40,6 +40,8 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
             return MagicMock()
 
+MOCK_MODULES = ['pydrobert.kaldi._internal', '_internal', 'numpy']
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 import pydrobert.kaldi as kaldi
 kaldi._internal = Mock()
 
