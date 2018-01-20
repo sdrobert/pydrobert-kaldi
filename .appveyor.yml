@@ -26,25 +26,25 @@ init:
       {
         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
       }
-  - call %MINICONDA_PATH%\Scripts\activate.bat
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q --all
-  - conda install conda-build anaconda-client
+  - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
+  - cmd: conda config --set always_yes yes --set changeps1 no
+  - cmd: conda update -q --all
+  - cmd: conda install conda-build anaconda-client
 
 install:
-  - conda build recipe --no-test --python %PY_VER% -m recipe\ci_build.yaml --output-folder dist
-  # - conda create -n test python=%PY_VER% pytest
-  # - activate test
-  # - dir dist
-  # - conda install -c file://%cd%\dist\ pydrobert-kaldi
+  - cmd: conda build recipe --no-test --python %PY_VER% -m recipe\ci_build.yaml --output-folder dist-win
+  - cmd: conda create -n test python=%PY_VER% pytest
+  - cmd: activate test
+  - cmd: set CONDA_BLD_PATH=%cd%\dist-win
+  - cmd: conda install pydrobert-kaldi --use-local
 
 build: false
 
 test_script:
-  - conda build --test dist\win-64\pydrobert-*
+  - pytest
 
 artifacts:
-  - path: dist
+  - path: dist-win
 
 deploy:
   provider: GitHub
@@ -54,4 +54,4 @@ deploy:
     secure: QlAHDK+8kEoeqnpg7+GcCOeNfDLT4Vvuoy60Rsh8ncOQTA7sLUnzL4H5tOxE5gmn
   on:
     branch: master
-    appveyor_reop_tag: true
+    appveyor_repo_tag: true

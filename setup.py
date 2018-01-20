@@ -492,6 +492,7 @@ setup(
     author='Sean Robertson',
     author_email='sdrobert@cs.toronto.edu',
     license='Apache 2.0',
+    zip_safe=False,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',
@@ -514,7 +515,6 @@ setup(
     install_requires=INSTALL_REQUIRES,
     tests_require=TESTS_REQUIRE,
     ext_modules=[KALDI_LIBRARY],
-    namespace_packages=['pydrobert'],
     entry_points={
         'console_scripts': [
             'write-table-to-pickle = pydrobert.kaldi.command_line:'
