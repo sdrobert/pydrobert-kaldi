@@ -66,4 +66,4 @@ deploy:
   auth_token:
     secure: QlAHDK+8kEoeqnpg7+GcCOeNfDLT4Vvuoy60Rsh8ncOQTA7sLUnzL4H5tOxE5gmn
   on:
-    appveyor_repo_tag: true
+    branch: conda_fix

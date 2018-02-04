@@ -28,59 +28,65 @@ matrix:
     services: docker
     env: PY_VER=3.6
 
-before_install:
-- if [ -z "${TRAVIS_TAG}" ]; then
-    export SETUPTOOLS_SCM_PRETEND_VERSION="999";
-  fi
-- if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    docker pull $DOCKER_IMAGE_64;
-  elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
-    export PY_VER_FULL=$(
-      pyenv install --list |
-      grep -e ' '${PY_VER/./\.}'\.\d$' |
-      tail -n 1 | tr -d "[:space:]");
-    brew install swig;
-    eval "$(pyenv init -)";
-    pyenv install $PY_VER_FULL;
-  fi
+# before_install:
+# - if [ -z "${TRAVIS_TAG}" ]; then
+#     export SETUPTOOLS_SCM_PRETEND_VERSION="999";
+#   fi
+# - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+#     docker pull $DOCKER_IMAGE_64;
+#   elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
+#     export PY_VER_FULL=$(
+#       pyenv install --list |
+#       grep -e ' '${PY_VER/./\.}'\.\d$' |
+#       tail -n 1 | tr -d "[:space:]");
+#     brew install swig;
+#     eval "$(pyenv init -)";
+#     pyenv install $PY_VER_FULL;
+#   fi
+
+# install:
+# - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+#     docker run
+#       -e "PY_VER=${PY_VER}"
+#       -e "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}"
+#       -v `pwd`:/io
+#       $DOCKER_IMAGE_64 $PRE_CMD_64
+#       /io/recipe/build_manylinux.sh;
+#   elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
+#     bash recipe/build_osx.sh $PY_VER_FULL;
+#   fi
 
 install:
-- if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    docker run
-      -e "PY_VER=${PY_VER}"
-      -e "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}"
-      -v `pwd`:/io
-      $DOCKER_IMAGE_64 $PRE_CMD_64
-      /io/recipe/build_manylinux.sh;
-  elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
-    bash recipe/build_osx.sh $PY_VER_FULL;
-  fi
+  - echo "Installed :D"
+
+# script:
+# - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+#     docker run
+#       -e "PY_VER=${PY_VER}"
+#       -v `pwd`:/io
+#       $DOCKER_IMAGE_64 $PRE_CMD_64
+#       /io/recipe/test_manylinux.sh;
+#   elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
+#     bash recipe/test_osx.sh $PY_VER_FULL;
+#   fi
 
 script:
-- if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    docker run
-      -e "PY_VER=${PY_VER}"
-      -v `pwd`:/io
-      $DOCKER_IMAGE_64 $PRE_CMD_64
-      /io/recipe/test_manylinux.sh;
-  elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
-    bash recipe/test_osx.sh $PY_VER_FULL;
-  fi
+  - echo "Script'd"
 
 before_deploy:
-- if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    docker run
-      -e "PY_VER=${PY_VER}"
-      -e "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}"
-      -v `pwd`:/io
-      $DOCKER_IMAGE_32 $PRE_CMD_32
-      /io/recipe/build_manylinux.sh;
-  fi
-- if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7" ]; then
-    source venv_test/bin/activate;
-    ACCELERATE=1 python setup.py sdist -d dist-osx-py${PY_VER}; deactivate;
-  fi
-- rm -rf build
+# - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+#     docker run
+#       -e "PY_VER=${PY_VER}"
+#       -e "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}"
+#       -v `pwd`:/io
+#       $DOCKER_IMAGE_32 $PRE_CMD_32
+#       /io/recipe/build_manylinux.sh;
+#   fi
+# - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7" ]; then
+#     source venv_test/bin/activate;
+#     ACCELERATE=1 python setup.py sdist -d dist-osx-py${PY_VER}; deactivate;
+#   fi
+# - rm -rf build
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
     docker pull continuumio/miniconda3;
     docker run
@@ -99,7 +105,7 @@ before_deploy:
       -e "TRAVIS_BRANCH=${TRAVIS_BRANCH}"
       -e "TRAVIS_BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}"
       continuumio/miniconda3
-      /io/recipe/build_conda.sh /io/dist-linux-${PY_VER};
+      /io/recipe/build_conda.sh /io/dist-linux-py${PY_VER};
   else
     pyenv install miniconda3-latest;
     pyenv shell miniconda3-latest;
@@ -115,4 +121,4 @@ deploy:
   file: dist-${TRAVIS_OS_NAME}-py${PY_VER}.zip
   skip_cleanup: true
   on:
-    tags: true
+    branch: conda_fix

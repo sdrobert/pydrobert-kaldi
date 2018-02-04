@@ -13,15 +13,16 @@
 # limitations under the License.
 
 {% if environ.get('TRAVIS', False) %}
-  {% set version = environ.get('TRAVIS_BRANCH', '0.0').replace('v', '') %}
+  # {% set version = environ.get('TRAVIS_BRANCH', '0.0').replace('v', '') %}
   {% set build_num = environ['TRAVIS_BUILD_NUMBER'] %}
 {% elif environ.get('APPVEYOR', False) %}
-  {% set version = environ.get('APPVEYOR_REPO_TAG_NAME', '0.0').replace('v', '') %}
+  # {% set version = environ.get('APPVEYOR_REPO_TAG_NAME', '0.0').replace('v', '') %}
   {% set build_num = environ['APPVEYOR_BUILD_NUMBER'] %}
 {% else %}
-  {% set version = environ.get('GIT_DESCRIBE_TAG', '0.0').replace('v','') %}
+  # {% set version = environ.get('GIT_DESCRIBE_TAG', '0.0').replace('v','') %}
   {% set build_num = environ.get('GIT_DESCRIBE_NUMBER', 0) %}
 {% endif %}
+{% set version = '0.5.0' %}
 
 package:
   name: pydrobert-kaldi
@@ -58,6 +59,7 @@ build:
   detect_binary_files_with_prefix: False
   features:
     - nomkl                                # [blas_impl != 'mkl']
+  preserve_egg_dir: True
 
 test:
   source_files:
