@@ -132,7 +132,7 @@ To install via ``pip``::
    pip install pydrobert-kaldi
 
 You can also try building from source, but you'll have to specify where your
-BLAS install is somehow.
+BLAS install is somehow::
 
    # for OpenBLAS
    OPENBLASROOT=/path/to/openblas/install pip install \
