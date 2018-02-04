@@ -16,8 +16,11 @@ rem limitations under the License.
 
 set HOME=%cd%
 
-set MKLROOT=%CONDA_PREFIX%\Library
+set MKLROOT=%LIBRARY_PREFIX%
 
+set SETUPTOOLS_SCM_PRETEND_VERSION=%PKG_VERSION%
+
+set LIBPATH=%LIBRARY_PREFIX%\bin
 "%PYTHON%" setup.py install ^
   --single-version-externally-managed ^
   --record=record.txt

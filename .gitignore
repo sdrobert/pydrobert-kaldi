@@ -69,3 +69,5 @@ target/
 swig/pydrobert/internal.py
 swig/pydrobert/kaldi_wrap.cpp
 venv/
+.ftpignore
+.ftpconfig

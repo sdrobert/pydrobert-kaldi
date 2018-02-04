@@ -20,8 +20,12 @@ from __future__ import print_function
 
 from abc import abstractmethod
 from builtins import str as text
-from collections import Iterable
-from collections import Sized
+try:
+    from collections.abc import Iterable
+    from collections.abc import Sized
+except ImportError:
+    from collections import Iterable
+    from collections import Sized
 from itertools import cycle
 from warnings import warn
 
@@ -828,5 +832,5 @@ class SequentialData(Data):
 try:
     SequentialData.num_samples.__doc__ = Data.num_samples.__doc__
     ShuffledData.num_samples.__doc__ = Data.num_samples.__doc__
-except TypeError:
-    pass  # we're in python 2.7. Forget it. Suggestions?
+except (TypeError, AttributeError):
+    pass  # we're in python 2.7 or 3.4 Forget it. Suggestions?

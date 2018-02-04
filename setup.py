@@ -91,6 +91,10 @@ def mkl_setup(roots, mkl_threading=None):
         for root_name, _, base_names in walk(root):
             for base_name in base_names:
                 if ON_WINDOWS:
+                    if base_name.endswith('.dll'):
+                        # this is a windows runtime library. We want to link
+                        # the static .lib stub, so skip this
+                        continue
                     library_name = base_name.split('.')[0]
                 else:
                     library_name = base_name[3:].split('.')[0]
@@ -343,6 +347,7 @@ else:
         'you have problems with linking, please specify BLAS via command line.'
     )
     BLAS_DICT = dict()
+
 
 LIBRARIES += BLAS_DICT.get('BLAS_LIBRARIES', [])
 LIBRARY_DIRS = BLAS_DICT.get('BLAS_LIBRARY_DIRS', [])

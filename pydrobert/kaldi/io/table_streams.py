@@ -20,8 +20,12 @@ from __future__ import print_function
 
 import abc
 
-from collections import Container
-from collections import Iterator
+try:
+    from collections.abc import Container
+    from collections.abc import Iterator
+except ImportError:
+    from collections import Container
+    from collections import Iterator
 
 from builtins import str as text
 from future.utils import implements_iterator

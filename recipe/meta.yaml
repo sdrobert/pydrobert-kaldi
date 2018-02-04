@@ -13,15 +13,16 @@
 # limitations under the License.
 
 {% if environ.get('TRAVIS', False) %}
-  {% set version = environ.get('TRAVIS_BRANCH', '0.0').replace('v', '') %}
+  # {% set version = environ.get('TRAVIS_BRANCH', '0.0').replace('v', '') %}
   {% set build_num = environ['TRAVIS_BUILD_NUMBER'] %}
 {% elif environ.get('APPVEYOR', False) %}
-  {% set version = environ.get('APPVEYOR_REPO_TAG_NAME', '0.0').replace('v', '') %}
+  # {% set version = environ.get('APPVEYOR_REPO_TAG_NAME', '0.0').replace('v', '') %}
   {% set build_num = environ['APPVEYOR_BUILD_NUMBER'] %}
 {% else %}
-  {% set version = environ.get('GIT_DESCRIBE_TAG', '0.0').replace('v','') %}
+  # {% set version = environ.get('GIT_DESCRIBE_TAG', '0.0').replace('v','') %}
   {% set build_num = environ.get('GIT_DESCRIBE_NUMBER', 0) %}
 {% endif %}
+{% set version = '0.5.0' %}
 
 package:
   name: pydrobert-kaldi
@@ -32,19 +33,18 @@ source:
 
 requirements:
   host:
-    - python
-    - numpy 1.11.3
-    - {{ blas_impl }}-devel
-    - nomkl                                # [blas_impl != 'mkl']
+    - python {{ python }}
+    - numpy {{ numpy }}
+    - openblas-devel # [blas_impl == 'openblas']
+    - mkl-devel 2018 # [blas_impl == 'mkl']
     - setuptools
     - setuptools_scm
     - swig >=3.0.8
   build:
-    - {{ compiler('cxx') }}
+    - {{ compiler('cxx') }} # [not win or not py34]
   run:
     # *-devel packages provide library packages as run_exports
     - python
-    - nomkl                                # [blas_impl != 'mkl']
     # there have been no major changes in the numpy api since 1.11.3 (currently
     # at 1.13). We'll see how long this lasts us
     - {{ pin_compatible('numpy') }}
@@ -53,9 +53,10 @@ requirements:
     - enum34                               # [py2k]
 
 build:
-  skip: True                               # [win and blas_impl != 'mkl']
   number: {{ build_num }}
   detect_binary_files_with_prefix: False
+  requires_features:
+    blas: {{ blas_impl }}
   features:
     - nomkl                                # [blas_impl != 'mkl']
 

@@ -13,15 +13,17 @@
 # limitations under the License.
 
 if [ $blas_impl = "mkl" ]; then
-  export MKLROOT="${CONDA_PREFIX}"
+  export MKLROOT="${PREFIX}"
 elif [ $blas_impl = "accelerate" ]; then
   export ACCELERATE=1
 elif [ $blas_impl = "openblas" ]; then
-  export OPENBLASROOT="${CONDA_PREFIX}"
+  export OPENBLASROOT="${PREFIX}"
 else
   1>&2 echo Unknown blas_impl
   exit 1
 fi
+
+export SETUPTOOLS_SCM_PRETEND_VERSION="${PKG_VERSION}"
 
 ${PYTHON} setup.py install \
   --single-version-externally-managed \

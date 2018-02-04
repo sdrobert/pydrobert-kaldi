@@ -61,11 +61,11 @@ def test_batch_data_numpy(samples):
                     batch_slice[axis] = samp_idx
                     try:
                         assert np.allclose(
-                            ex_batch[samp_idx], act_batch[batch_slice])
+                            ex_batch[samp_idx], act_batch[tuple(batch_slice)])
                     except TypeError:
                         assert (
                             ex_batch[samp_idx].flatten().tolist() ==
-                            act_batch[batch_slice].flatten().tolist())
+                            act_batch[tuple(batch_slice)].flatten().tolist())
                 batch_start += len(ex_batch)
         assert batch_start == len(samples)
 
@@ -162,7 +162,7 @@ def test_batch_data_tups_numpy(samples):
                     for sub_samp_idx in range(len(ex_batch)):
                         sub_batch_slice[sub_axis] = sub_samp_idx
                         ex_sub_samp = ex_batch[sub_samp_idx, sub_batch_idx]
-                        act_sub_samp = act_sub_batch[sub_batch_slice]
+                        act_sub_samp = act_sub_batch[tuple(sub_batch_slice)]
                         # the == 2 is to account for the case when
                         # ex_sub_samp are going to be np.generics (as
                         # opposed to a arrays)

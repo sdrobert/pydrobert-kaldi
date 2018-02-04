@@ -135,7 +135,7 @@ def write_table_to_pickle(args=None):
         if key_out:
             key_out.close()
     if num_entries == 0:
-        logger.warn("No entries were written (table was empty)")
+        logger.warning("No entries were written (table was empty)")
     else:
         logger.info("Wrote {} entries".format(num_entries))
     return 0
@@ -171,7 +171,7 @@ def _write_pickle_to_table_empty(wspecifier, logger):
     except IOError as error:
         logger.error(error.message, exc_info=True)
         return 1
-    logger.warn('No entries were written (pickle file(s) was/were empty)')
+    logger.warning('No entries were written (pickle file(s) was/were empty)')
     return 0
 
 

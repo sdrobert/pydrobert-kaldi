@@ -7,14 +7,12 @@ set -e -x
 
 py_ver=$1
 
-pyenv local $py_ver
+pyenv global $py_ver
 PY_BIN=$(pyenv which python${py_ver:0:1})
 [ ! -f "${PY_BIN}" ] && exit 1
-virtualenv "--python=${PY_BIN}" venv_test
-source venv_test/bin/activate
+pyenv virtualenv venv_test
+pyenv global venv_test
 
 pip install pytest
 pip install pydrobert-kaldi -f dist-osx-py${PY_VER}
 pytest tests/python
-
-deactivate

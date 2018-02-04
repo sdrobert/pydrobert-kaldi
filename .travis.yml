@@ -2,8 +2,8 @@ language: generic
 
 env:
   global:
-    DOCKER_IMAGE_32=quay.io/pypa/manylinux1_i686
-    DOCKER_IMAGE_64=quay.io/pypa/manylinux1_x86_64
+    DOCKER_MANYLINUX_IMAGE32=quay.io/pypa/manylinux1_i686
+    DOCKER_MANYLINUX_IMAGE64=quay.io/pypa/manylinux1_x86_64
     PRE_CMD_32=linux32
     PRE_CMD_64=
 
@@ -12,9 +12,13 @@ matrix:
   - os: osx
     env: PY_VER=2.7
   - os: osx
+    env: PY_VER=3.4
+  - os: osx
     env: PY_VER=3.5
   - os: osx
     env: PY_VER=3.6
+  - os: osx
+    env: PY_VER=3.7
   - os: linux
     sudo: required
     services: docker
@@ -22,25 +26,35 @@ matrix:
   - os: linux
     sudo: required
     services: docker
+    env: PY_VER=3.4
+  - os: linux
+    sudo: required
+    services: docker
     env: PY_VER=3.5
   - os: linux
     sudo: required
     services: docker
     env: PY_VER=3.6
+  - os: linux
+    sudo: required
+    services: docker
+    env: PY_VER=3.7
 
 before_install:
 - if [ -z "${TRAVIS_TAG}" ]; then
     export SETUPTOOLS_SCM_PRETEND_VERSION="999";
   fi
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    docker pull $DOCKER_IMAGE_64;
+    docker pull $DOCKER_MANYLINUX_IMAGE64;
   elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
+    brew install pyenv-virtualenv;
     export PY_VER_FULL=$(
       pyenv install --list |
       grep -e ' '${PY_VER/./\.}'\.\d$' |
       tail -n 1 | tr -d "[:space:]");
     brew install swig;
     eval "$(pyenv init -)";
+    eval "$(pyenv virtualenv-init -)";
     pyenv install $PY_VER_FULL;
   fi
 
@@ -50,22 +64,28 @@ install:
       -e "PY_VER=${PY_VER}"
       -e "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}"
       -v `pwd`:/io
-      $DOCKER_IMAGE_64 $PRE_CMD_64
+      $DOCKER_MANYLINUX_IMAGE64 $PRE_CMD_64
       /io/recipe/build_manylinux.sh;
   elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
     bash recipe/build_osx.sh $PY_VER_FULL;
   fi
+
+# install:
+#   - echo "Installed :D"
 
 script:
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     docker run
       -e "PY_VER=${PY_VER}"
       -v `pwd`:/io
-      $DOCKER_IMAGE_64 $PRE_CMD_64
+      $DOCKER_MANYLINUX_IMAGE64 $PRE_CMD_64
       /io/recipe/test_manylinux.sh;
   elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
     bash recipe/test_osx.sh $PY_VER_FULL;
   fi
+
+# script:
+#   - echo "Script'd"
 
 before_deploy:
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
@@ -73,33 +93,21 @@ before_deploy:
       -e "PY_VER=${PY_VER}"
       -e "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}"
       -v `pwd`:/io
-      $DOCKER_IMAGE_32 $PRE_CMD_32
+      $DOCKER_MANYLINUX_IMAGE32 $PRE_CMD_32
       /io/recipe/build_manylinux.sh;
   fi
 - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7" ]; then
-    source venv_test/bin/activate;
-    ACCELERATE=1 python setup.py sdist -d dist-osx-py${PY_VER}; deactivate;
+    pyenv activate venv_test;
+    ACCELERATE=1 python setup.py sdist -d dist-osx-py${PY_VER};
+    pyenv deactivate;
   fi
 - rm -rf build
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-    docker pull continuumio/miniconda3;
+    docker pull conda/miniconda3;
     docker run
+      -e "PY_VER=${PY_VER}"
       -v `pwd`:/io
-      -e PY_VER="${PY_VER}"
-      -e "TRAVIS=true"
-      -e "TRAVIS_BRANCH=${TRAVIS_BRANCH}"
-      -e "TRAVIS_BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}"
-      continuumio/miniconda3
-      /io/recipe/build_conda.sh /io/dist-linux-py${PY_VER};
-    docker run
-      -v `pwd`:/io
-      -e PY_VER="${PY_VER}"
-      -e ARCH=32
-      -e "TRAVIS=true"
-      -e "TRAVIS_BRANCH=${TRAVIS_BRANCH}"
-      -e "TRAVIS_BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}"
-      continuumio/miniconda3
-      /io/recipe/build_conda.sh /io/dist-linux-${PY_VER};
+      conda/miniconda3 /io/recipe/build_conda_docker.sh;
   else
     pyenv install miniconda3-latest;
     pyenv shell miniconda3-latest;
