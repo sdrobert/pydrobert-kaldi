@@ -1,13 +1,13 @@
 version: build.{build}.branch.{branch}
 
 environment:
+  MINICONDA_PATH_32: "C:\\Miniconda3"
+  MINICONDA_PATH_64: "C:\\Miniconda3-x64"
   matrix:
     - image: Visual Studio 2015
       PY_VER: 3.6
-      MINICONDA_PATH: "C:\\Miniconda3-x64"
     - image: Visual Studio 2015
       PY_VER: 3.5
-      MINICONDA_PATH: "C:\\Miniconda3-x64"
     # 3.4 ought to work, and 2.7 ought not to work, but not because it's missing
     # the visual studio compiler. I'll attribute this to growing pains of
     # Conda Build 3. Either way, I'm commenting them out
@@ -26,17 +26,17 @@ init:
       {
         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
       }
-  - cmd: call %MINICONDA_PATH%\Scripts\activate.bat
-  - cmd: conda config --set always_yes yes --set changeps1 no
-  - cmd: conda update -q --all
-  - cmd: conda install conda-build anaconda-client
+  - call %MINICONDA_PATH_64%\Scripts\activate.bat
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q --all
+  - conda install conda-build
 
 install:
-  - cmd: conda build recipe --no-test --python %PY_VER% -m recipe\ci_build.yaml --output-folder dist-win
-  - cmd: conda create -n test python=%PY_VER% pytest
-  - cmd: activate test
-  - cmd: set CONDA_BLD_PATH=%cd%\dist-win
-  - cmd: conda install pydrobert-kaldi --use-local
+  - conda build recipe --no-test --python %PY_VER% -m recipe\ci_build.yaml --output-folder dist-win-py%PY_VER%
+  - conda create -n test python=%PY_VER% pytest
+  - activate test
+  - set CONDA_BLD_PATH=%cd%\dist-win-py%PY_VER%
+  - conda install pydrobert-kaldi --use-local
 
 build: false
 
@@ -44,14 +44,26 @@ test_script:
   - pytest
 
 artifacts:
-  - path: dist-win
+  - path: dist-win-py%PY_VER%.zip
+
+after_test:
+  - 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
+
+before_deploy:
+  - set CONDA_BLD_PATH=%MINICONDA_PATH_32%\conda-bld
+  - call %MINICONDA_PATH_32%\Scripts\activate.bat
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q --all
+  - conda install conda-build
+  - conda build recipe --python %PY_VER% -m recipe\ci_build.yaml --output-folder dist-win-py%PY_VER%
+  - 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
+  - appveyor PushArtifact dist-win-py%PY_VER%.zip
 
 deploy:
   provider: GitHub
   description: pydrobert-kaldi version $(appveyor_build_version) for Windows
-  artifact: dist
+  artifact: dist-win-py%PY_VER%.zip
   auth_token:
     secure: QlAHDK+8kEoeqnpg7+GcCOeNfDLT4Vvuoy60Rsh8ncOQTA7sLUnzL4H5tOxE5gmn
   on:
-    branch: master
     appveyor_repo_tag: true

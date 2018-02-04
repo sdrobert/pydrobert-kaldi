@@ -6,8 +6,6 @@ pydrobert-kaldi
 
 `Read the latest docs <http://pydrobert-kaldi.readthedocs.io/en/latest>`_
 
-`Read the release docs <http://pydrobert-kaldi.readthedocs.io/en/stable>`_
-
 **This is student-driven code, so don't expect a stable API. I'll try to use
 semantic versioning, but the best way to keep functionality stable is by
 forking.**
@@ -86,20 +84,55 @@ compute-error-rate
 Installation
 ------------
 
-If you're on a Linux, OSX, or Windows 64-bit machine and you've got Conda_
-installed, your life is easy.
+Check the following compatibility table to see if you can get a PyPI_ or Conda_
+install going:
 
-Simply::
++----------+------+--------+--------+-------+
+| Platform | Arch | Python | Conda? | PyPI? |
++==========+======+========+========+=======+
+| Windows  | 32   | 2.7    | No     | No    |
++----------+------+--------+--------+-------+
+| Windows  | 32   | 3.5    | Yes    | No    |
++----------+------+--------+--------+-------+
+| Windows  | 32   | 3.6    | Yes    | No    |
++----------+------+--------+--------+-------+
+| Windows  | 64   | 2.7    | No     | No    |
++----------+------+--------+--------+-------+
+| Windows  | 64   | 3.5    | Yes    | No    |
++----------+------+--------+--------+-------+
+| Windows  | 64   | 3.6    | Yes    | No    |
++----------+------+--------+--------+-------+
+| OSX      | 32   | -      | No     | No    |
++----------+------+--------+--------+-------+
+| OSX      | 64   | 2.7    | Yes    | Yes   |
++----------+------+--------+--------+-------+
+| OSX      | 64   | 3.5    | Yes    | Yes   |
++----------+------+--------+--------+-------+
+| OSX      | 64   | 3.6    | Yes    | Yes   |
++----------+------+--------+--------+-------+
+| Linux    | 32   | 2.7    | Yes    | Yes   |
++----------+------+--------+--------+-------+
+| Linux    | 32   | 3.5    | Yes    | Yes   |
++----------+------+--------+--------+-------+
+| Linux    | 32   | 3.6    | Yes    | Yes   |
++----------+------+--------+--------+-------+
+| Linux    | 64   | 2.7    | Yes    | Yes   |
++----------+------+--------+--------+-------+
+| Linux    | 64   | 3.5    | Yes    | Yes   |
++----------+------+--------+--------+-------+
+| Linux    | 64   | 3.6    | Yes    | Yes   |
++----------+------+--------+--------+-------+
+
+To install via ``conda``::
 
    conda install -c sdrobert pydrobert-kaldi
 
-Which installs binaries with MKL BLAS. If ``nomkl`` is installed into the
-environment, OpenBLAS is used (like Numpy). Should work for Python 2.7, 3.4,
-3.5, and 3.6 on Linux and OSX. Windows is limited to 3.5 and 3.6 for the time
-being.
+To install via ``pip``::
 
-Alternatively, to build through PyPI, you'll need to point the install to a BLAS
-library::
+   pip install pydrobert-kaldi
+
+You can also try building from source, but you'll have to specify where your
+BLAS install is somehow.
 
    # for OpenBLAS
    OPENBLASROOT=/path/to/openblas/install pip install \
@@ -108,8 +141,6 @@ library::
    MKLROOT=/path/to/mkl/install pip install \
      git+https://github.com/sdrobert/pydrobert-kaldi.git
    # see setup.py for more options
-
-You'll need either GCC or Clang plus Swig >= 3.0.8 for this.
 
 License
 -------
@@ -127,6 +158,7 @@ fellows.
 .. _Swig: http://www.swig.org/
 .. _Numpy: http://www.numpy.org/
 .. _Conda: http://conda.pydata.org/docs/
+.. _PyPI: https://pypi.org/
 .. |travis| image:: https://travis-ci.org/sdrobert/pydrobert-kaldi.svg?branch=master
             :target: https://travis-ci.org/sdrobert/pydrobert-kaldi
             :alt: Travis Build Status

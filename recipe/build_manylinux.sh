@@ -44,5 +44,5 @@ for PYBIN in "${PYBINS[@]}"; do
 done
 
 for whl in dist/pydrobert*.whl; do
-    auditwheel repair "$whl" -w /io/dist/
+    auditwheel repair "$whl" -w /io/dist-linux-py${PY_VER}
 done

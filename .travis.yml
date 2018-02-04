@@ -78,7 +78,7 @@ before_deploy:
   fi
 - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7" ]; then
     source venv_test/bin/activate;
-    ACCELERATE=1 python setup.py sdist; deactivate;
+    ACCELERATE=1 python setup.py sdist -d dist-osx-py${PY_VER}; deactivate;
   fi
 - rm -rf build
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
@@ -88,29 +88,31 @@ before_deploy:
       -e PY_VER="${PY_VER}"
       -e "TRAVIS=true"
       -e "TRAVIS_BRANCH=${TRAVIS_BRANCH}"
+      -e "TRAVIS_BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}"
       continuumio/miniconda3
-      /io/recipe/build_conda.sh /io/dist;
+      /io/recipe/build_conda.sh /io/dist-linux-py${PY_VER};
     docker run
       -v `pwd`:/io
       -e PY_VER="${PY_VER}"
       -e ARCH=32
       -e "TRAVIS=true"
       -e "TRAVIS_BRANCH=${TRAVIS_BRANCH}"
-      -e "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}"
+      -e "TRAVIS_BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}"
       continuumio/miniconda3
-      /io/recipe/build_conda.sh /io/dist;
+      /io/recipe/build_conda.sh /io/dist-linux-${PY_VER};
   else
     pyenv install miniconda3-latest;
     pyenv shell miniconda3-latest;
-    ./recipe/build_conda.sh dist;
+    ./recipe/build_conda.sh dist-osx-py${PY_VER};
   fi
+- zip -r dist-${TRAVIS_OS_NAME}-py${PY_VER}.zip  dist-${TRAVIS_OS_NAME}-py${PY_VER}
 
 deploy:
   provider: releases
   api_key:
     secure: xQPZ3Njz+2niZs9+GRDa9zqwcDm6rx/hoI1z+DN9lmF1189pQl8xf3zhzFackhO9uH0ZCpy0rjsyn5QdEZ71fqcvpEFxirF33O7lTb0SA4Wjin02KCPeGFC2LIycbRpOKAG7KS6Wcc0oalczP7j+SIkceYcSmc7xrYliMiHzxyUfHvTDsOSsGIvQTNTxHIdspSLzcXKHsxhpYbJXeEIVZ5LVIAjLn/Qd0dle4FV6t1DFC/4aoO2VfIb/bg6BV6/BUxcMmrhQe6kINeQMGNz4QWxW6UYcQ4AAudVRbePIdej3v6X5u2E/6Ok0kPJMR7GaP2m1ylH0x1912t2D54XNxv8wGXE6FF+5wJ//+iiZwb06/ToPWokR/ZNWwUnOBgYUx/YZJAwxbAQYpQcT659WMKjbYU1+YBCJbN8aEiY2wr7kSTMk8ofWpdLC38mDI9jEUlZSxkqzc4XmC1qyfvw5se9DECFmBe5KskQ46TpVbtOKZBFcCM3orr6K2MKK7HazxnTu1c1ivss4ZZi/xUD6RBNhcCmqWiC7QL/04V6fP3sR3H1b7geDEKvKmGON8BcIOBiaTMB8XOZ/fiB/58xsBvvEG/4bgnmyuOMqRUu7h7kBEoJIVL+5cCm6d5F2Nce0ZKrAQKD45DgPEAp8AxBxdtcnsKLu81h7J7O2aWZLuJ4=
   file_glob: true
-  file: dist/*
+  file: dist-${TRAVIS_OS_NAME}-py${PY_VER}.zip
   skip_cleanup: true
   on:
     tags: true

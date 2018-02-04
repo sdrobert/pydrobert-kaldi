@@ -14,7 +14,7 @@ virtualenv "--python=${PY_BIN}" venv_test
 source venv_test/bin/activate
 
 pip install pytest
-pip install pydrobert-kaldi -f dist
+pip install pydrobert-kaldi -f dist-osx-py${PY_VER}
 pytest tests/python
 
 deactivate

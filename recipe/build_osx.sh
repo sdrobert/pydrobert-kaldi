@@ -18,6 +18,6 @@ pip install numpy==1.11.3
 pip install -r requirements.txt
 
 # PyPI Numpy standard for OSX is Accelerate, I think. Makes my job easy
-ACCELERATE=1 python setup.py bdist_wheel
+ACCELERATE=1 python setup.py bdist_wheel -d dist-osx-py${PY_VER}
 
 deactivate
