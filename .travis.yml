@@ -106,6 +106,8 @@ before_deploy:
     docker pull conda/miniconda3;
     docker run
       -e "PY_VER=${PY_VER}"
+      -e "TRAVIS_BRANCH=${TRAVIS_BRANCH}"
+      -e "TRAVIS_BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}"
       -v `pwd`:/io
       conda/miniconda3 /io/recipe/build_conda_docker.sh;
   else
