@@ -71,3 +71,4 @@ swig/pydrobert/kaldi_wrap.cpp
 venv/
 .ftpignore
 .ftpconfig
+.python-version
