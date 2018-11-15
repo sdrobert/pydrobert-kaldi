@@ -103,14 +103,15 @@ before_deploy:
   fi
 - rm -rf build
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-    docker pull conda/miniconda3;
+    docker pull continuumio/miniconda3;
     docker run
-      -e "PY_VER=${PY_VER}"
-      -e "TRAVIS=${TRAVIS}"
+      -v `pwd`:/io
+      -e PY_VER="${PY_VER}"
+      -e "TRAVIS=true"
       -e "TRAVIS_BRANCH=${TRAVIS_BRANCH}"
       -e "TRAVIS_BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}"
-      -v `pwd`:/io
-      conda/miniconda3 /io/recipe/build_conda_docker.sh;
+      continuumio/miniconda3
+      /io/recipe/build_conda.sh /io/dist-linux-py${PY_VER};
   else
     pyenv install miniconda3-latest;
     pyenv shell miniconda3-latest;
