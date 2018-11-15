@@ -70,7 +70,7 @@ test:
     - pydrobert
     - pydrobert.kaldi
   commands:
-    - pytest
+    - pytest -m "not pytorch"
 
 about:
   home: https://github.com/sdrobert/pydrobert-kaldi

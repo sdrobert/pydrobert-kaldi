@@ -15,4 +15,4 @@ pyenv global venv_test
 
 pip install pytest
 pip install pydrobert-kaldi -f dist-osx-py${PY_VER}
-pytest tests/python
+pytest tests/python -m "not pytorch"

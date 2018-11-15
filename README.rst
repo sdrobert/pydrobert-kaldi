@@ -74,6 +74,13 @@ write-table-to-pickle
   attempts at reaching a paper deadline.
 write-pickle-to-table
   Write the contents of of a pickle file(s) to a kaldi table.
+write-table-to-torch-dir
+  Write the contents of a kaldi table into a directory as a series of PyTorch
+  tensor files. Suitable for PyTorch data loaders with multiprocessing.
+  Requires PyTorch_.
+write-torch-dir-to-table
+  Write the contents of a directory of tensor files back to a Kaldi table.
+  Requires PyTorch_.
 normalize-feat-lens
   Ensure that features have the same length as some reference by truncating
   or appending frames.
@@ -172,6 +179,7 @@ fellows.
 .. _Numpy: http://www.numpy.org/
 .. _Conda: http://conda.pydata.org/docs/
 .. _PyPI: https://pypi.org/
+.. _PyTorch: https://pytorch.org/
 .. |travis| image:: https://travis-ci.com/sdrobert/pydrobert-kaldi.svg?branch=master
             :target: https://travis-ci.com/sdrobert/pydrobert-kaldi
             :alt: Travis Build Status

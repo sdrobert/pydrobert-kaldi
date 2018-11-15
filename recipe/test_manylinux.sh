@@ -16,5 +16,5 @@ cd /io
 for PYBIN in "${PYBINS[@]}"; do
   "${PYBIN}/pip" install pytest
   "${PYBIN}/pip" install pydrobert-kaldi -f dist-linux-py${PY_VER}
-  "${PYBIN}/pytest" tests/python
+  "${PYBIN}/pytest" tests/python -m "not pytorch"
 done

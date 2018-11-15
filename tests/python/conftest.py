@@ -1,4 +1,4 @@
-# Copyright 2017 Sean Robertson
+# Copyright 2018 Sean Robertson
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ from __future__ import print_function
 import os
 
 from tempfile import NamedTemporaryFile
+from tempfile import mkdtemp
+from shutil import rmtree
 
 import pytest
 
@@ -47,6 +49,13 @@ def temp_file_3_name():
     temp.close()
     yield temp.name
     os.remove(temp.name)
+
+
+@pytest.fixture
+def temp_dir():
+    dir_name = mkdtemp()
+    yield dir_name
+    rmtree(dir_name)
 
 
 @pytest.fixture(autouse=True)

@@ -42,7 +42,7 @@ install:
 build: false
 
 test_script:
-  - pytest
+  - pytest -m "not pytorch"
   # - conda build recipe --test --output-folder dist-win-py%PY_VER%
 
 artifacts:

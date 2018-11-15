@@ -536,9 +536,14 @@ setup(
             'compute_error_rate',
             'normalize-feat-lens = pydrobert.kaldi.command_line:'
             'normalize_feat_lens',
+            'write-table-to-torch-dir = pydrobert.kaldi.command_line:'
+            'write_table_to_torch_dir [pytorch]',
+            'write-torch-dir-to-table = pydrobert.kaldi.command_line:'
+            'write_torch_dir_to_table [pytorch]'
         ]
     },
     extras_require={
         ':python_version<"3.4"': ['enum34'],
+        'pytorch': ['pytorch'],
     }
 )
