@@ -180,12 +180,12 @@ fellows.
 .. _Numpy: http://www.numpy.org/
 .. _Conda: http://conda.pydata.org/docs/
 .. _PyPI: https://pypi.org/
-.. |travis| image:: https://travis-ci.org/sdrobert/pydrobert-kaldi.svg?branch=master
-            :target: https://travis-ci.org/sdrobert/pydrobert-kaldi
+.. |travis| image:: https://travis-ci.com/sdrobert/pydrobert-kaldi.svg?branch=master
+            :target: https://travis-ci.com/sdrobert/pydrobert-kaldi
             :alt: Travis Build Status
 .. |appveyor| image:: https://ci.appveyor.com/api/projects/status/lvjhj9pgju90wn8j/branch/master?svg=true
               :target: https://ci.appveyor.com/project/sdrobert/pydrobert-kaldi
               :alt: AppVeyor Build Status
-.. |readthedocs| image:: https://readthedocs.org/projects/pydrobert-kaldi/badge/?version=latest
-                 :target: http://pydrobert-kaldi.readthedocs.io/en/latest
+.. |readthedocs| image:: https://readthedocs.org/projects/pydrobert-kaldi/badge/?version=stable
+                 :target: https://pydrobert-kaldi.readthedocs.io/en/stable/
                  :alt: Documentation Status

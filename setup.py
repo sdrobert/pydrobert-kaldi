@@ -43,9 +43,15 @@ def cmdline_split(s, platform=not ON_WINDOWS):
               (other values reserved)
     """
     if platform:
-        RE_CMD_LEX = r'''"((?:\\["\\]|[^"])*)"|'([^']*)'|(\\.)|(&&?|\|\|?|\d?\>|[<])|([^\s'"\\&|<>]+)|(\s+)|(.)'''
+        RE_CMD_LEX = (
+            r'''"((?:\\["\\]|[^"])*)"|'([^']*)'|(\\.)|(&&?|\|\|?|\d?'
+            r'\>|[<])|([^\s'"\\&|<>]+)|(\s+)|(.)'''
+        )
     else:
-        RE_CMD_LEX = r'''"((?:""|\\["\\]|[^"])*)"?()|(\\\\(?=\\*")|\\")|(&&?|\|\|?|\d?>|[<])|([^\s"&|<>]+)|(\s+)|(.)'''
+        RE_CMD_LEX = (
+            r'''"((?:""|\\["\\]|[^"])*)"?()|(\\\\(?=\\*")|\\")|(&&?|\|\|?'
+            r'|\d?>|[<])|([^\s"&|<>]+)|(\s+)|(.)'''
+        )
     args = []
     accu = None   # collects pieces of one arg
     for qs, qss, esc, pipe, word, white, fail in findall(RE_CMD_LEX, s):

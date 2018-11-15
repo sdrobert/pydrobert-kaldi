@@ -1,4 +1,4 @@
-# Copyright 2017 Sean Robertson
+# Copyright 2018 Sean Robertson
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,9 +25,17 @@ __email__ = "sdrobert@cs.toronto.edu"
 __license__ = "Apache 2.0"
 __copyright__ = "Copyright 2017 Sean Robertson"
 
-from pydrobert.kaldi.eval import command_line as _eval_command_line
-from pydrobert.kaldi.eval.command_line import *
-from pydrobert.kaldi.feat import command_line as _feat_command_line
-from pydrobert.kaldi.feat.command_line import *
+import pydrobert.kaldi.eval.command_line as _eval_command_line
+import pydrobert.kaldi.feat.command_line as _feat_command_line
+import pydrobert.kaldi.io.command_line as _io_command_line
 
-__all__ = _eval_command_line.__all__ + _feat_command_line.__all__
+from pydrobert.kaldi.eval.command_line import *
+from pydrobert.kaldi.feat.command_line import *
+from pydrobert.kaldi.io.command_line import *
+
+
+__all__ = (
+    _eval_command_line.__all__ +
+    _feat_command_line.__all__ +
+    _io_command_line.__all__
+)
