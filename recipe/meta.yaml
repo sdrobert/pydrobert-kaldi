@@ -75,6 +75,6 @@ test:
 about:
   home: https://github.com/sdrobert/pydrobert-kaldi
   license: Apache License 2.0
-  license_family: Apache
+  license_family: APACHE
   license_file: LICENSE
   summary: Kaldi Swig bindings for Python
