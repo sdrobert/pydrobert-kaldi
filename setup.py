@@ -544,6 +544,6 @@ setup(
     },
     extras_require={
         ':python_version<"3.4"': ['enum34'],
-        'pytorch': ['pytorch'],
+        'pytorch': ['torch'],
     }
 )
