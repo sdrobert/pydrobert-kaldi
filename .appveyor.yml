@@ -10,9 +10,9 @@ environment:
       PY_VER: 3.6
     - image: Visual Studio 2015
       PY_VER: 3.5
-    - image: Visual Studio 2010
-      PY_VER: 3.4
-      MINICONDA_PATH: "C:\\Miniconda3-x64"
+    # - image: Visual Studio 2010
+    #   PY_VER: 3.4
+    #   MINICONDA_PATH: "C:\\Miniconda3-x64"
     # - image: Visual Studio 2008
     #   PY_VER: 2.7
     #   MINICONDA_PATH: "C:\\Miniconda-x64"
