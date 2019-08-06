@@ -167,6 +167,12 @@ configuration. Kaldi is also covered by the Apache 2.0 license; its specific
 license file was copied into ``src/COPYING_Kaldi_Project`` to live among its
 fellows.
 
+How to Cite
+-----------
+
+Please see the `pydrobert page <https://github.com/sdrobert/pydrobert>`__ for
+more details.
+
 .. _Kaldi: http://kaldi-asr.org/
 .. _`Kaldi I/O`: http://kaldi-asr.org/doc/io.html
 .. _Swig: http://www.swig.org/
