@@ -40,7 +40,7 @@ install:
   - conda create -n test python=%PY_VER% pytest
   - conda install -n test pydrobert-kaldi --use-local
   - if errorlevel 1 exit 1
-  - activate test
+  - conda activate test
 
 build: false
 
@@ -52,14 +52,16 @@ artifacts:
   - path: dist-win-py%PY_VER%.zip
 
 after_test:
-  - deactivate
+  - conda deactivate
   - mkdir dist-win-py%PY_VER%
   - python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%PY_VER%
   - if errorlevel 1 exit 1
   - 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
+  - dir %cd%\dist-win-py%PY_VER%
 
 before_deploy:
   # below will have to be changed for VS 2017
+  - dir %cd%\dist-win-py%PY_VER%
   - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
   - set CONDA_BLD_PATH=%MINICONDA_PATH_32%\conda-bld
   - call %MINICONDA_PATH_32%\Scripts\activate.bat
@@ -67,6 +69,7 @@ before_deploy:
   - conda update -q --all
   - conda install conda-build
   - conda build recipe --python %PY_VER% -m recipe\ci_build.yaml --output-folder dist-win-py%PY_VER%
+  - dir %cd%\dist-win-py%PY_VER%
   - 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
   - appveyor PushArtifact dist-win-py%PY_VER%.zip
 

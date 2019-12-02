@@ -9,6 +9,7 @@ binary_package_glob = os.path.join(
     config.Config().bldpkgs_dir, '{0}*.tar.bz2'.format(sys.argv[1]))
 print(binary_package_glob)
 binary_packages = glob.glob(binary_package_glob)
+print(binary_packages)
 
 os.makedirs(sys.argv[2], exist_ok=True)
 for binary_package in binary_packages:
