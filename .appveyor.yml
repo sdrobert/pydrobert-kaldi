@@ -67,7 +67,8 @@ before_deploy:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
   - conda install conda-build
-  - conda build recipe --python %PY_VER% -m recipe\ci_build.yaml --output-folder dist-win-py%PY_VER%\win-32
+  - conda build recipe --python %PY_VER% -m recipe\ci_build.yaml
+  - python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%PY_VER%/win-32
   - 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
   - appveyor PushArtifact dist-win-py%PY_VER%.zip
 
