@@ -53,23 +53,21 @@ artifacts:
 
 after_test:
   - conda deactivate
-  - mkdir dist-win-py%PY_VER%
-  - python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%PY_VER%
+  - mkdir dist-win-py%PY_VER%\win-64
+  - python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%PY_VER%/win-64
   - if errorlevel 1 exit 1
   - 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
-  - dir %cd%\dist-win-py%PY_VER%
 
 before_deploy:
   # below will have to be changed for VS 2017
-  - dir %cd%\dist-win-py%PY_VER%
+  - mkdir dist-win-py%PY_VER%\win-32
   - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
   - set CONDA_BLD_PATH=%MINICONDA_PATH_32%\conda-bld
   - call %MINICONDA_PATH_32%\Scripts\activate.bat
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
   - conda install conda-build
-  - conda build recipe --python %PY_VER% -m recipe\ci_build.yaml --output-folder dist-win-py%PY_VER%
-  - dir %cd%\dist-win-py%PY_VER%
+  - conda build recipe --python %PY_VER% -m recipe\ci_build.yaml --output-folder dist-win-py%PY_VER%\win-32
   - 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
   - appveyor PushArtifact dist-win-py%PY_VER%.zip
 
