@@ -25,6 +25,9 @@ init:
       {
         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
       }
+  # the below will probably have to be updated for 3.8
+  - call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64
+  - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
   - call %MINICONDA_PATH_64%\Scripts\activate.bat
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
@@ -56,6 +59,8 @@ after_test:
   - 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
 
 before_deploy:
+  # below will have to be changed for VS 2017
+  - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
   - set CONDA_BLD_PATH=%MINICONDA_PATH_32%\conda-bld
   - call %MINICONDA_PATH_32%\Scripts\activate.bat
   - conda config --set always_yes yes --set changeps1 no
@@ -66,10 +71,20 @@ before_deploy:
   - appveyor PushArtifact dist-win-py%PY_VER%.zip
 
 deploy:
-  provider: GitHub
-  description: pydrobert-kaldi version $(appveyor_build_version) for Windows
-  artifact: dist-win-py%PY_VER%.zip
-  auth_token:
-    secure: QlAHDK+8kEoeqnpg7+GcCOeNfDLT4Vvuoy60Rsh8ncOQTA7sLUnzL4H5tOxE5gmn
-  on:
-    appveyor_repo_tag: true
+  - provider: GitHub
+    description: pydrobert-kaldi version $(appveyor_build_version) for Windows
+    artifact: dist-win-py%PY_VER%.zip
+    auth_token:
+      secure: QlAHDK+8kEoeqnpg7+GcCOeNfDLT4Vvuoy60Rsh8ncOQTA7sLUnzL4H5tOxE5gmn
+    on:
+      appveyor_repo_tag: true
+  - provider: GitHub
+    tag: appveyor_dummy
+    description: a dummy windows deployment
+    artifact: dist-win-py%PY_VER%.zip
+    auth_token:
+      secure: QlAHDK+8kEoeqnpg7+GcCOeNfDLT4Vvuoy60Rsh8ncOQTA7sLUnzL4H5tOxE5gmn
+    draft: true
+    prerelease: true
+    on:
+      branch: /appveyor.*/

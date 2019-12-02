@@ -113,6 +113,10 @@ before_deploy:
   fi
 - zip -r dist-${TRAVIS_OS_NAME}-py${PY_VER}.zip  dist-${TRAVIS_OS_NAME}-py${PY_VER}
 
+branches:
+  except:
+    - /appveyor.*/
+
 deploy:
   provider: releases
   api_key:
