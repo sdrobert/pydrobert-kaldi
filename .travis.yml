@@ -114,8 +114,10 @@ before_deploy:
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
     for arch in 64 32; do
       mkdir -p dist-linux-py${PY_VER}/linux-${arch};
-      travis_retry wget "${MINICONDA_${arch}_URL}" miniconda${arch}.sh || exit 1;
-      echo "${MINICONDA_${arch}_SHA} miniconda${arch}.sh" | sha256sum -c - || exit 1;
+      urlv=MINICONDA_${arch}_URL;
+      shav=MINICONDA_${arch}_SHA;
+      travis_retry wget "${!urlv}" miniconda${arch}.sh || exit 1;
+      echo "${!shav} miniconda${arch}.sh" | sha256sum -c - || exit 1;
       bash miniconda${arch}.sh -b -p $HOME/miniconda${arch} || exit 1;
       source "${HOME}/miniconda${arch}/etc/profile.d/conda.sh" || exit 1;
       hash -r;
@@ -123,6 +125,7 @@ before_deploy:
     done;
   else
     mkdir -p dist-osx-py${PY_VER}/osx-64;
+    eval "$(pyenv init -)" || exit 1;
     pyenv install miniconda3-latest;
     pyenv shell miniconda3-latest;
     python --version;
