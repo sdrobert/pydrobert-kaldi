@@ -49,7 +49,9 @@ before_install:
       grep -e ' '${PY_VER/./\.}'\.\d$' |
       tail -n 1 | tr -d "[:space:]");
     eval "$(pyenv init -)" || exit 1;
-    pyenv install $PY_VER_FULL || exit 1;
+    CFLAGS="-I(brew --prefix openssl)/include"
+      LDFLAGS="-L$(brew --prefix openssl)/lib"
+      pyenv install $PY_VER_FULL || exit 1;
     pyenv global $PY_VER_FULL || exit 1;
   fi
 
@@ -62,7 +64,7 @@ install:
       $DOCKER_MANYLINUX_IMAGE64 $PRE_CMD_64
       /io/recipe/build_manylinux.sh;
   elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
-    bash recipe/build_osx.sh $PY_VER_FULL;
+    bash recipe/build_osx.sh dist-osx-py${PY_VER};
   fi
 
 # install:
@@ -76,7 +78,7 @@ script:
       $DOCKER_MANYLINUX_IMAGE64 $PRE_CMD_64
       /io/recipe/test_manylinux.sh;
   elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
-    bash recipe/test_osx.sh $PY_VER_FULL;
+    bash recipe/test_osx.sh dist-osx-py${PY_VER};
   fi
 
 # script:
@@ -131,6 +133,7 @@ deploy:
       secure: JTCJWSlhRpda+/EgPen+UZFZI/q+pd9zWz7foTIErY4vPc6OSR2SXrEnNXBU5m3gpc5Fh2kozsGxGFhlTupr9ihkavKbzLSZDQepugazFOYJ9soESWR8c0sTMjJ9MBIly6GjQqXrctfo/M08chyFI57BkG7sAp2OsloIXZxXnXA7cfO6Fyqr0vf0Vi2Gj0k1jiILGzMsOuzxotbqevCmtkUYq/VAwIvIGH5RVDhaJ3x/KOfC+M5inUbgbJmKfuzl9rvlK3i7nDD7bB7ixM/smsBf4a5f6YHgvikrK55rzLhKU2RH6vrpD8zwleuk2BFqOK+yhG06B1jgPFneFMLNk2S3DPWovSbcBfxgcNFOSr7fsC5innNi0D11UU1S1NhpcbJL563IWMDr1RTGTf0R952N+AqzEWLwN9fWM4paf5eGzMYs70ku7oEj/OXNeW2geDONOvrl283gJ27ZSurhKMCP+rw+2+1O4D9hufN1Srw3445YJW85wdCdcavFgwzR1Qcavz3UJyEmqX+M7zhsc1aWWpngLAowzTwxcqbuSpy/XnmJ/fTM6jTpTQSYYSAW+1UFgBoGzOSNFnl9CipG6EfoPu7i6Ynl1n9YVKE6JQpldeXF2I4oRxdyncqStbjdWUJ2Lrxqnnqa6NamQIzsPLw5UqCg3rFnfwkK2hmezm4=
     file_glob: true
     skip_cleanup: true
+    file: dist-${TRAVIS_OS_NAME}-py${PY_VER}.zip
     draft: true
     on:
       branch: /travis.*/
