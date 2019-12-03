@@ -6,6 +6,10 @@ env:
     DOCKER_MANYLINUX_IMAGE64=quay.io/pypa/manylinux1_x86_64
     PRE_CMD_32=linux32
     PRE_CMD_64=
+    MINICONDA_64_URL=https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    MINICONDA_64_SHA=bfe34e1fa28d6d75a7ad05fd02fa5472275673d5f5621b77380898dee1be15d2
+    MINICONDA_32_URL=https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86.sh
+    MINICONDA_32_SHA=2e20ac4379ca5262e7612f84ad26b1a2f2782d0994facdecb28e0baf51749979
 
 matrix:
   include:
@@ -45,86 +49,83 @@ addons:
       - openssl
       - readline
 
-before_install:
-- if [ -z "${TRAVIS_TAG}" ]; then
-    export SETUPTOOLS_SCM_PRETEND_VERSION="999";
-  fi
-- if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    docker pull $DOCKER_MANYLINUX_IMAGE64;
-  elif [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7" ]; then
-    eval "$(pyenv init -)" || exit 1;
-    alias python="python2";
-  else
-    export PY_VER_FULL=$(
-      pyenv install --list |
-      grep -e ' '${PY_VER/./\.}'\.\d$' |
-      tail -n 1 | tr -d "[:space:]");
-    eval "$(pyenv init -)" || exit 1;
-    pyenv install $PY_VER_FULL || exit 1;
-    pyenv global $PY_VER_FULL || exit 1;
-  fi
-
-install:
-- if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    docker run
-      -e "PY_VER=${PY_VER}"
-      -e "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}"
-      -v `pwd`:/io
-      $DOCKER_MANYLINUX_IMAGE64 $PRE_CMD_64
-      /io/recipe/build_manylinux.sh;
-  elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
-    bash recipe/build_osx.sh dist-osx-py${PY_VER};
-  fi
+# before_install:
+# - if [ -z "${TRAVIS_TAG}" ]; then
+#     export SETUPTOOLS_SCM_PRETEND_VERSION="999";
+#   fi
+# - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+#     docker pull $DOCKER_MANYLINUX_IMAGE64;
+#   elif [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7" ]; then
+#     eval "$(pyenv init -)" || exit 1;
+#     alias python="python2";
+#   else
+#     export PY_VER_FULL=$(
+#       pyenv install --list |
+#       grep -e ' '${PY_VER/./\.}'\.\d$' |
+#       tail -n 1 | tr -d "[:space:]");
+#     eval "$(pyenv init -)" || exit 1;
+#     pyenv install $PY_VER_FULL || exit 1;
+#     pyenv global $PY_VER_FULL || exit 1;
+#   fi
 
 # install:
-#   - echo "Installed :D"
+# - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+#     docker run
+#       -e "PY_VER=${PY_VER}"
+#       -e "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}"
+#       -v `pwd`:/io
+#       $DOCKER_MANYLINUX_IMAGE64 $PRE_CMD_64
+#       /io/recipe/build_manylinux.sh;
+#   elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
+#     bash recipe/build_osx.sh dist-osx-py${PY_VER};
+#   fi
 
-script:
-- if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    docker run
-      -e "PY_VER=${PY_VER}"
-      -v `pwd`:/io
-      $DOCKER_MANYLINUX_IMAGE64 $PRE_CMD_64
-      /io/recipe/test_manylinux.sh;
-  elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
-    bash recipe/test_osx.sh dist-osx-py${PY_VER};
-  fi
+# # install:
+# #   - echo "Installed :D"
+
+# script:
+# - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+#     docker run
+#       -e "PY_VER=${PY_VER}"
+#       -v `pwd`:/io
+#       $DOCKER_MANYLINUX_IMAGE64 $PRE_CMD_64
+#       /io/recipe/test_manylinux.sh;
+#   elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
+#     bash recipe/test_osx.sh dist-osx-py${PY_VER};
+#   fi
 
 # script:
 #   - echo "Script'd"
 
 before_deploy:
 - export TRAVIS_TAG="${TRAVIS_TAG:-travis_dummy}"
-- if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    docker run
-      -e "PY_VER=${PY_VER}"
-      -e "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}"
-      -v `pwd`:/io
-      $DOCKER_MANYLINUX_IMAGE32 $PRE_CMD_32
-      /io/recipe/build_manylinux.sh;
-  fi
-- if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7" ]; then
-    ACCELERATE=1 python setup.py sdist -d dist-osx-py${PY_VER};
-  fi
+# - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+#     docker run
+#       -e "PY_VER=${PY_VER}"
+#       -e "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}"
+#       -v `pwd`:/io
+#       $DOCKER_MANYLINUX_IMAGE32 $PRE_CMD_32
+#       /io/recipe/build_manylinux.sh;
+#   fi
+# - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7" ]; then
+#     ACCELERATE=1 python setup.py sdist -d dist-osx-py${PY_VER};
+#   fi
 - rm -rf build
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-    travis_retry wget
-    "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh" -O
-    miniconda64.sh;
-    travis_retry wget
-    "https://repo.continuum.io/miniconda/Miniicnoda3-latest-Linux-x86.sh" -O
-    miniconda32.sh;
-    for arch in 32 64; do
+    for arch in 64 32; do
       mkdir -p dist-linux-py${PY_VER}/linux-${arch};
-      bash miniconda${arch}.sh -b -p $HOME/miniconda${arch};
-      source "${HOME}/miniconda${arch}/etc/profile.d/conda.sh";
+      travis_retry wget "${MINICONDA_${arch}_URL}" miniconda${arch}.sh || exit 1;
+      echo "${MINICONDA_${arch}_SHA} miniconda${arch}.sh" | sha256sum -c - || exit 1;
+      bash miniconda${arch}.sh -b -p $HOME/miniconda${arch} || exit 1;
+      source "${HOME}/miniconda${arch}/etc/profile.d/conda.sh" || exit 1;
       hash -r;
-      ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-${arch};
+      ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-${arch} || exit 1;
     done;
   else
     mkdir -p dist-osx-py${PY_VER}/osx-64;
     pyenv install miniconda3-latest;
     pyenv shell miniconda3-latest;
+    python --version;
     ./recipe/build_conda.sh dist-osx-py${PY_VER}/osx-64;
   fi
 - zip -r dist-${TRAVIS_OS_NAME}-py${PY_VER}.zip  dist-${TRAVIS_OS_NAME}-py${PY_VER}

@@ -11,9 +11,9 @@ dist_dir="$1"
 
 conda config --set always_yes yes --set changeps1 no
 conda update -q --all
-conda install conda-build
+conda install conda-build conda-verify
 conda build "${recipe_dir}" \
   --python "${PY_VER}" \
   -m "${recipe_dir}/ci_build.yaml"
 
-"${recipe_dir}/copy_conda_build_packages.py" "${dist_dir}"
+python "${recipe_dir}/copy_conda_build_packages.py" "${dist_dir}"
