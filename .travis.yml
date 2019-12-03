@@ -11,16 +11,16 @@ matrix:
   include:
   - os: osx
     env: PY_VER=2.7
-  - os: osx
-    env: PY_VER=3.5
-  - os: osx
-    env: PY_VER=3.6
-  - os: osx
-    env: PY_VER=3.7
-  - os: linux
-    sudo: required
-    services: docker
-    env: PY_VER=2.7
+  # - os: osx
+  #   env: PY_VER=3.5
+  # - os: osx
+  #   env: PY_VER=3.6
+  # - os: osx
+  #   env: PY_VER=3.7
+  # - os: linux
+  #   sudo: required
+  #   services: docker
+  #   env: PY_VER=2.7
   # - os: linux
   #   sudo: required
   #   services: docker
@@ -40,6 +40,7 @@ addons:
     packages:
       - swig
       - openssl
+      - readline
 
 before_install:
 - if [ -z "${TRAVIS_TAG}" ]; then
@@ -47,7 +48,9 @@ before_install:
   fi
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     docker pull $DOCKER_MANYLINUX_IMAGE64;
-  elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
+  elif [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7"]; then
+    alias python="python2"
+  else
     export PY_VER_FULL=$(
       pyenv install --list |
       grep -e ' '${PY_VER/./\.}'\.\d$' |
@@ -120,6 +123,7 @@ before_deploy:
 branches:
   except:
     - /appveyor.*/
+    - /docs.*/
 
 deploy:
   - provider: releases
@@ -136,6 +140,6 @@ deploy:
     file_glob: true
     skip_cleanup: true
     file: dist-${TRAVIS_OS_NAME}-py${PY_VER}.zip
-    draft: true
+    all_branches: true
     on:
-      branch: /travis.*/
+      condition: $TRAVIS_TAG =~ ^travis.*

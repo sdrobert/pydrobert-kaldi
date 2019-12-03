@@ -47,6 +47,7 @@ build: false
 branches:
   except:
     - /travis.*/
+    - /docs.*/
 
 test_script:
   - pytest -m "not pytorch"
