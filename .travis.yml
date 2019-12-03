@@ -36,8 +36,9 @@ matrix:
 
 addons:
   homebrew:
-    update: true
+    # update: true
     packages:
+      - pyenv
       - swig
       - openssl
       - readline
@@ -49,7 +50,7 @@ before_install:
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     docker pull $DOCKER_MANYLINUX_IMAGE64;
   elif [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7" ]; then
-    alias python="python2"
+    alias python="python2";
   else
     export PY_VER_FULL=$(
       pyenv install --list |
@@ -140,6 +141,6 @@ deploy:
     file_glob: true
     skip_cleanup: true
     file: dist-${TRAVIS_OS_NAME}-py${PY_VER}.zip
-    all_branches: true
     on:
-      condition: ${TRAVIS_BRANCH} =~ "^travis.*"
+      all_branches: true
+      condition: ${TRAVIS_BRANCH} =~ ^travis.*
