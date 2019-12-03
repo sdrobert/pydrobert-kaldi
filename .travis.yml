@@ -13,29 +13,31 @@ env:
 
 matrix:
   include:
-  - os: osx
-    osx_image: xcode10.2  # homebrew outdated on default image Dec 2019
-    sudo: required
-    env: PY_VER=2.7
+  # - os: osx
+  #   osx_image: xcode10.2  # homebrew outdated on default image Dec 2019
+  #   sudo: required
+  #   env: PY_VER=2.7
+  # - os: osx
+  #   osx_image: xcode10.2
+  #   env: PY_VER=3.5
+  # - os: osx
+  #   osx_image: xcode10.2
+  #   env: PY_VER=3.6
   - os: osx
     osx_image: xcode10.2
-    env: PY_VER=3.5
-  - os: osx
-    env: PY_VER=3.6
-  - os: osx
     env: PY_VER=3.7
   - os: linux
     sudo: required
     services: docker
     env: PY_VER=2.7
-  - os: linux
-    sudo: required
-    services: docker
-    env: PY_VER=3.5
-  - os: linux
-    sudo: required
-    services: docker
-    env: PY_VER=3.6
+  # - os: linux
+  #   sudo: required
+  #   services: docker
+  #   env: PY_VER=3.5
+  # - os: linux
+  #   sudo: required
+  #   services: docker
+  #   env: PY_VER=3.6
   - os: linux
     sudo: required
     services: docker
@@ -100,17 +102,17 @@ script:
 
 before_deploy:
 - export TRAVIS_TAG="${TRAVIS_TAG:-travis_dummy}"
-- if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    docker run
-      -e "PY_VER=${PY_VER}"
-      -e "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}"
-      -v `pwd`:/io
-      $DOCKER_MANYLINUX_IMAGE32 $PRE_CMD_32
-      /io/recipe/build_manylinux.sh;
-  fi
-- if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7" ]; then
-    ACCELERATE=1 python setup.py sdist -d dist-osx-py${PY_VER};
-  fi
+# - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+#     docker run
+#       -e "PY_VER=${PY_VER}"
+#       -e "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}"
+#       -v `pwd`:/io
+#       $DOCKER_MANYLINUX_IMAGE32 $PRE_CMD_32
+#       /io/recipe/build_manylinux.sh;
+#   fi
+# - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7" ]; then
+#     ACCELERATE=1 python setup.py sdist -d dist-osx-py${PY_VER};
+#   fi
 - rm -rf build
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
     for arch in 64 32; do
@@ -120,9 +122,10 @@ before_deploy:
       travis_retry wget "${!urlv}" -O miniconda${arch}.sh || exit 1;
       echo "${!shav} miniconda${arch}.sh" | sha256sum -c - || exit 1;
       bash miniconda${arch}.sh -b -p $HOME/miniconda${arch} || exit 1;
-      export PATH="$HOME/miniconda${arch}/bin:$PATH"
+      source "$HOME/miniconda/etc/profile.d/conda.sh";
       hash -r;
       ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-${arch} || exit 1;
+      rm -rf "${HOME}/miniconda${arch}"
     done;
   else
     if [ "${PY_VER}" = "2.7" ]; then

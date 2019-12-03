@@ -10,10 +10,14 @@ recipe_dir=$(dirname "$0")
 dist_dir="$1"
 
 conda config --set always_yes yes --set changeps1 no
-conda update -q --all
-conda install conda-build
+conda update -q conda
+conda install conda-build conda-verify
 conda build "${recipe_dir}" \
   --python "${PY_VER}" \
   -m "${recipe_dir}/ci_build.yaml"
 
+conda activate base
 python "${recipe_dir}/copy_conda_build_packages.py" pydrobert-kaldi "${dist_dir}"
+conda deactivate
+
+conda build purge
