@@ -14,5 +14,6 @@ conda update -q --all
 conda install conda-build
 conda build "${recipe_dir}" \
   --python "${PY_VER}" \
-  -m "${recipe_dir}/ci_build.yaml" \
-  --output-folder "${dist_dir}"
+  -m "${recipe_dir}/ci_build.yaml"
+
+"${recipe_dir}/copy_conda_build_packages.py" "${dist_dir}"
