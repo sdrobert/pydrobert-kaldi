@@ -14,9 +14,8 @@
 
 # this is used by continuous integration when building/testing. We let it
 # choose the python version
+
 blas_impl:
   - mkl
   - openblas # [not win]
 
-MACOSX_DEPLOYMENT_TARGET:
-  - 10.9  # [osx]

@@ -17,7 +17,7 @@ matrix:
     osx_image: xcode10.2  # homebrew outdated on default image Dec 2019
     env: PY_VER=2.7
   - os: osx
-    osx_image: xcode10.2
+    osx_image: xcode6.4
     env: PY_VER=3.5
   # - os: osx
   #   env: PY_VER=3.6
@@ -116,7 +116,7 @@ before_deploy:
       mkdir -p dist-linux-py${PY_VER}/linux-${arch};
       urlv=MINICONDA_${arch}_URL;
       shav=MINICONDA_${arch}_SHA;
-      travis_retry wget "${!urlv}" miniconda${arch}.sh || exit 1;
+      travis_retry wget "${!urlv}" -O miniconda${arch}.sh || exit 1;
       echo "${!shav} miniconda${arch}.sh" | sha256sum -c - || exit 1;
       bash miniconda${arch}.sh -b -p $HOME/miniconda${arch} || exit 1;
       source "${HOME}/miniconda${arch}/etc/profile.d/conda.sh" || exit 1;
