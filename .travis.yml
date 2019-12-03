@@ -17,10 +17,10 @@ matrix:
     env: PY_VER=3.6
   - os: osx
     env: PY_VER=3.7
-  # - os: linux
-  #   sudo: required
-  #   services: docker
-  #   env: PY_VER=2.7
+  - os: linux
+    sudo: required
+    services: docker
+    env: PY_VER=2.7
   # - os: linux
   #   sudo: required
   #   services: docker
@@ -34,6 +34,13 @@ matrix:
   #   services: docker
   #   env: PY_VER=3.7
 
+addons:
+  homebrew:
+    update: true
+    packages:
+      - swig
+      - openssl
+
 before_install:
 - if [ -z "${TRAVIS_TAG}" ]; then
     export SETUPTOOLS_SCM_PRETEND_VERSION="999";
@@ -41,17 +48,12 @@ before_install:
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     docker pull $DOCKER_MANYLINUX_IMAGE64;
   elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
-    brew update || exit 1;
-    brew upgrade pyenv || exit 1;
-    brew install swig || exit 1;
     export PY_VER_FULL=$(
       pyenv install --list |
       grep -e ' '${PY_VER/./\.}'\.\d$' |
       tail -n 1 | tr -d "[:space:]");
     eval "$(pyenv init -)" || exit 1;
-    CFLAGS="-I(brew --prefix openssl)/include"
-      LDFLAGS="-L$(brew --prefix openssl)/lib"
-      pyenv install $PY_VER_FULL || exit 1;
+    pyenv install $PY_VER_FULL || exit 1;
     pyenv global $PY_VER_FULL || exit 1;
   fi
 
