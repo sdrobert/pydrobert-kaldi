@@ -115,12 +115,14 @@ before_deploy:
     "https://repo.continuum.io/miniconda/Miniicnoda3-latest-Linux-x86.sh" -O
     miniconda32.sh;
     for arch in 32 64; do
+      mkdir -p dist-linux-py${PY_VER}/linux-${arch};
       bash miniconda${arch}.sh -b -p $HOME/miniconda${arch};
       source "${HOME}/miniconda${arch}/etc/profile.d/conda.sh";
       hash -r;
       ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-${arch};
     done;
   else
+    mkdir -p dist-osx-py${PY_VER}/osx-64;
     pyenv install miniconda3-latest;
     pyenv shell miniconda3-latest;
     ./recipe/build_conda.sh dist-osx-py${PY_VER}/osx-64;
