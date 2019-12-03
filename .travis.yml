@@ -10,8 +10,10 @@ env:
 matrix:
   include:
   - os: osx
+    osx_image: xcode10.2  # homebrew outdated on default image Dec 2019
     env: PY_VER=2.7
   - os: osx
+    osx_image: xcode10.2
     env: PY_VER=3.5
   # - os: osx
   #   env: PY_VER=3.6
