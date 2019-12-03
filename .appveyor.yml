@@ -44,6 +44,10 @@ install:
 
 build: false
 
+branches:
+  except:
+    - /travis.*/
+
 test_script:
   - pytest -m "not pytorch"
   # - conda build recipe --test --output-folder dist-win-py%PY_VER%

@@ -7,11 +7,11 @@ set -e -x
 
 py_ver=$1
 
-pyenv global $py_ver
-PY_BIN=$(pyenv which python${py_ver:0:1})
-[ ! -f "${PY_BIN}" ] && exit 1
-pyenv virtualenv venv_build
-pyenv global venv_build
+# pyenv global $py_ver
+# PY_BIN=$(pyenv which python${py_ver:0:1})
+# [ ! -f "${PY_BIN}" ] && exit 1
+# pyenv virtualenv venv_build
+# pyenv global venv_build
 
 pip install -U pip wheel setuptools
 pip install numpy
