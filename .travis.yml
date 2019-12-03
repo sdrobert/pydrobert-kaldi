@@ -11,8 +11,8 @@ matrix:
   include:
   - os: osx
     env: PY_VER=2.7
-  # - os: osx
-  #   env: PY_VER=3.5
+  - os: osx
+    env: PY_VER=3.5
   # - os: osx
   #   env: PY_VER=3.6
   # - os: osx
@@ -21,10 +21,10 @@ matrix:
   #   sudo: required
   #   services: docker
   #   env: PY_VER=2.7
-  # - os: linux
-  #   sudo: required
-  #   services: docker
-  #   env: PY_VER=3.5
+  - os: linux
+    sudo: required
+    services: docker
+    env: PY_VER=3.5
   # - os: linux
   #   sudo: required
   #   services: docker
@@ -142,4 +142,4 @@ deploy:
     file: dist-${TRAVIS_OS_NAME}-py${PY_VER}.zip
     all_branches: true
     on:
-      condition: $TRAVIS_TAG =~ ^travis.*
+      condition: ${TRAVIS_BRANCH} =~ "^travis.*"
