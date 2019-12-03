@@ -48,7 +48,7 @@ before_install:
   fi
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     docker pull $DOCKER_MANYLINUX_IMAGE64;
-  elif [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7"]; then
+  elif [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7" ]; then
     alias python="python2"
   else
     export PY_VER_FULL=$(
