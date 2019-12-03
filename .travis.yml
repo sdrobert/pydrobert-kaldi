@@ -128,7 +128,7 @@ before_deploy:
     if [ "${PY_VER}" = "2.7" ]; then
       sdkpath="$(xcrun --sdk macosx --show-sdk-path)";
       sudo ln -s ${sdkpath} /opt/MacOSX10.9.sdk;
-    fi
+    fi;
     mkdir -p dist-osx-py${PY_VER}/osx-64;
     eval "$(pyenv init -)" || exit 1;
     pyenv install miniconda3-latest;
