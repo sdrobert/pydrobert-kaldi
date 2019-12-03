@@ -15,9 +15,10 @@ matrix:
   include:
   - os: osx
     osx_image: xcode10.2  # homebrew outdated on default image Dec 2019
+    sudo: required
     env: PY_VER=2.7
   - os: osx
-    osx_image: xcode6.4
+    osx_image: xcode10.2
     env: PY_VER=3.5
   # - os: osx
   #   env: PY_VER=3.6
@@ -119,16 +120,19 @@ before_deploy:
       travis_retry wget "${!urlv}" -O miniconda${arch}.sh || exit 1;
       echo "${!shav} miniconda${arch}.sh" | sha256sum -c - || exit 1;
       bash miniconda${arch}.sh -b -p $HOME/miniconda${arch} || exit 1;
-      source "${HOME}/miniconda${arch}/etc/profile.d/conda.sh" || exit 1;
+      export PATH="$HOME/miniconda${arch}/bin:$PATH"
       hash -r;
       ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-${arch} || exit 1;
     done;
   else
+    if [ "${PY_VER}" = "2.7" ]; then
+      sdkpath="$(xcrun --sdk macosx --show-sdk-path)";
+      sudo ln -s ${sdkpath} /opt/MacOSX10.9.sdk;
+    fi
     mkdir -p dist-osx-py${PY_VER}/osx-64;
     eval "$(pyenv init -)" || exit 1;
     pyenv install miniconda3-latest;
     pyenv shell miniconda3-latest;
-    python --version;
     ./recipe/build_conda.sh dist-osx-py${PY_VER}/osx-64;
   fi
 - zip -r dist-${TRAVIS_OS_NAME}-py${PY_VER}.zip  dist-${TRAVIS_OS_NAME}-py${PY_VER}
