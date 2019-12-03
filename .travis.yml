@@ -52,6 +52,7 @@ before_install:
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     docker pull $DOCKER_MANYLINUX_IMAGE64;
   elif [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7" ]; then
+    eval "$(pyenv init -)" || exit 1;
     alias python="python2";
   else
     export PY_VER_FULL=$(
@@ -107,19 +108,22 @@ before_deploy:
   fi
 - rm -rf build
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-    docker pull continuumio/miniconda3;
-    docker run
-      -v `pwd`:/io
-      -e PY_VER="${PY_VER}"
-      -e "TRAVIS=true"
-      -e "TRAVIS_BRANCH=${TRAVIS_BRANCH}"
-      -e "TRAVIS_BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}"
-      continuumio/miniconda3
-      /io/recipe/build_conda.sh /io/dist-linux-py${PY_VER};
+    travis_retry wget
+    "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh" -O
+    miniconda64.sh;
+    travis_retry wget
+    "https://repo.continuum.io/miniconda/Miniicnoda3-latest-Linux-x86.sh" -O
+    miniconda32.sh;
+    for arch in 32 64; do
+      bash miniconda${arch}.sh -b -p $HOME/miniconda${arch};
+      source "${HOME}/miniconda${arch}/etc/profile.d/conda.sh";
+      hash -r;
+      ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-${arch};
+    done;
   else
     pyenv install miniconda3-latest;
     pyenv shell miniconda3-latest;
-    ./recipe/build_conda.sh dist-osx-py${PY_VER};
+    ./recipe/build_conda.sh dist-osx-py${PY_VER}/osx-64;
   fi
 - zip -r dist-${TRAVIS_OS_NAME}-py${PY_VER}.zip  dist-${TRAVIS_OS_NAME}-py${PY_VER}
 
