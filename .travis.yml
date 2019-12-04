@@ -10,6 +10,7 @@ env:
     MINICONDA_64_SHA=bfe34e1fa28d6d75a7ad05fd02fa5472275673d5f5621b77380898dee1be15d2
     MINICONDA_32_URL=https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86.sh
     MINICONDA_32_SHA=f387eded3fa4ddc3104b7775e62d59065b30205c2758a8b86b4c27144adafcc4
+    MACOSX_DEPLOYMENT_TARGET=10.9
 
 matrix:
   include:
@@ -114,6 +115,8 @@ before_deploy:
 #     ACCELERATE=1 python setup.py sdist -d dist-osx-py${PY_VER};
 #   fi
 - rm -rf build
+# docker may use weird permissions
+- sudo chmod -R a+rwx dist-${TRAVIS_OS_NAME}-py${PY_VER}
 - sudo find . -name "*.pyc" -delete
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
     for arch in 64 32; do

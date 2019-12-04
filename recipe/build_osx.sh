@@ -14,8 +14,7 @@ pip install -r requirements.txt
 hash -r
 
 # PyPI Numpy standard for OSX is Accelerate, I think. Makes my job easy
-MACOSX_DEPLOYMENT_TARGET=10.9 ACCELERATE=1 \
-python setup.py bdist_wheel -d "${tdir}"
+ACCELERATE=1 python setup.py bdist_wheel -d "${tdir}"
 
 mkdir "${dir}"
 delocate-wheel -w "${dir}" "${tdir}/"*.whl
