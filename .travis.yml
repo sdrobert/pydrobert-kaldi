@@ -24,9 +24,9 @@ matrix:
   # - os: osx
   #   osx_image: xcode10.2
   #   env: PY_VER=3.6
-  - os: osx
-    osx_image: xcode10.2
-    env: PY_VER=3.7
+  # - os: osx
+  #   osx_image: xcode10.2
+  #   env: PY_VER=3.7
   - os: linux
     sudo: required
     services: docker
@@ -119,17 +119,19 @@ before_deploy:
 - sudo chmod -R a+rwx dist-${TRAVIS_OS_NAME}-py${PY_VER}
 - sudo find . -name "*.pyc" -delete
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-    for arch in 64 32; do
+    for arch in 32 64; do
       mkdir -p dist-linux-py${PY_VER}/linux-${arch};
       urlv=MINICONDA_${arch}_URL;
       shav=MINICONDA_${arch}_SHA;
       travis_retry wget "${!urlv}" -O miniconda${arch}.sh || exit 1;
       echo "${!shav} miniconda${arch}.sh" | sha256sum -c - || exit 1;
-      bash miniconda${arch}.sh -b -p $HOME/miniconda || exit 1;
-      source "$HOME/miniconda/etc/profile.d/conda.sh";
+      bash miniconda${arch}.sh -b -p $HOME/miniconda${arch} || exit 1;
+      source "$HOME/miniconda${arch}/etc/profile.d/conda.sh";
       hash -r;
       ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-${arch} || exit 1;
-      rm -rf "${HOME}/miniconda";
+      rm -rf "${HOME}/miniconda${arch}";
+      unset -f conda;
+      unset _CONDA_EXE _CONDA_ROOT;
     done;
   else
     if [ "${PY_VER}" = "2.7" ]; then
