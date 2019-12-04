@@ -119,20 +119,16 @@ before_deploy:
 - sudo chmod -R a+rwx dist-${TRAVIS_OS_NAME}-py${PY_VER}
 - sudo find . -name "*.pyc" -delete
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-    for arch in 32 64; do
-      mkdir -p dist-linux-py${PY_VER}/linux-${arch};
-      urlv=MINICONDA_${arch}_URL;
-      shav=MINICONDA_${arch}_SHA;
-      travis_retry wget "${!urlv}" -O miniconda${arch}.sh || exit 1;
-      echo "${!shav} miniconda${arch}.sh" | sha256sum -c - || exit 1;
-      bash miniconda${arch}.sh -b -p $HOME/miniconda${arch} || exit 1;
-      source "$HOME/miniconda${arch}/etc/profile.d/conda.sh";
-      hash -r;
-      ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-${arch} || exit 1;
-      rm -rf "${HOME}/miniconda${arch}";
-      unset -f conda;
-      unset _CONDA_EXE _CONDA_ROOT;
-    done;
+    mkdir -p dist-linux-py${PY_VER}/{linux-64,linux-32};
+    travis_retry wget "${MINICONDA_64_URL}" -O miniconda.sh || exit 1;
+    echo "${MINICONDA_64_HASH} miniconda.sh" | sha256sum -c - || exit 1;
+    bash miniconda.sh -b -p $HOME/miniconda || exit 1;
+    source "$HOME/miniconda/etc/profile.d/conda.sh";
+    hash -r;
+    export CONDA_SUBDIR=linux-32;
+    ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-32 || exit 1;
+    export CONDA_SUBDIR=linux-64;
+    ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-64 || exit 1;
   else
     if [ "${PY_VER}" = "2.7" ]; then
       sdkpath="$(xcrun --sdk macosx --show-sdk-path)";
