@@ -125,7 +125,7 @@ before_deploy:
       source "$HOME/miniconda/etc/profile.d/conda.sh";
       hash -r;
       ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-${arch} || exit 1;
-      rm -rf "${HOME}/miniconda${arch}"
+      rm -rf "${HOME}/miniconda${arch}";
     done;
   else
     if [ "${PY_VER}" = "2.7" ]; then
