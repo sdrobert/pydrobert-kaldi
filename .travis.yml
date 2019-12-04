@@ -126,9 +126,7 @@ before_deploy:
     bash miniconda.sh -b -p $HOME/miniconda || exit 1;
     source "$HOME/miniconda/etc/profile.d/conda.sh";
     hash -r;
-    export CONDA_SUBDIR=linux-32;
-    ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-32 --no-test || exit 1;
-    export CONDA_SUBDIR=linux-64;
+    ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-32 || exit 1;
     ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-64 || exit 1;
   else
     if [ "${PY_VER}" = "2.7" ]; then

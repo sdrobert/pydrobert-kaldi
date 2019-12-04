@@ -12,10 +12,12 @@ shift
 conda config --set always_yes yes --set changeps1 no
 conda update -q conda
 conda install conda-build conda-verify
-conda build "${recipe_dir}" \
+"CONDA_SUBDIR=$(basename "${dist_dir}")" conda build "${recipe_dir}" \
   --python "${PY_VER}" \
   -m "${recipe_dir}/ci_build.yaml" "$@"
 
-"$(conda info --base)/bin/python" "${recipe_dir}/copy_conda_build_packages.py" pydrobert-kaldi "${dist_dir}"
+"$(conda info --base)/bin/python" \
+  "${recipe_dir}/copy_conda_build_packages.py" \
+  pydrobert-kaldi "${dist_dir}"
 
 conda build purge
