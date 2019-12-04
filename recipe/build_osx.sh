@@ -4,7 +4,6 @@
 set -e -x
 
 # see https://github.com/MacPython/wiki/wiki/Spinning-wheels
-export MACOSX_DEPLOYMENT_TARGET=10.9
 
 dir=$1
 tdir="$(mktemp -d)"
@@ -15,7 +14,8 @@ pip install -r requirements.txt
 hash -r
 
 # PyPI Numpy standard for OSX is Accelerate, I think. Makes my job easy
-ACCELERATE=1 python setup.py bdist_wheel -d "${tdir}"
+MACOSX_DEPLOYMENT_TARGET=10.9 ACCELERATE=1 \
+python setup.py bdist_wheel -d "${tdir}"
 
 mkdir "${dir}"
 delocate-wheel -w "${dir}" "${tdir}/"*.whl

@@ -11,6 +11,7 @@ print(binary_package_glob)
 binary_packages = glob.glob(binary_package_glob)
 print(binary_packages)
 
-os.makedirs(sys.argv[2], exist_ok=True)
+if not os.path.isdir(sys.argv[2]):
+    os.makedirs(sys.argv[2])
 for binary_package in binary_packages:
-    shutil.copy(binary_package, sys.argv[2] + '/')
+    shutil.copy(binary_package, sys.argv[2])
