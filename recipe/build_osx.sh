@@ -16,5 +16,5 @@ hash -r
 # PyPI Numpy standard for OSX is Accelerate, I think. Makes my job easy
 ACCELERATE=1 python setup.py bdist_wheel -d "${tdir}"
 
-mkdir "${dir}"
+mkdir -p "${dir}"
 delocate-wheel -w "${dir}" "${tdir}/"*.whl

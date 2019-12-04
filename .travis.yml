@@ -18,31 +18,31 @@ matrix:
     osx_image: xcode10.2  # homebrew outdated on default image Dec 2019
     sudo: required
     env: PY_VER=2.7
-  - os: osx
-    osx_image: xcode10.2
-    env: PY_VER=3.5
-  - os: osx
-    osx_image: xcode10.2
-    env: PY_VER=3.6
-  - os: osx
-    osx_image: xcode10.2
-    env: PY_VER=3.7
-  - os: linux
-    sudo: required
-    services: docker
-    env: PY_VER=2.7
-  - os: linux
-    sudo: required
-    services: docker
-    env: PY_VER=3.5
-  - os: linux
-    sudo: required
-    services: docker
-    env: PY_VER=3.6
-  - os: linux
-    sudo: required
-    services: docker
-    env: PY_VER=3.7
+  # - os: osx
+  #   osx_image: xcode10.2
+  #   env: PY_VER=3.5
+  # - os: osx
+  #   osx_image: xcode10.2
+  #   env: PY_VER=3.6
+  # - os: osx
+  #   osx_image: xcode10.2
+  #   env: PY_VER=3.7
+  # - os: linux
+  #   sudo: required
+  #   services: docker
+  #   env: PY_VER=2.7
+  # - os: linux
+  #   sudo: required
+  #   services: docker
+  #   env: PY_VER=3.5
+  # - os: linux
+  #   sudo: required
+  #   services: docker
+  #   env: PY_VER=3.6
+  # - os: linux
+  #   sudo: required
+  #   services: docker
+  #   env: PY_VER=3.7
 
 addons:
   homebrew:
@@ -59,9 +59,6 @@ before_install:
   fi
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     docker pull $DOCKER_MANYLINUX_IMAGE64;
-  elif [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7" ]; then
-    eval "$(pyenv init -)" || exit 1;
-    alias python="python2";
   else
     export PY_VER_FULL=$(
       pyenv install --list |
@@ -73,7 +70,7 @@ before_install:
   fi
 
 install:
-- mkdir dist-${TRAVIS_OS_NAME}-py${PY_VER}
+- mkdir -p dist-${TRAVIS_OS_NAME}-py${PY_VER}
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     docker run
       -e "PY_VER=${PY_VER}"
