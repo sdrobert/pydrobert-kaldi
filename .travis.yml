@@ -114,7 +114,7 @@ before_deploy:
 #     ACCELERATE=1 python setup.py sdist -d dist-osx-py${PY_VER};
 #   fi
 - rm -rf build
-- find . -name "*.pyc" -delete
+- sudo find . -name "*.pyc" -delete
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
     for arch in 64 32; do
       mkdir -p dist-linux-py${PY_VER}/linux-${arch};
