@@ -3,18 +3,18 @@
 
 set -e -x
 
-[ $# = 1 ] || exit 1
 [ ! -z "$PY_VER" ] || exit 1
 
 recipe_dir=$(dirname "$0")
 dist_dir="$1"
+shift
 
 conda config --set always_yes yes --set changeps1 no
 conda update -q conda
 conda install conda-build conda-verify
 conda build "${recipe_dir}" \
   --python "${PY_VER}" \
-  -m "${recipe_dir}/ci_build.yaml"
+  -m "${recipe_dir}/ci_build.yaml" "$@"
 
 "$(conda info --base)/bin/python" "${recipe_dir}/copy_conda_build_packages.py" pydrobert-kaldi "${dist_dir}"
 

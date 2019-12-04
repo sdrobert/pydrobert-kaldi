@@ -53,51 +53,51 @@ addons:
       - openssl
       - readline
 
-before_install:
-- if [ -z "${TRAVIS_TAG}" ]; then
-    export SETUPTOOLS_SCM_PRETEND_VERSION="999";
-  fi
-- if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    docker pull $DOCKER_MANYLINUX_IMAGE64;
-  elif [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7" ]; then
-    eval "$(pyenv init -)" || exit 1;
-    alias python="python2";
-  else
-    export PY_VER_FULL=$(
-      pyenv install --list |
-      grep -e ' '${PY_VER/./\.}'\.\d$' |
-      tail -n 1 | tr -d "[:space:]");
-    eval "$(pyenv init -)" || exit 1;
-    pyenv install $PY_VER_FULL || exit 1;
-    pyenv global $PY_VER_FULL || exit 1;
-  fi
+# before_install:
+# - if [ -z "${TRAVIS_TAG}" ]; then
+#     export SETUPTOOLS_SCM_PRETEND_VERSION="999";
+#   fi
+# - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+#     docker pull $DOCKER_MANYLINUX_IMAGE64;
+#   elif [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7" ]; then
+#     eval "$(pyenv init -)" || exit 1;
+#     alias python="python2";
+#   else
+#     export PY_VER_FULL=$(
+#       pyenv install --list |
+#       grep -e ' '${PY_VER/./\.}'\.\d$' |
+#       tail -n 1 | tr -d "[:space:]");
+#     eval "$(pyenv init -)" || exit 1;
+#     pyenv install $PY_VER_FULL || exit 1;
+#     pyenv global $PY_VER_FULL || exit 1;
+#   fi
 
 install:
 - mkdir dist-${TRAVIS_OS_NAME}-py${PY_VER}
-- if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    docker run
-      -e "PY_VER=${PY_VER}"
-      -e "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}"
-      -v `pwd`:/io
-      $DOCKER_MANYLINUX_IMAGE64 $PRE_CMD_64
-      /io/recipe/build_manylinux.sh;
-  elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
-    bash recipe/build_osx.sh dist-osx-py${PY_VER};
-  fi
+# - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+#     docker run
+#       -e "PY_VER=${PY_VER}"
+#       -e "SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION}"
+#       -v `pwd`:/io
+#       $DOCKER_MANYLINUX_IMAGE64 $PRE_CMD_64
+#       /io/recipe/build_manylinux.sh;
+#   elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
+#     bash recipe/build_osx.sh dist-osx-py${PY_VER};
+#   fi
 
 # install:
 #   - echo "Installed :D"
 
-script:
-- if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    docker run
-      -e "PY_VER=${PY_VER}"
-      -v `pwd`:/io
-      $DOCKER_MANYLINUX_IMAGE64 $PRE_CMD_64
-      /io/recipe/test_manylinux.sh;
-  elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
-    bash recipe/test_osx.sh dist-osx-py${PY_VER};
-  fi
+# script:
+# - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+#     docker run
+#       -e "PY_VER=${PY_VER}"
+#       -v `pwd`:/io
+#       $DOCKER_MANYLINUX_IMAGE64 $PRE_CMD_64
+#       /io/recipe/test_manylinux.sh;
+#   elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
+#     bash recipe/test_osx.sh dist-osx-py${PY_VER};
+#   fi
 
 # script:
 #   - echo "Script'd"
