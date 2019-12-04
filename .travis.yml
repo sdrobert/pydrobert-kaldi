@@ -73,6 +73,7 @@ before_install:
   fi
 
 install:
+- mkdir dist-${TRAVIS_OS_NAME}-py${PY_VER}
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     docker run
       -e "PY_VER=${PY_VER}"
@@ -121,12 +122,12 @@ before_deploy:
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
     mkdir -p dist-linux-py${PY_VER}/{linux-64,linux-32};
     travis_retry wget "${MINICONDA_64_URL}" -O miniconda.sh || exit 1;
-    echo "${MINICONDA_64_HASH} miniconda.sh" | sha256sum -c - || exit 1;
+    echo "${MINICONDA_64_SHA} miniconda.sh" | sha256sum -c - || exit 1;
     bash miniconda.sh -b -p $HOME/miniconda || exit 1;
     source "$HOME/miniconda/etc/profile.d/conda.sh";
     hash -r;
     export CONDA_SUBDIR=linux-32;
-    ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-32 || exit 1;
+    ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-32 --no-test || exit 1;
     export CONDA_SUBDIR=linux-64;
     ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-64 || exit 1;
   else
