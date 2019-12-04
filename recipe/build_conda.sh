@@ -16,6 +16,8 @@ conda build "${recipe_dir}" \
   --python "${PY_VER}" \
   -m "${recipe_dir}/ci_build.yaml"
 
-"$(dirname $(which conda))/python" "${recipe_dir}/copy_conda_build_packages.py" pydrobert-kaldi "${dist_dir}"
+conda activate
+python "${recipe_dir}/copy_conda_build_packages.py" pydrobert-kaldi "${dist_dir}"
+conda deactivate
 
 conda build purge
