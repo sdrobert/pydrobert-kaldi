@@ -122,7 +122,7 @@ before_deploy:
       travis_retry wget "${!urlv}" -O miniconda${arch}.sh || exit 1;
       echo "${!shav} miniconda${arch}.sh" | sha256sum -c - || exit 1;
       bash miniconda${arch}.sh -b -p $HOME/miniconda${arch} || exit 1;
-      source "$HOME/miniconda/etc/profile.d/conda.sh";
+      source "$HOME/miniconda${arch}/etc/profile.d/conda.sh";
       hash -r;
       ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-${arch} || exit 1;
       rm -rf "${HOME}/miniconda${arch}";
