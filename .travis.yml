@@ -6,16 +6,26 @@ env:
     DOCKER_MANYLINUX_IMAGE64=quay.io/pypa/manylinux1_x86_64
     PRE_CMD_32=linux32
     PRE_CMD_64=
+    MINICONDA_64_URL=https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    MINICONDA_64_SHA=bfe34e1fa28d6d75a7ad05fd02fa5472275673d5f5621b77380898dee1be15d2
+    MINICONDA_32_URL=https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86.sh
+    MINICONDA_32_SHA=f387eded3fa4ddc3104b7775e62d59065b30205c2758a8b86b4c27144adafcc4
+    MACOSX_DEPLOYMENT_TARGET=10.9
 
 matrix:
   include:
   - os: osx
+    osx_image: xcode10.2  # homebrew outdated on default image Dec 2019
+    sudo: required
     env: PY_VER=2.7
   - os: osx
+    osx_image: xcode10.2
     env: PY_VER=3.5
   - os: osx
+    osx_image: xcode10.2
     env: PY_VER=3.6
   - os: osx
+    osx_image: xcode10.2
     env: PY_VER=3.7
   - os: linux
     sudo: required
@@ -33,6 +43,15 @@ matrix:
     sudo: required
     services: docker
     env: PY_VER=3.7
+
+addons:
+  homebrew:
+    # update: true
+    packages:
+      - pyenv
+      - swig
+      - openssl
+      - readline
 
 before_install:
 - if [ -z "${TRAVIS_TAG}" ]; then
@@ -40,19 +59,18 @@ before_install:
   fi
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     docker pull $DOCKER_MANYLINUX_IMAGE64;
-  elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
-    brew install pyenv-virtualenv;
+  else
     export PY_VER_FULL=$(
       pyenv install --list |
       grep -e ' '${PY_VER/./\.}'\.\d$' |
       tail -n 1 | tr -d "[:space:]");
-    brew install swig;
-    eval "$(pyenv init -)";
-    eval "$(pyenv virtualenv-init -)";
-    pyenv install $PY_VER_FULL;
+    eval "$(pyenv init -)" || exit 1;
+    pyenv install $PY_VER_FULL || exit 1;
+    pyenv global $PY_VER_FULL || exit 1;
   fi
 
 install:
+- mkdir -p dist-${TRAVIS_OS_NAME}-py${PY_VER}
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     docker run
       -e "PY_VER=${PY_VER}"
@@ -61,7 +79,7 @@ install:
       $DOCKER_MANYLINUX_IMAGE64 $PRE_CMD_64
       /io/recipe/build_manylinux.sh;
   elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
-    bash recipe/build_osx.sh $PY_VER_FULL;
+    bash recipe/build_osx.sh dist-osx-py${PY_VER};
   fi
 
 # install:
@@ -75,13 +93,14 @@ script:
       $DOCKER_MANYLINUX_IMAGE64 $PRE_CMD_64
       /io/recipe/test_manylinux.sh;
   elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
-    bash recipe/test_osx.sh $PY_VER_FULL;
+    bash recipe/test_osx.sh dist-osx-py${PY_VER};
   fi
 
 # script:
 #   - echo "Script'd"
 
 before_deploy:
+- export TRAVIS_TAG="${TRAVIS_TAG:-travis_dummy}"
 - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     docker run
       -e "PY_VER=${PY_VER}"
@@ -91,34 +110,55 @@ before_deploy:
       /io/recipe/build_manylinux.sh;
   fi
 - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "${PY_VER}" = "2.7" ]; then
-    pyenv activate venv_test;
     ACCELERATE=1 python setup.py sdist -d dist-osx-py${PY_VER};
-    pyenv deactivate;
   fi
 - rm -rf build
+# docker may use weird permissions
+- sudo chmod -R a+rwx dist-${TRAVIS_OS_NAME}-py${PY_VER}
+- sudo find . -name "*.pyc" -delete
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-    docker pull continuumio/miniconda3;
-    docker run
-      -v `pwd`:/io
-      -e PY_VER="${PY_VER}"
-      -e "TRAVIS=true"
-      -e "TRAVIS_BRANCH=${TRAVIS_BRANCH}"
-      -e "TRAVIS_BUILD_NUMBER=${TRAVIS_BUILD_NUMBER}"
-      continuumio/miniconda3
-      /io/recipe/build_conda.sh /io/dist-linux-py${PY_VER};
+    mkdir -p dist-linux-py${PY_VER}/{linux-64,linux-32};
+    travis_retry wget "${MINICONDA_64_URL}" -O miniconda.sh || exit 1;
+    echo "${MINICONDA_64_SHA} miniconda.sh" | sha256sum -c - || exit 1;
+    bash miniconda.sh -b -p $HOME/miniconda || exit 1;
+    source "$HOME/miniconda/etc/profile.d/conda.sh";
+    hash -r;
+    ./recipe/build_conda.sh dist-linux-py${PY_VER}/linux-64 || exit 1;
   else
+    if [ "${PY_VER}" = "2.7" ]; then
+      sdkpath="$(xcrun --sdk macosx --show-sdk-path)";
+      sudo ln -s ${sdkpath} /opt/MacOSX10.9.sdk;
+    fi;
+    mkdir -p dist-osx-py${PY_VER}/osx-64;
+    eval "$(pyenv init -)" || exit 1;
     pyenv install miniconda3-latest;
     pyenv shell miniconda3-latest;
-    ./recipe/build_conda.sh dist-osx-py${PY_VER};
+    ./recipe/build_conda.sh dist-osx-py${PY_VER}/osx-64;
   fi
 - zip -r dist-${TRAVIS_OS_NAME}-py${PY_VER}.zip  dist-${TRAVIS_OS_NAME}-py${PY_VER}
 
+branches:
+  except:
+    - /appveyor.*/
+    - /docs.*/
+
 deploy:
-  provider: releases
-  api_key:
-    secure: JTCJWSlhRpda+/EgPen+UZFZI/q+pd9zWz7foTIErY4vPc6OSR2SXrEnNXBU5m3gpc5Fh2kozsGxGFhlTupr9ihkavKbzLSZDQepugazFOYJ9soESWR8c0sTMjJ9MBIly6GjQqXrctfo/M08chyFI57BkG7sAp2OsloIXZxXnXA7cfO6Fyqr0vf0Vi2Gj0k1jiILGzMsOuzxotbqevCmtkUYq/VAwIvIGH5RVDhaJ3x/KOfC+M5inUbgbJmKfuzl9rvlK3i7nDD7bB7ixM/smsBf4a5f6YHgvikrK55rzLhKU2RH6vrpD8zwleuk2BFqOK+yhG06B1jgPFneFMLNk2S3DPWovSbcBfxgcNFOSr7fsC5innNi0D11UU1S1NhpcbJL563IWMDr1RTGTf0R952N+AqzEWLwN9fWM4paf5eGzMYs70ku7oEj/OXNeW2geDONOvrl283gJ27ZSurhKMCP+rw+2+1O4D9hufN1Srw3445YJW85wdCdcavFgwzR1Qcavz3UJyEmqX+M7zhsc1aWWpngLAowzTwxcqbuSpy/XnmJ/fTM6jTpTQSYYSAW+1UFgBoGzOSNFnl9CipG6EfoPu7i6Ynl1n9YVKE6JQpldeXF2I4oRxdyncqStbjdWUJ2Lrxqnnqa6NamQIzsPLw5UqCg3rFnfwkK2hmezm4=
-  file_glob: true
-  file: dist-${TRAVIS_OS_NAME}-py${PY_VER}.zip
-  skip_cleanup: true
-  on:
-    tags: true
+  - provider: releases
+    api_key:
+      secure: JTCJWSlhRpda+/EgPen+UZFZI/q+pd9zWz7foTIErY4vPc6OSR2SXrEnNXBU5m3gpc5Fh2kozsGxGFhlTupr9ihkavKbzLSZDQepugazFOYJ9soESWR8c0sTMjJ9MBIly6GjQqXrctfo/M08chyFI57BkG7sAp2OsloIXZxXnXA7cfO6Fyqr0vf0Vi2Gj0k1jiILGzMsOuzxotbqevCmtkUYq/VAwIvIGH5RVDhaJ3x/KOfC+M5inUbgbJmKfuzl9rvlK3i7nDD7bB7ixM/smsBf4a5f6YHgvikrK55rzLhKU2RH6vrpD8zwleuk2BFqOK+yhG06B1jgPFneFMLNk2S3DPWovSbcBfxgcNFOSr7fsC5innNi0D11UU1S1NhpcbJL563IWMDr1RTGTf0R952N+AqzEWLwN9fWM4paf5eGzMYs70ku7oEj/OXNeW2geDONOvrl283gJ27ZSurhKMCP+rw+2+1O4D9hufN1Srw3445YJW85wdCdcavFgwzR1Qcavz3UJyEmqX+M7zhsc1aWWpngLAowzTwxcqbuSpy/XnmJ/fTM6jTpTQSYYSAW+1UFgBoGzOSNFnl9CipG6EfoPu7i6Ynl1n9YVKE6JQpldeXF2I4oRxdyncqStbjdWUJ2Lrxqnnqa6NamQIzsPLw5UqCg3rFnfwkK2hmezm4=
+    file_glob: true
+    file: dist-${TRAVIS_OS_NAME}-py${PY_VER}.zip
+    skip_cleanup: true
+    on:
+      tags: true
+  - provider: releases
+    api_key:
+      secure: JTCJWSlhRpda+/EgPen+UZFZI/q+pd9zWz7foTIErY4vPc6OSR2SXrEnNXBU5m3gpc5Fh2kozsGxGFhlTupr9ihkavKbzLSZDQepugazFOYJ9soESWR8c0sTMjJ9MBIly6GjQqXrctfo/M08chyFI57BkG7sAp2OsloIXZxXnXA7cfO6Fyqr0vf0Vi2Gj0k1jiILGzMsOuzxotbqevCmtkUYq/VAwIvIGH5RVDhaJ3x/KOfC+M5inUbgbJmKfuzl9rvlK3i7nDD7bB7ixM/smsBf4a5f6YHgvikrK55rzLhKU2RH6vrpD8zwleuk2BFqOK+yhG06B1jgPFneFMLNk2S3DPWovSbcBfxgcNFOSr7fsC5innNi0D11UU1S1NhpcbJL563IWMDr1RTGTf0R952N+AqzEWLwN9fWM4paf5eGzMYs70ku7oEj/OXNeW2geDONOvrl283gJ27ZSurhKMCP+rw+2+1O4D9hufN1Srw3445YJW85wdCdcavFgwzR1Qcavz3UJyEmqX+M7zhsc1aWWpngLAowzTwxcqbuSpy/XnmJ/fTM6jTpTQSYYSAW+1UFgBoGzOSNFnl9CipG6EfoPu7i6Ynl1n9YVKE6JQpldeXF2I4oRxdyncqStbjdWUJ2Lrxqnnqa6NamQIzsPLw5UqCg3rFnfwkK2hmezm4=
+    file_glob: true
+    file: dist-${TRAVIS_OS_NAME}-py${PY_VER}.zip
+    skip_cleanup: true
+    draft: true
+    prerelease: true
+    on:
+      all_branches: true
+      condition: ${TRAVIS_BRANCH} =~ ^travis.*
