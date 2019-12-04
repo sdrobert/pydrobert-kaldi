@@ -18,31 +18,31 @@ matrix:
     osx_image: xcode10.2  # homebrew outdated on default image Dec 2019
     sudo: required
     env: PY_VER=2.7
-  # - os: osx
-  #   osx_image: xcode10.2
-  #   env: PY_VER=3.5
-  # - os: osx
-  #   osx_image: xcode10.2
-  #   env: PY_VER=3.6
-  # - os: osx
-  #   osx_image: xcode10.2
-  #   env: PY_VER=3.7
-  # - os: linux
-  #   sudo: required
-  #   services: docker
-  #   env: PY_VER=2.7
-  # - os: linux
-  #   sudo: required
-  #   services: docker
-  #   env: PY_VER=3.5
-  # - os: linux
-  #   sudo: required
-  #   services: docker
-  #   env: PY_VER=3.6
-  # - os: linux
-  #   sudo: required
-  #   services: docker
-  #   env: PY_VER=3.7
+  - os: osx
+    osx_image: xcode10.2
+    env: PY_VER=3.5
+  - os: osx
+    osx_image: xcode10.2
+    env: PY_VER=3.6
+  - os: osx
+    osx_image: xcode10.2
+    env: PY_VER=3.7
+  - os: linux
+    sudo: required
+    services: docker
+    env: PY_VER=2.7
+  - os: linux
+    sudo: required
+    services: docker
+    env: PY_VER=3.5
+  - os: linux
+    sudo: required
+    services: docker
+    env: PY_VER=3.6
+  - os: linux
+    sudo: required
+    services: docker
+    env: PY_VER=3.7
 
 addons:
   homebrew:
