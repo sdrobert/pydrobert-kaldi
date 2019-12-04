@@ -12,6 +12,8 @@ shift
 conda config --set always_yes yes --set changeps1 no
 conda update -q conda
 conda install conda-build conda-verify
+
+# this doesn't seem to work when using a 64-bit conda to build a 32-bit package
 _old="${CONDA_SUBDIR}"
 export CONDA_SUBDIR="${CONDA_SUBDIR:-$(basename "${dist_dir}")}"
 conda build "${recipe_dir}" \
