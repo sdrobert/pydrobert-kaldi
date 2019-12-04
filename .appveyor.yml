@@ -83,8 +83,6 @@ deploy:
     artifact: dist-win-py%PY_VER%.zip
     auth_token:
       secure: QlAHDK+8kEoeqnpg7+GcCOeNfDLT4Vvuoy60Rsh8ncOQTA7sLUnzL4H5tOxE5gmn
-    draft: true
-    prerelease: true
     on:
       appveyor_repo_tag: true
   - provider: GitHub
