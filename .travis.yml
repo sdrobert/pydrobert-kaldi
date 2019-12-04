@@ -153,6 +153,8 @@ deploy:
     file_glob: true
     file: dist-${TRAVIS_OS_NAME}-py${PY_VER}.zip
     skip_cleanup: true
+    draft: true   # don't commit it straightaway
+    prerelease: true
     on:
       tags: true
   - provider: releases
