@@ -4,13 +4,13 @@ environment:
   MINICONDA_PATH_32: "C:\\Miniconda3"
   MINICONDA_PATH_64: "C:\\Miniconda3-x64"
   matrix:
-    - image: Visual Studio 2015
+    - image: Visual Studio 2017
       PY_VER: 3.7
-    - image: Visual Studio 2015
+    - image: Visual Studio 2017
       PY_VER: 3.6
-    - image: Visual Studio 2015
+    - image: Visual Studio 2017
       PY_VER: 3.5
-    # - image: Visual Studio 2010
+    # - image: Visual Studio 2013
     #   PY_VER: 3.4
     #   MINICONDA_PATH: "C:\\Miniconda3-x64"
     # - image: Visual Studio 2008
@@ -26,8 +26,8 @@ init:
         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
       }
   # the below will probably have to be updated for 3.8
-  - call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64
-  - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
+  # - call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64
+  # - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
   - call %MINICONDA_PATH_64%\Scripts\activate.bat
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
