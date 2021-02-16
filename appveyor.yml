@@ -42,7 +42,10 @@ install:
   - if errorlevel 1 exit 1
   - conda activate test
 
-build: off
+build: Script
+
+build_script:
+  - echo "OK"
 
 branches:
   except:
