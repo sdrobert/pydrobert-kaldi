@@ -42,7 +42,7 @@ install:
   - if errorlevel 1 exit 1
   - conda activate test
 
-build: false
+build: Off
 
 branches:
   except:
