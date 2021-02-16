@@ -19,82 +19,87 @@ environment:
 
 clone_depth: 1
 
-init:
-  - ps: >-
-      if ($env:APPVEYOR_REPO_TAG -eq "true")
-      {
-        Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
-      }
-  # the below will probably have to be updated for 3.8
-  - call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64
-  - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
-  - call %MINICONDA_PATH_64%\Scripts\activate.bat
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q --all
-  - conda install conda-build
-
-install:
-  - set SETUPTOOLS_SCM_PRETEND_VERSION=0.5.0
-  - conda build recipe --no-test --python %PY_VER% -m recipe\ci_build.yaml
-  - if errorlevel 1 exit 1
-  - conda create -n test python=%PY_VER% pytest
-  - conda install -n test pydrobert-kaldi --use-local
-  - if errorlevel 1 exit 1
-  - conda activate test
-
 build: Script
 
 build_script:
-  - echo "OK"
+  - echo "here is the script. please don't ignore me"
 
-branches:
-  except:
-    - /travis.*/
-    - /docs.*/
+# init:
+#   - ps: >-
+#       if ($env:APPVEYOR_REPO_TAG -eq "true")
+#       {
+#         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
+#       }
+#   # the below will probably have to be updated for 3.8
+#   - call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64
+#   - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
+#   - call %MINICONDA_PATH_64%\Scripts\activate.bat
+#   - conda config --set always_yes yes --set changeps1 no
+#   - conda update -q --all
+#   - conda install conda-build
 
-test_script:
-  - pytest -m "not pytorch"
-  # - conda build recipe --test --output-folder dist-win-py%PY_VER%
+# install:
+#   - set SETUPTOOLS_SCM_PRETEND_VERSION=0.5.0
+#   - conda build recipe --no-test --python %PY_VER% -m recipe\ci_build.yaml
+#   - if errorlevel 1 exit 1
+#   - conda create -n test python=%PY_VER% pytest
+#   - conda install -n test pydrobert-kaldi --use-local
+#   - if errorlevel 1 exit 1
+#   - conda activate test
 
-artifacts:
-  - path: dist-win-py%PY_VER%.zip
+# build: Script
 
-after_test:
-  - conda deactivate
-  - mkdir dist-win-py%PY_VER%\win-64
-  - python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%PY_VER%/win-64
-  - if errorlevel 1 exit 1
-  - 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
+# build_script:
+#   - echo "OK"
 
-before_deploy:
-  # below will have to be changed for VS 2017
-  - mkdir dist-win-py%PY_VER%\win-32
-  - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
-  - set CONDA_BLD_PATH=%MINICONDA_PATH_32%\conda-bld
-  - call %MINICONDA_PATH_32%\Scripts\activate.bat
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q --all
-  - conda install conda-build
-  - conda build recipe --python %PY_VER% -m recipe\ci_build.yaml
-  - python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%PY_VER%/win-32
-  - 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
-  - appveyor PushArtifact dist-win-py%PY_VER%.zip
+# branches:
+#   except:
+#     - /travis.*/
+#     - /docs.*/
 
-deploy:
-  - provider: GitHub
-    description: pydrobert-kaldi version $(appveyor_build_version) for Windows
-    artifact: dist-win-py%PY_VER%.zip
-    auth_token:
-      secure: QlAHDK+8kEoeqnpg7+GcCOeNfDLT4Vvuoy60Rsh8ncOQTA7sLUnzL4H5tOxE5gmn
-    on:
-      appveyor_repo_tag: true
-  - provider: GitHub
-    tag: appveyor_dummy
-    description: a dummy windows deployment
-    artifact: dist-win-py%PY_VER%.zip
-    auth_token:
-      secure: QlAHDK+8kEoeqnpg7+GcCOeNfDLT4Vvuoy60Rsh8ncOQTA7sLUnzL4H5tOxE5gmn
-    draft: true
-    prerelease: true
-    on:
-      branch: /appveyor.*/
+# test_script:
+#   - pytest -m "not pytorch"
+#   # - conda build recipe --test --output-folder dist-win-py%PY_VER%
+
+# artifacts:
+#   - path: dist-win-py%PY_VER%.zip
+
+# after_test:
+#   - conda deactivate
+#   - mkdir dist-win-py%PY_VER%\win-64
+#   - python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%PY_VER%/win-64
+#   - if errorlevel 1 exit 1
+#   - 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
+
+# before_deploy:
+#   # below will have to be changed for VS 2017
+#   - mkdir dist-win-py%PY_VER%\win-32
+#   - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+#   - set CONDA_BLD_PATH=%MINICONDA_PATH_32%\conda-bld
+#   - call %MINICONDA_PATH_32%\Scripts\activate.bat
+#   - conda config --set always_yes yes --set changeps1 no
+#   - conda update -q --all
+#   - conda install conda-build
+#   - conda build recipe --python %PY_VER% -m recipe\ci_build.yaml
+#   - python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%PY_VER%/win-32
+#   - 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
+#   - appveyor PushArtifact dist-win-py%PY_VER%.zip
+
+# deploy:
+#   - provider: GitHub
+#     description: pydrobert-kaldi version $(appveyor_build_version) for Windows
+#     artifact: dist-win-py%PY_VER%.zip
+#     auth_token:
+#       secure: QlAHDK+8kEoeqnpg7+GcCOeNfDLT4Vvuoy60Rsh8ncOQTA7sLUnzL4H5tOxE5gmn
+#     on:
+#       appveyor_repo_tag: true
+#   - provider: GitHub
+#     tag: appveyor_dummy
+#     description: a dummy windows deployment
+#     artifact: dist-win-py%PY_VER%.zip
+#     auth_token:
+#       secure: QlAHDK+8kEoeqnpg7+GcCOeNfDLT4Vvuoy60Rsh8ncOQTA7sLUnzL4H5tOxE5gmn
+#     draft: true
+#     prerelease: true
+#     on:
+#       branch: /appveyor.*/
