@@ -26,13 +26,14 @@ init:
       {
         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
       }
-  # - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - call %MINICONDA_PATH_64%\Scripts\activate.bat
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
   - conda install conda-build
 
 install:
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
   - set CONDA_SUBDIR=win-64
   - conda build recipe --no-test --python %PY_VER% -m recipe\ci_build.yaml
   - if errorlevel 1 exit 1
