@@ -14,8 +14,6 @@ rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 rem See the License for the specific language governing permissions and
 rem limitations under the License.
 
-echo "In bld.bat"
-
 set HOME=%cd%
 
 set MKLROOT=%LIBRARY_PREFIX%
@@ -23,8 +21,10 @@ set MKLROOT=%LIBRARY_PREFIX%
 set SETUPTOOLS_SCM_PRETEND_VERSION=%PKG_VERSION%
 
 set LIBPATH=%LIBRARY_PREFIX%\bin
+echo "Python=%PYTHON% MKLROOT=%MKLROOT% SETUPTOOLS_SCM_PRETEND_VERSION=%SETUPTOOLS_SCM_PRETEND_VERSION%"
 "%PYTHON%" setup.py install ^
   --single-version-externally-managed ^
-  --record=record.txt
+  --record=record.txt ^
+  --verbose
 
 if errorlevel 1 exit 1
