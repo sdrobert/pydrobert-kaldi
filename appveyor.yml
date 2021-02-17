@@ -33,7 +33,6 @@ init:
   - conda install conda-build
 
 install:
-  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
   - set CONDA_SUBDIR=win-64
   - conda build recipe --no-test --python %PY_VER% -m recipe\ci_build.yaml
   - if errorlevel 1 exit 1
@@ -63,6 +62,7 @@ after_test:
   - 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
 
 before_deploy:
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
   - mkdir dist-win-py%PY_VER%\win-32
   - set CONDA_SUBDIR=win-32
   - conda build recipe --python %PY_VER% -m recipe\ci_build.yaml
