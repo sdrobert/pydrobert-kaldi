@@ -6,7 +6,6 @@ environment:
   MINICONDA_PATH_32: "C:\\Miniconda3"
   MINICONDA_PATH_64: "C:\\Miniconda3-x64"
   matrix:
-    - PY_VER: 3.9
     - PY_VER: 3.8
     - PY_VER: 3.7
     - PY_VER: 3.6
@@ -31,7 +30,6 @@ init:
   - conda install conda-build
 
 install:
-  - set SETUPTOOLS_SCM_PRETEND_VERSION=0.5.0
   - conda build recipe --no-test --python %PY_VER% -m recipe\ci_build.yaml
   - if errorlevel 1 exit 1
   - conda create -n test python=%PY_VER% pytest
