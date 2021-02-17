@@ -26,8 +26,6 @@ init:
       {
         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
       }
-  - dir "C:\Program Files (x86)"
-  - dir "C:\Program Files (x86)\Microsoft Visual Studio"
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - call %MINICONDA_PATH_64%\Scripts\activate.bat
   - conda config --set always_yes yes --set changeps1 no
