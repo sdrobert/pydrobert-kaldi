@@ -13,13 +13,13 @@
 # limitations under the License.
 
 {% if environ.get('TRAVIS', False) %}
-  {% set version = environ.get('TRAVIS_BRANCH', '10000000.0') %}
+  {% set version = environ.get('TRAVIS_BRANCH', '0.0') %}
   {% set build_num = environ['TRAVIS_BUILD_NUMBER'] %}
 {% elif environ.get('APPVEYOR', False) %}
-  {% set version = environ.get('APPVEYOR_REPO_TAG_NAME', '10000000.0') %}
+  {% set version = environ.get('APPVEYOR_REPO_TAG_NAME', '0.0') %}
   {% set build_num = environ['APPVEYOR_BUILD_NUMBER'] %}
 {% else %}
-  {% set version = environ.get('GIT_DESCRIBE_TAG', '10000000.0') %}
+  {% set version = environ.get('GIT_DESCRIBE_TAG', '0.0') %}
   {% set build_num = environ.get('GIT_DESCRIBE_NUMBER', 0) %}
 {% endif %}
 {% set version = version.replace('v','').replace('untagged', '0.0').split('-')[0] %}
@@ -44,10 +44,10 @@ requirements:
     - {{ compiler('cxx') }}
   run:
     # *-devel packages provide library packages as run_exports
-    - {{ pin_compatible('python', max_pin='x.x') }}
+    - python
     # there have been no major changes in the numpy api since 1.11.3 (currently
     # at 1.13). We'll see how long this lasts us
-    - {{ pin_compatible('numpy', min_pin='x.x') }}
+    - {{ pin_compatible('numpy') }}
     - future
     - six
     - enum34                               # [py2k]
