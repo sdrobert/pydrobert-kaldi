@@ -17,7 +17,7 @@
 
 blas_impl:
   - mkl
-  - openblas # [not win]
+  # - openblas # [not win]
 
 numpy:
   - 1.11.3
