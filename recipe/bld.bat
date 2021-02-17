@@ -21,8 +21,10 @@ set MKLROOT=%LIBRARY_PREFIX%
 set SETUPTOOLS_SCM_PRETEND_VERSION=%PKG_VERSION%
 
 set LIBPATH=%LIBRARY_PREFIX%\bin
-echo "Python=%PYTHON% MKLROOT=%MKLROOT% SETUPTOOLS_SCM_PRETEND_VERSION=%SETUPTOOLS_SCM_PRETEND_VERSION%"
-"%PYTHON%" setup.py install ^
+
+%PYTHON% --version
+
+%PYTHON% setup.py install ^
   --single-version-externally-managed ^
   --record=record.txt ^
   --verbose
