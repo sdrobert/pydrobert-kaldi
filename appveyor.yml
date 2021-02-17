@@ -33,7 +33,7 @@ install:
   - sh: wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh
   - sh: sha256sum -c <(echo "${MINICONDA_LINUX_SHA} miniconda_install.sh")
   - sh: chmod +x miniconda_install.sh
-  - sh: ./miniconda_install.sh -b -p "${HOME}/miniconda3.sh"
+  - sh: ./miniconda_install.sh -b -p "${HOME}/miniconda3"
   - sh: source "${HOME}/miniconda3/etc/profile.d/conda.sh"
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
