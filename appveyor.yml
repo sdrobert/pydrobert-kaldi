@@ -62,10 +62,9 @@ after_test:
   - 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
 
 before_deploy:
-  # below will have to be changed for VS 2017
   - mkdir dist-win-py%PY_VER%\win-32
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
-  - set CONDA_BLD_PATH=%MINICONDA_PATH_32%\conda-bld
+  # - set CONDA_BLD_PATH=%MINICONDA_PATH_32%\conda-bld
   - call %MINICONDA_PATH_32%\Scripts\activate.bat
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all

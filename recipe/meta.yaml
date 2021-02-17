@@ -55,6 +55,8 @@ requirements:
 build:
   number: {{ build_num }}
   detect_binary_files_with_prefix: False
+  requires_features:
+    blas: {{ blas_impl }}
   features:
     - nomkl                                # [blas_impl != 'mkl']
 
