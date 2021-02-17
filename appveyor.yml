@@ -22,10 +22,12 @@ matrix:
 
 init:
   - ps: >-
-      if ($env:APPVEYOR_REPO_TAG -eq "true")
-      {
-        Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
-      }
+    if ($env:APPVEYOR_REPO_TAG -eq "true")
+    {
+      Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
+    }
+
+install:
   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
   - sh: wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh
@@ -36,8 +38,6 @@ init:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
   - conda install conda-build
-
-install:
   - ps: conda build recipe --no-test --python $env:PY_VER -m recipe\ci_build.yaml
   - ps: conda create -n test python=$env:PY_VER pytest
   - conda install -n test pydrobert-kaldi --use-local
