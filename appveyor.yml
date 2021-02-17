@@ -25,9 +25,16 @@ init:
       {
         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
       }
-  # the below will probably have to be updated for 3.8
-  # - call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64
-  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+      if ($env:APPVEYOR_BUILD_WORKER_IMAGE -eq "Visual Studio 2015") {
+        cmd.exe /c "call `"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd`" /x64 && call `"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat`" x86_amd64 && set > %temp%\vcvars.txt"
+      } else {
+        cmd.exe /c "call `"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat`" && set > %temp%\vcvars.txt"
+      }
+      Get-Content "$env:temp\vcvars.txt" | Foreach-Object {
+        if ($_ -match "^(.*?)=(.*)$") {
+          Set-Content "env:\$($matches[1])" $matches[2]
+        }
+      }
   - call %MINICONDA_PATH_64%\Scripts\activate.bat
   - conda config --set always_yes yes --set changeps1 no
   # - conda update -q --all
@@ -66,7 +73,7 @@ after_test:
 before_deploy:
   # below will have to be changed for VS 2017
   - mkdir dist-win-py%PY_VER%\win-32
-  - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
   - set CONDA_BLD_PATH=%MINICONDA_PATH_32%\conda-bld
   - call %MINICONDA_PATH_32%\Scripts\activate.bat
   - conda config --set always_yes yes --set changeps1 no
