@@ -33,7 +33,7 @@ init:
   - conda install conda-build
 
 install:
-  - set SETUPTOOLS_SCM_PRETEND_VERSION=0.5.0
+  - set CONDA_SUBDIR=win-64
   - conda build recipe --no-test --python %PY_VER% -m recipe\ci_build.yaml
   - if errorlevel 1 exit 1
   - conda create -n test python=%PY_VER% pytest
@@ -63,12 +63,8 @@ after_test:
 
 before_deploy:
   - mkdir dist-win-py%PY_VER%\win-32
-  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
-  # - set CONDA_BLD_PATH=%MINICONDA_PATH_32%\conda-bld
-  - call %MINICONDA_PATH_32%\Scripts\activate.bat
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q --all
-  - conda install conda-build
+  - set CONDA_BLD_PATH=%MINICONDA_PATH_32%\conda-bld
+  - set CONDA_SUBDIR=win-32
   - conda build recipe --python %PY_VER% -m recipe\ci_build.yaml
   - python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%PY_VER%/win-32
   - 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
