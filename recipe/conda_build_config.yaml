@@ -22,4 +22,3 @@ numpy:
 
 blas_impl:
   - mkl
-  - openblas # [not win]
