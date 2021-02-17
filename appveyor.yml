@@ -59,7 +59,7 @@ before_deploy:
   - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%PY_VER%/win-64
   - cmd: if errorlevel 1 exit 1
   - cmd: 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
-  - sh: mkdir dist-linux-py${PY_VER}/linux-64
+  - sh: mkdir -p dist-linux-py${PY_VER}/linux-64
   - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi dist-linux-py${PY_VER}/linux-64
 
 
