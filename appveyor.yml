@@ -54,7 +54,7 @@ test_script:
   - pytest -m "not pytorch"
 
 before_deploy:
-  - conda deactivate
+  - conda activate base
   - cmd: mkdir dist-win-py%PY_VER%\win-64
   - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%PY_VER%/win-64
   - cmd: if errorlevel 1 exit 1
