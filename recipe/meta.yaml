@@ -36,7 +36,7 @@ requirements:
     - python {{ python }}
     - numpy {{ numpy }}
     - openblas-devel # [blas_impl == 'openblas']
-    - mkl-devel 2018 # [blas_impl == 'mkl']
+    - mkl-devel # [blas_impl == 'mkl']
     - setuptools
     - setuptools_scm
     - swig >=3.0.8
