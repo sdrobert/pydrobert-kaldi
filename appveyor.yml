@@ -1,15 +1,19 @@
 version: build.{build}.branch.{branch}
 
-image: Visual Studio 2017
+image:
+  - Ubuntu
+  - Visual Studio 2017
 
 environment:
-  MINICONDA_PATH_32: "C:\\Miniconda3"
-  MINICONDA_PATH_64: "C:\\Miniconda3-x64"
+  # MINICONDA_PATH_32: "C:\\Miniconda3"
+  # MINICONDA_PATH_64: "C:\\Miniconda3-x64"
+  MINICONDA_LINUX_URL: "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+  MINICONDA_LINUX_SHA: "1314b90489f154602fd794accfc90446111514a5a72fe1f71ab83e07de9504a7"
   matrix:
     - PY_VER: 3.8
-    - PY_VER: 3.7
-    - PY_VER: 3.6
-    - PY_VER: 3.5
+    # - PY_VER: 3.7
+    # - PY_VER: 3.6
+    # - PY_VER: 3.5
 
 clone_depth: 1
 
@@ -22,19 +26,21 @@ init:
       {
         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
       }
-  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
-  - call %MINICONDA_PATH_64%\Scripts\activate.bat
-  - set CONDA_SUBDIR=win-64
+  - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+  - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
+  - sh: wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh
+  - sh: sha256sum -c <(echo "${MINICONDA_LINUX_SHA} miniconda_install.sh")
+  - sh: chmod +x miniconda_install.sh
+  - sh: ./miniconda_install.sh -b -p ./miniconda
+  - sh: source "./miniconda/etc/profile.d/conda.sh"
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
   - conda install conda-build
 
 install:
-  - conda build recipe --no-test --python %PY_VER% -m recipe\ci_build.yaml
-  - if errorlevel 1 exit 1
-  - conda create -n test python=%PY_VER% pytest
+  - ps: conda build recipe --no-test --python $env:PY_VER -m recipe\ci_build.yaml
+  - ps: conda create -n test python=$env:PY_VER pytest
   - conda install -n test pydrobert-kaldi --use-local
-  - if errorlevel 1 exit 1
   - conda activate test
 
 build: off
@@ -47,28 +53,28 @@ branches:
 test_script:
   - pytest -m "not pytorch"
 
-artifacts:
-  - path: dist-win-py%PY_VER%.zip
-
-after_test:
+before_deploy:
   - conda deactivate
-  - mkdir dist-win-py%PY_VER%\win-64
-  - python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%PY_VER%/win-64
-  - if errorlevel 1 exit 1
-  - 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
+  - cmd: mkdir dist-win-py%PY_VER%\win-64
+  - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%PY_VER%/win-64
+  - cmd: if errorlevel 1 exit 1
+  - cmd: 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
+  - sh: mkdir dist-linux-py${PY_VER}/linux-64
+  - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi dist-linux-py${PY_VER}/linux-64
+
 
 deploy:
   - provider: GitHub
-    description: pydrobert-kaldi version $(appveyor_build_version) for Windows
-    artifact: dist-win-py%PY_VER%.zip
+    description: pydrobert-kaldi version $(appveyor_build_version)
+    artifact: dist-*-py%PY_VER%.zip
     auth_token:
       secure: hALzL1jnrc8sTk3Plujt2pVy4Vrxi9sM+CO5VbGsQx0P6Hr1J91fPVWd/+AueZ4h
     on:
       appveyor_repo_tag: true
   - provider: GitHub
     tag: appveyor_dummy
-    description: a dummy windows deployment
-    artifact: dist-win-py%PY_VER%.zip
+    description: a dummy deployment
+    artifact: dist-*-py%PY_VER%.zip
     auth_token:
       secure: hALzL1jnrc8sTk3Plujt2pVy4Vrxi9sM+CO5VbGsQx0P6Hr1J91fPVWd/+AueZ4h
     draft: true
