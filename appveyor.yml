@@ -6,10 +6,13 @@ environment:
   matrix:
     - image: Visual Studio 2017
       PY_VER: 3.7
+      VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
     - image: Visual Studio 2017
       PY_VER: 3.6
+      VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
     - image: Visual Studio 2017
       PY_VER: 3.5
+      VSINSTALL: "Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build"
     # - image: Visual Studio 2013
     #   PY_VER: 3.4
     #   MINICONDA_PATH: "C:\\Miniconda3-x64"
@@ -25,7 +28,7 @@ init:
       {
         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
       }
-  - %comspec% /k "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+  - C:\"Program Files (x86)"\"%VSINSTALL%"\vcvarsall.bat
   - call %MINICONDA_PATH_64%\Scripts\activate.bat
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
