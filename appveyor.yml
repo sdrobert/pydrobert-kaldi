@@ -38,7 +38,7 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
   - conda install conda-build
-  - ps: conda build recipe --no-test --python $env:PY_VER -m recipe\ci_build.yaml
+  - ps: conda build recipe --no-test --python $env:PY_VER -m recipe/ci_build.yaml
   - ps: conda create -n test python=$env:PY_VER pytest
   - conda install -n test pydrobert-kaldi --use-local
   - conda activate test
