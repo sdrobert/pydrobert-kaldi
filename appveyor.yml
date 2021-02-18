@@ -3,7 +3,7 @@ version: build.{build}.branch.{branch}
 image:
   - Visual Studio 2017
   # - macos-mojave
-  - Ubuntu
+  # - Ubuntu
 
 environment:
   # MINICONDA_PATH_32: "C:\\Miniconda3"
@@ -15,7 +15,6 @@ environment:
   CIBW_BUILD: cp37-*  # for debugging build system
   CIBW_BEFORE_BUILD: pip install oldest-supported-numpy
   CIBW_BEFORE_BUILD_LINUX: bash {project}/recipe/cibw_before_build_manylinux.sh
-  CIBW_SKIP: '*-win32'
   WIN_OPENBLAS_VER: "0.2.14.1"
 
 clone_depth: 1
@@ -45,24 +44,24 @@ install:
   - cmd: choco install swig -y
   - cmd: nuget install OpenBlas -Version %WIN_OPENBLAS_VER% -OutputDirectory openblas
   - cmd: set OPENBLASROOT=openblas\OpenBLAS.%WIN_OPENBLAS_VER%\lib\native
+  - cmd: set PATH=%OPENBLASROOT%\bin\x64;%PATH%
   - cmd: mv %OPENBLASROOT%\lib\x64\libopenblas.dll.a %OPENBLASROOT%\lib\x64\openblas.lib
   - sh: >-
       if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" != "Ubuntu" ]; then
         brew install swig;
       fi
-  - pip install cibuildwheel==1.8.0
+  - sh: pip install cibuildwheel==1.8.0
+  - cmd: pip install pytest
 
 build: script
 
 build_script:
   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
-  - cmd: cibuildwheel --output-dir %DIST_DIR%
+  - cmd: python setup.py install
   - sh: cibuildwheel --output-dir ${DIST_DIR}
 
 test_script:
-  - ps: ls $env:DIST_DIR
-#   - pip install pytest -y
-#   - pytest -m "not pytorch"
+  - cmd: pytest -m "not pytorch"
 
 # install:
 #
