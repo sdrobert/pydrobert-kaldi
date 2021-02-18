@@ -12,9 +12,13 @@ environment:
   MINICONDA_OSX_URL: "https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
   matrix:
     - CONDA_PY: 3.8
+      WIN_PY: "C:\\Python38-x64"
     # - CONDA_PY: 3.7
+    # - WIN_PY: "C:\\Python37-x64"
     # - CONDA_PY: 3.6
+    # - WIN_PY: "C:\\Python36-x64"
     # - CONDA_PY: 3.5
+    # - WIN_PY: "C:\\Python35-x64"
 
 clone_depth: 1
 
@@ -33,15 +37,17 @@ init:
       if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
         export DIST_DIR=dist-linux-py${CONDA_PY}/linux-64;
       else
-        DIST_DIR=dist-osx-py${CONDA_PY}/osx-64;
+        export DIST_DIR=dist-osx-py${CONDA_PY}/osx-64;
+        export ACCELERATE=1;
       fi;
   - cmd: set DIST_DIR=dist-win-py%CONDA_PY%/win-64
+  - cmd: set PATH=%WIN_PY%;%WIN_PY%;%PATH%
 
 install:
   - cmd: choco install swig -y
   - sh: >-
       if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
-        sudo apt-get install swig;
+        sudo apt-get install swig -y;
       else
         brew install swig;
       fi
