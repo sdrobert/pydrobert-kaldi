@@ -38,9 +38,9 @@ requirements:
     - setuptools
     - setuptools_scm
     - swig >=3.0.8
+    - {{ blas_impl }}-devel
   build:
     - {{ compiler('cxx') }}
-    - {{ blas_impl }}-devel
   run:
     # *-devel packages provide library packages as run_exports
     - python
