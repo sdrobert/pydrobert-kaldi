@@ -11,7 +11,7 @@ environment:
   MINICONDA_LINUX_URL: "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
   MINICONDA_OSX_URL: "https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
   CIBW_TEST_REQUIRES: pytest
-  CIBW_TEST_COMMAND: pytest {project}/tests
+  CIBW_TEST_COMMAND: pytest {project}/tests -m "not pytorch"
   CIBW_BUILD: cp37-*  # for debugging build system
   CIBW_BEFORE_BUILD: pip install oldest-supported-numpy
   CIBW_BEFORE_BUILD_LINUX: bash {project}/recipe/cibw_before_build_manylinux.sh
@@ -41,6 +41,7 @@ init:
 
 install:
   - cmd: choco install swig -y
+  - cmd: choco install mingw -y
   - sh: >-
       if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" != "Ubuntu" ]; then
         brew install swig;
@@ -50,7 +51,6 @@ install:
 build: script
 
 build_script:
-  - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - cmd: cibuildwheel --output-dir %DIST_DIR%
   - sh: cibuildwheel --output-dir ${DIST_DIR}
 
