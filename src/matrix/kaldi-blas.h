@@ -17,9 +17,6 @@
 // See the Apache 2 License for the specific language governing permissions and
 // limitations under the License.
 
-// sdrobert(2021-02-18): Updated slightly for MSVC compilation to define some
-// lapacke.h macros
-
 #ifndef KALDI_MATRIX_KALDI_BLAS_H_
 #define KALDI_MATRIX_KALDI_BLAS_H_
 
@@ -99,16 +96,6 @@
 #elif defined(HAVE_OPENBLAS)
   // getting cblas.h and lapacke.h from <openblas-install-dir>/.
   // putting in "" not <> to search -I before system libraries.
-
-  #ifdef _MSC_VER
-    // sdrobert(2021-02-18): float _Complex and double _Complex are gcc/mingw
-    // options. Fix as per:
-    // https://stackoverflow.com/questions/24853450/errors-using-lapack-c-header-in-c-with-visual-studio-2010
-    #include <complex>
-
-    #define lapack_complex_float std::complex<float>
-    #define lapack_complex_double std::complex<double>
-  #endif
 
   #include "cblas.h"
   #include "lapacke.h"
