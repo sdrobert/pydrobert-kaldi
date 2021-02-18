@@ -49,18 +49,12 @@ install:
 build: script
 
 build_script:
-  - sh: export CIBW_BUILD="cp37-*"
-  - sh: cibuildwheel --output-dir ${DIST}
-
-after_test:
-  - cmd: type nul > %DIST%.zip
-  - sh: touch ${DIST}.zip
+  - sh: CIBW_BUILD="cp37-*" cibuildwheel --output-dir ${DIST}
 
 before_deploy:
-  - sh: export CIBW_SKIP="cp37-*"
-  - sh: unset CIBW_BUILD
-  - sh: cibuildwheel --output-dir ${DIST}
+  - sh: CIBW_SKIP="cp37-*" cibuildwheel --output-dir ${DIST}
   - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
+  - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - sh: >-
       if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
         wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh;
@@ -79,6 +73,7 @@ before_deploy:
   - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi ${DIST}
   - cmd: 7z a %DIST%.zip %DIST%
   - sh: zip -r ${DIST}.zip ${DIST}
+  - ps: Push-AppVeyorArtifact $env:DIST.zip
 
 branches:
   except:
@@ -99,9 +94,6 @@ branches:
 #       mkdir -p $DIST;
 #       python recipe/copy_conda_build_packages.py pydrobert-kaldi $DIST;
 #       zip -r $(dirname $DIST).zip $DIST
-
-artifacts:
-  - path: '*.zip'
 
 deploy:
   - provider: GitHub
