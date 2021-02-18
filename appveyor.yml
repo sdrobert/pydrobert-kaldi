@@ -2,7 +2,7 @@ version: build.{build}.branch.{branch}
 
 image:
   - Ubuntu
-  - Visual Studio 2017
+  # - Visual Studio 2017
 
 environment:
   # MINICONDA_PATH_32: "C:\\Miniconda3"
@@ -66,6 +66,8 @@ before_deploy:
   - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi dist-linux-py${CONDA_PY}/linux-64
   - sh: zip -r dist-linux-py${CONDA_PY}.zip dist-linux-py${CONDA_PY}
 
+artifacts:
+  - path: '*.zip'
 
 deploy:
   - provider: GitHub
