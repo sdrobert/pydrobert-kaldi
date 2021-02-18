@@ -13,6 +13,7 @@ environment:
   CIBW_TEST_REQUIRES: pytest
   CIBW_TEST_COMMAND: "pytest {project}\\tests"
   CIBW_BUILD: cp37-*  # for debugging build system
+  CIBW_BEFORE_BUILD: pip install numpy==1.11.3
 
 clone_depth: 1
 
