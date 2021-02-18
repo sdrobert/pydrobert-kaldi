@@ -34,7 +34,7 @@ install:
   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
   - sh: >-
-      if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu ]; then
+      if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
         wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh;
       else
         wget "${MINICONDA_OSX_URL}" -O miniconda_install.sh;
