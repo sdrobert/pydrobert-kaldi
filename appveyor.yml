@@ -37,7 +37,7 @@ install:
       if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
         wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh;
       else
-        wget "${MINICONDA_OSX_URL}" -O miniconda_install.sh;
+        curl "${MINICONDA_OSX_URL}" -o miniconda_install.sh;
       fi
   - sh: >-
       chmod +x miniconda_install.sh;
