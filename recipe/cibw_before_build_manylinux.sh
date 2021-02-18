@@ -5,7 +5,7 @@ set -e -x
 if [ `uname -m` = 'x86_64' ]; then
   MARCH_SUFFIX=.x86_64
 else
-  MARCH_SUFFIX=.i386
+  MARCH_SUFFIX=.i686
 fi
 
 yum install -y curl || true

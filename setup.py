@@ -162,6 +162,10 @@ def blas_setup(roots, library_names, headers, extra_entries_on_success):
         for root_name, _, base_names in walk(root):
             for base_name in base_names:
                 if ON_WINDOWS:
+                    if base_name.endswith(".dll"):
+                        # this is a windows runtime library. We want to link
+                        # the static .lib stub, so skip this
+                        continue
                     library_name = base_name.split(".")[0]
                 else:
                     library_name = base_name[3:].split(".")[0]
@@ -313,6 +317,7 @@ if platform.system() != "Windows":
 else:
     FLAGS = []
     LIBRARIES = []
+    DEFINES += []
 LD_FLAGS = []
 
 MKL_ROOT = cmdline_split(environ.get("MKLROOT", ""))

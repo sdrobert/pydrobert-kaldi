@@ -16,6 +16,10 @@
 // MERCHANTABLITY OR NON-INFRINGEMENT.
 // See the Apache 2 License for the specific language governing permissions and
 // limitations under the License.
+
+// sdrobert(2021-02-18): Updated slightly for MSVC compilation to define some
+// lapacke.h macros
+
 #ifndef KALDI_MATRIX_KALDI_BLAS_H_
 #define KALDI_MATRIX_KALDI_BLAS_H_
 
@@ -74,7 +78,7 @@
       // from the tools/CLAPACK_include directory.
       #include <cblas.h>
       #include <f2c.h>
-      #include <clapack.h>  
+      #include <clapack.h>
 
       // get rid of macros from f2c.h -- these are dangerous.
       #undef abs
@@ -95,6 +99,17 @@
 #elif defined(HAVE_OPENBLAS)
   // getting cblas.h and lapacke.h from <openblas-install-dir>/.
   // putting in "" not <> to search -I before system libraries.
+
+  #ifdef _MSC_VER
+    // sdrobert(2021-02-18): float _Complex and double _Complex are gcc/mingw
+    // options. Fix as per:
+    // https://stackoverflow.com/questions/24853450/errors-using-lapack-c-header-in-c-with-visual-studio-2010
+    #include <complex>
+
+    #define lapack_complex_float std::complex<float>
+    #define lapack_complex_double std::complex<double>
+  #endif
+
   #include "cblas.h"
   #include "lapacke.h"
   #undef I
@@ -110,7 +125,7 @@
   #undef bit_clear
   #undef bit_set
 #else
-  #error "You need to define (using the preprocessor) either HAVE_CLAPACK or HAVE_ATLAS or HAVE_MKL (but not more than one)"  
+  #error "You need to define (using the preprocessor) either HAVE_CLAPACK or HAVE_ATLAS or HAVE_MKL (but not more than one)"
 #endif
 
 #ifdef HAVE_OPENBLAS

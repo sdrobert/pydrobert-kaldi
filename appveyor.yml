@@ -45,6 +45,7 @@ install:
   - cmd: choco install swig -y
   - cmd: nuget install OpenBlas -Version %WIN_OPENBLAS_VER% -OutputDirectory openblas
   - cmd: set OPENBLASROOT=openblas\OpenBLAS.%WIN_OPENBLAS_VER%\lib\native
+  - cmd: mv %OPENBLASROOT%\lib\x64\libopenblas.dll.a %OPENBLASROOT%\lib\x64\openblas.lib
   - sh: >-
       if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" != "Ubuntu" ]; then
         brew install swig;
