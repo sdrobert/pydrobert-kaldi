@@ -10,10 +10,10 @@ environment:
   MINICONDA_LINUX_URL: "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
   MINICONDA_LINUX_SHA: "1314b90489f154602fd794accfc90446111514a5a72fe1f71ab83e07de9504a7"
   matrix:
-    - PY_VER: 3.8
-    # - PY_VER: 3.7
-    # - PY_VER: 3.6
-    # - PY_VER: 3.5
+    - CONDA_PY: 3.8
+    # - CONDA_PY: 3.7
+    # - CONDA_PY: 3.6
+    # - CONDA_PY: 3.5
 
 clone_depth: 1
 
@@ -26,8 +26,6 @@ init:
       {
         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
       }
-
-install:
   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
   - sh: wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh
@@ -38,8 +36,10 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
   - conda install conda-build
-  - ps: conda build recipe --no-test --python $env:PY_VER -m recipe/ci_build.yaml
-  - ps: conda create -n test python=$env:PY_VER pytest
+
+install:
+  - conda build recipe --no-test -m recipe/ci_build.yaml
+  - conda create -n test python pytest
   - conda install -n test pydrobert-kaldi --use-local
   - conda activate test
 
@@ -55,19 +55,19 @@ test_script:
 
 before_deploy:
   - conda activate base
-  - cmd: mkdir dist-win-py%PY_VER%\win-64
-  - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%PY_VER%/win-64
+  - cmd: mkdir dist-win-py%CONDA_PY%\win-64
+  - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%CONDA_PY%/win-64
   - cmd: if errorlevel 1 exit 1
-  - cmd: 7z a dist-win-py%PY_VER%.zip %cd%\dist-win-py%PY_VER%
-  - sh: mkdir -p dist-linux-py${PY_VER}/linux-64
-  - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi dist-linux-py${PY_VER}/linux-64
-  - sh: zip -r dist-linux-py${PY_VER}.zip dist-linux-py${PY_VER}
+  - cmd: 7z a dist-win-py%CONDA_PY%.zip %cd%\dist-win-py%CONDA_PY%
+  - sh: mkdir -p dist-linux-py${CONDA_PY}/linux-64
+  - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi dist-linux-py${CONDA_PY}/linux-64
+  - sh: zip -r dist-linux-py${CONDA_PY}.zip dist-linux-py${CONDA_PY}
 
 
 deploy:
   - provider: GitHub
     description: pydrobert-kaldi version $(appveyor_build_version)
-    artifact: dist-*-py%PY_VER%.zip
+    artifact: dist-*-py%CONDA_PY%.zip
     auth_token:
       secure: hALzL1jnrc8sTk3Plujt2pVy4Vrxi9sM+CO5VbGsQx0P6Hr1J91fPVWd/+AueZ4h
     on:
@@ -75,7 +75,7 @@ deploy:
   - provider: GitHub
     tag: appveyor_dummy
     description: a dummy deployment
-    artifact: dist-*-py%PY_VER%.zip
+    artifact: dist-*-py%CONDA_PY%.zip
     auth_token:
       secure: hALzL1jnrc8sTk3Plujt2pVy4Vrxi9sM+CO5VbGsQx0P6Hr1J91fPVWd/+AueZ4h
     draft: true
