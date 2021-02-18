@@ -2,8 +2,8 @@ version: build.{build}.branch.{branch}
 
 image:
   - macos-mojave
-  # - Ubuntu
-  # - Visual Studio 2017
+  - Ubuntu
+  - Visual Studio 2017
 
 environment:
   # MINICONDA_PATH_32: "C:\\Miniconda3"
@@ -11,7 +11,7 @@ environment:
   MINICONDA_LINUX_URL: "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
   MINICONDA_OSX_URL: "https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
   matrix:
-    # - CONDA_PY: 3.8
+    - CONDA_PY: 3.8
     - CONDA_PY: 3.7
     # - CONDA_PY: 3.6
     # - CONDA_PY: 3.5
@@ -76,7 +76,7 @@ after_test:
         CPY_DIR=dist-osx-py${CONDA_PY}/osx-64;
       fi;
       mkdir -p $CPY_DIR;
-      python recipe/copy_conda_build_packages.py pydrobert-kaldi $CPY_DIR
+      python recipe/copy_conda_build_packages.py pydrobert-kaldi $CPY_DIR;
       zip -r $(dirname $CPY_DIR).zip $CPY_DIR
 
 artifacts:
