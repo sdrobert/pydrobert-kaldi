@@ -2,7 +2,7 @@ version: build.{build}.branch.{branch}
 
 image:
   - Visual Studio 2017
-  - macos-mojave
+  # - macos-mojave
   - Ubuntu
 
 environment:
@@ -15,6 +15,8 @@ environment:
   CIBW_BUILD: cp37-*  # for debugging build system
   CIBW_BEFORE_BUILD: pip install oldest-supported-numpy
   CIBW_BEFORE_BUILD_LINUX: bash {project}/recipe/cibw_before_build_manylinux.sh
+  CIBW_SKIP: '*-win32'
+  WIN_OPENBLAS_VER: "0.2.14.1"
 
 clone_depth: 1
 
@@ -31,17 +33,18 @@ init:
       }
   - sh: >-
       if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
-        export DIST_DIR=dist-linux/linux-64;
+        export DIST_DIR=dist-linux;
       else
-        export DIST_DIR=dist-osx/osx-64;
+        export DIST_DIR=dist-osx;
         export ACCELERATE=1;
       fi;
-  - cmd: set DIST_DIR=dist-win/win-64
+  - cmd: set DIST_DIR=dist-win
   - cmd: set PATH=C:\Python37;C:\Python37\Scripts;%PATH%
 
 install:
   - cmd: choco install swig -y
-  - cmd: choco install mingw -y
+  - cmd: nuget install OpenBlas -Version %WIN_OPENBLAS_VER% -OutputDirectory openblas
+  - cmd: set OPENBLASROOT=openblas\OpenBLAS.%WIN_OPENBLAS_VER%\lib\native
   - sh: >-
       if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" != "Ubuntu" ]; then
         brew install swig;
@@ -51,6 +54,7 @@ install:
 build: script
 
 build_script:
+  - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - cmd: cibuildwheel --output-dir %DIST_DIR%
   - sh: cibuildwheel --output-dir ${DIST_DIR}
 
