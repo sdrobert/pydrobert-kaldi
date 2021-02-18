@@ -404,7 +404,7 @@ SETUP_REQUIRES = ["setuptools_scm"]
 if {"pytest", "test", "ptr"}.intersection(sys.argv):
     SETUP_REQUIRES.append("pytest-runner")
 try:
-    import numpy
+    import numpy  # type: ignore
 except ImportError:
     SETUP_REQUIRES.append("oldest-supported-numpy")
 TESTS_REQUIRE = ["pytest"]
