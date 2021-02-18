@@ -35,10 +35,12 @@ requirements:
   host:
     - python {{ python }}
     - numpy {{ numpy }}
+    # FIXME(sdrobert): openblas-devel headers > 0.3.6 are messed up
+    - openblas-devel 0.3.6                # [blas_impl == 'openblas']
+    - mkl-devel                           # [blas_impl == 'mkl']
     - setuptools
     - setuptools_scm
     - swig >=3.0.8
-    - {{ blas_impl }}-devel
   build:
     - {{ compiler('cxx') }}
   run:
