@@ -1,9 +1,9 @@
 version: build.{build}.branch.{branch}
 
 image:
+  - Visual Studio 2017
   - macos-mojave
   - Ubuntu
-  - Visual Studio 2017
 
 environment:
   # MINICONDA_PATH_32: "C:\\Miniconda3"
@@ -64,11 +64,10 @@ test_script:
 
 after_test:
   - conda activate base
-  - cmd: >-
-      mkdir dist-win-py%CONDA_PY%\win-64;
-      python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%CONDA_PY%/win-64;
-      if errorlevel 1 exit 1;
-      7z a dist-win-py%CONDA_PY%.zip %cd%\dist-win-py%CONDA_PY%
+  - cmd: mkdir dist-win-py%CONDA_PY%\win-64
+  - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%CONDA_PY%/win-64
+  - cmd: if errorlevel 1 exit 1
+  - cmd: 7z a dist-win-py%CONDA_PY%.zip %cd%\dist-win-py%CONDA_PY%
   - sh: >-
       if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
         CPY_DIR=dist-linux-py${CONDA_PY}/linux-64;
