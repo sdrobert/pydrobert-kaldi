@@ -37,9 +37,7 @@ init:
       fi;
   - cmd: set DIST_DIR=dist-win-py%CONDA_PY%/win-64
 
-build: script
-
-build_script:
+install:
   - cmd: choco install swig -y
   - sh: >-
       if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
@@ -47,15 +45,17 @@ build_script:
       else
         brew install swig;
       fi
-  - pip install -r requirements.txt -y
-  - pip install cibuildwheel==1.8.0 -y
+  - pip install -r requirements.txt
+  - pip install cibuildwheel==1.8.0
+
+build: script
+
+build_script:
   - cmd: cibuildwheel --output-dir %DIST_DIR%
   - sh: cibuildwheel --output-dir ${DIST_DIR}
 
-install:
+test_script:
   - ps: ls $env:DIST_DIR
-
-# test_script:
 #   - pip install pytest -y
 #   - pytest -m "not pytorch"
 
