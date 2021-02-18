@@ -55,9 +55,9 @@ build_script:
 install:
   - ps: ls $env:DIST_DIR
 
-test:
-  - pip install pytest -y
-  - pytest -m "not pytorch"
+# test_script:
+#   - pip install pytest -y
+#   - pytest -m "not pytorch"
 
 # install:
 #   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
