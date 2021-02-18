@@ -17,6 +17,8 @@ environment:
 
 clone_depth: 1
 
+stack: python %CONDA_PY%
+
 matrix:
   fast_finish: true
 
@@ -39,7 +41,8 @@ install:
   - conda update -q --all
   - conda install conda-build
   - conda build recipe --no-test -m recipe/ci_build.yaml
-  - conda create -n test python pytest
+  - cmd: conda create -n test python=%CONDA_PY% pytest
+  - sh: conda create -n test python=${CONDA_PY} pytest
   - conda install -n test pydrobert-kaldi --use-local
   - conda activate test
 
