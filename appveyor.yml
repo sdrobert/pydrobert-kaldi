@@ -12,7 +12,7 @@ environment:
   MINICONDA_OSX_URL: "https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
   matrix:
     - CONDA_PY: 3.8
-    - CONDA_PY: 3.7
+    # - CONDA_PY: 3.7
     # - CONDA_PY: 3.6
     # - CONDA_PY: 3.5
 
@@ -20,8 +20,8 @@ clone_depth: 1
 
 stack: python %CONDA_PY%
 
-matrix:
-  fast_finish: true
+# matrix:
+#   fast_finish: true
 
 init:
   - ps: >-
@@ -29,30 +29,55 @@ init:
       {
         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
       }
-
-install:
-  - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
-  - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
   - sh: >-
       if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
-        wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh;
+        export DIST_DIR=dist-linux-py${CONDA_PY}/linux-64;
       else
-        curl "${MINICONDA_OSX_URL}" -o miniconda_install.sh;
-      fi
-  - sh: >-
-      chmod +x miniconda_install.sh;
-      ./miniconda_install.sh -b -p "${HOME}/miniconda3";
-      source "${HOME}/miniconda3/etc/profile.d/conda.sh";
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q --all
-  - conda install conda-build
-  - conda build recipe --no-test -m recipe/ci_build.yaml
-  - cmd: conda create -n test python=%CONDA_PY% pytest
-  - sh: conda create -n test python=${CONDA_PY} pytest
-  - conda install -n test pydrobert-kaldi --use-local
-  - conda activate test
+        DIST_DIR=dist-osx-py${CONDA_PY}/osx-64;
+      fi;
+  - cmd: set DIST_DIR=dist-win-py%CONDA_PY%/win-64
 
-build: off
+build_script:
+  - cmd: choco install swig -y
+  - sh: >-
+      if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
+        sudo apt-get install swig;
+      else
+        brew install swig;
+      fi
+  - pip install -r requirements.txt -y
+  - pip install cibuildwheel==1.8.0 -y
+  - cmd: cibuildwheel --output-dir %DIST_DIR%
+  - sh: cibuildwheel --output-dir ${DIST_DIR}
+
+install_script:
+  - ps: ls $env:DIST_DIR
+
+test:
+  - pip install pytest -y
+  - pytest -m "not pytorch"
+
+# install:
+#   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+#   - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
+#   - sh: >-
+#       if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
+#         wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh;
+#       else
+#         curl "${MINICONDA_OSX_URL}" -o miniconda_install.sh;
+#       fi
+#   - sh: >-
+#       chmod +x miniconda_install.sh;
+#       ./miniconda_install.sh -b -p "${HOME}/miniconda3";
+#       source "${HOME}/miniconda3/etc/profile.d/conda.sh";
+#   - conda config --set always_yes yes --set changeps1 no
+#   - conda update -q --all
+#   - conda install conda-build
+#   - conda build recipe --no-test -m recipe/ci_build.yaml
+#   - cmd: conda create -n test python=%CONDA_PY% pytest
+#   - sh: conda create -n test python=${CONDA_PY} pytest
+#   - conda install -n test pydrobert-kaldi --use-local
+#   - conda activate test
 
 branches:
   except:
@@ -60,42 +85,43 @@ branches:
     - /docs.*/
 
 test_script:
+  - pip install pytest
   - pytest -m "not pytorch"
 
-after_test:
-  - conda activate base
-  - cmd: mkdir dist-win-py%CONDA_PY%\win-64
-  - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%CONDA_PY%/win-64
-  - cmd: if errorlevel 1 exit 1
-  - cmd: 7z a dist-win-py%CONDA_PY%.zip %cd%\dist-win-py%CONDA_PY%
-  - sh: >-
-      if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
-        CPY_DIR=dist-linux-py${CONDA_PY}/linux-64;
-      else
-        CPY_DIR=dist-osx-py${CONDA_PY}/osx-64;
-      fi;
-      mkdir -p $CPY_DIR;
-      python recipe/copy_conda_build_packages.py pydrobert-kaldi $CPY_DIR;
-      zip -r $(dirname $CPY_DIR).zip $CPY_DIR
+# after_test:
+#   - conda activate base
+#   - cmd: mkdir dist-win-py%CONDA_PY%\win-64
+#   - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%CONDA_PY%/win-64
+#   - cmd: if errorlevel 1 exit 1
+#   - cmd: 7z a dist-win-py%CONDA_PY%.zip %cd%\dist-win-py%CONDA_PY%
+#   - sh: >-
+#       if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
+#         DIST_DIR=dist-linux-py${CONDA_PY}/linux-64;
+#       else
+#         DIST_DIR=dist-osx-py${CONDA_PY}/osx-64;
+#       fi;
+#       mkdir -p $DIST_DIR;
+#       python recipe/copy_conda_build_packages.py pydrobert-kaldi $DIST_DIR;
+#       zip -r $(dirname $DIST_DIR).zip $DIST_DIR
 
-artifacts:
-  - path: '*.zip'
+# artifacts:
+#   - path: '*.zip'
 
-deploy:
-  - provider: GitHub
-    description: pydrobert-kaldi version $(appveyor_build_version)
-    artifact: /.*\.zip/
-    auth_token:
-      secure: hALzL1jnrc8sTk3Plujt2pVy4Vrxi9sM+CO5VbGsQx0P6Hr1J91fPVWd/+AueZ4h
-    on:
-      appveyor_repo_tag: true
-  - provider: GitHub
-    tag: appveyor_dummy
-    description: a dummy deployment
-    artifact: /.*\.zip/
-    auth_token:
-      secure: hALzL1jnrc8sTk3Plujt2pVy4Vrxi9sM+CO5VbGsQx0P6Hr1J91fPVWd/+AueZ4h
-    draft: true
-    prerelease: true
-    on:
-      branch: /appveyor.*/
+# deploy:
+#   - provider: GitHub
+#     description: pydrobert-kaldi version $(appveyor_build_version)
+#     artifact: /.*\.zip/
+#     auth_token:
+#       secure: hALzL1jnrc8sTk3Plujt2pVy4Vrxi9sM+CO5VbGsQx0P6Hr1J91fPVWd/+AueZ4h
+#     on:
+#       appveyor_repo_tag: true
+#   - provider: GitHub
+#     tag: appveyor_dummy
+#     description: a dummy deployment
+#     artifact: /.*\.zip/
+#     auth_token:
+#       secure: hALzL1jnrc8sTk3Plujt2pVy4Vrxi9sM+CO5VbGsQx0P6Hr1J91fPVWd/+AueZ4h
+#     draft: true
+#     prerelease: true
+#     on:
+#       branch: /appveyor.*/
