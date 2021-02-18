@@ -70,7 +70,7 @@ before_deploy:
 deploy:
   - provider: GitHub
     description: pydrobert-kaldi version $(appveyor_build_version)
-    artifact: dist-*-py%CONDA_PY%.zip
+    artifact: /.*\.zip/
     auth_token:
       secure: hALzL1jnrc8sTk3Plujt2pVy4Vrxi9sM+CO5VbGsQx0P6Hr1J91fPVWd/+AueZ4h
     on:
@@ -78,7 +78,7 @@ deploy:
   - provider: GitHub
     tag: appveyor_dummy
     description: a dummy deployment
-    artifact: dist-*-py%CONDA_PY%.zip
+    artifact: /.*\.zip/
     auth_token:
       secure: hALzL1jnrc8sTk3Plujt2pVy4Vrxi9sM+CO5VbGsQx0P6Hr1J91fPVWd/+AueZ4h
     draft: true
