@@ -86,9 +86,6 @@ branches:
     - /travis.*/
     - /docs.*/
 
-test_script:
-  - pip install pytest
-  - pytest -m "not pytorch"
 
 # after_test:
 #   - conda activate base
