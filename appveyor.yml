@@ -53,7 +53,7 @@ build_script:
   - sh: cibuildwheel --output-dir ${DIST}
 
 after_test:
-  - cmd: type nul > ${DIST}.zip
+  - cmd: type nul > %DIST%.zip
   - sh: touch ${DIST}.zip
 
 before_deploy:
