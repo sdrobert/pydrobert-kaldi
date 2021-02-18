@@ -1,17 +1,18 @@
 version: build.{build}.branch.{branch}
 
 image:
-  - Ubuntu
+  - macos-mojave
+  # - Ubuntu
   # - Visual Studio 2017
 
 environment:
   # MINICONDA_PATH_32: "C:\\Miniconda3"
   # MINICONDA_PATH_64: "C:\\Miniconda3-x64"
   MINICONDA_LINUX_URL: "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
-  MINICONDA_LINUX_SHA: "1314b90489f154602fd794accfc90446111514a5a72fe1f71ab83e07de9504a7"
+  MINICONDA_OSX_URL: "https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
   matrix:
-    - CONDA_PY: 3.8
-    # - CONDA_PY: 3.7
+    # - CONDA_PY: 3.8
+    - CONDA_PY: 3.7
     # - CONDA_PY: 3.6
     # - CONDA_PY: 3.5
 
@@ -32,11 +33,16 @@ init:
 install:
   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
-  - sh: wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh
-  - sh: sha256sum -c <(echo "${MINICONDA_LINUX_SHA} miniconda_install.sh")
-  - sh: chmod +x miniconda_install.sh
-  - sh: ./miniconda_install.sh -b -p "${HOME}/miniconda3"
-  - sh: source "${HOME}/miniconda3/etc/profile.d/conda.sh"
+  - sh: >-
+      if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu ]; then
+        wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh;
+      else
+        wget "${MINICONDA_OSX_URL}" -O miniconda_install.sh;
+      fi
+  - sh: >-
+      chmod +x miniconda_install.sh;
+      ./miniconda_install.sh -b -p "${HOME}/miniconda3";
+      source "${HOME}/miniconda3/etc/profile.d/conda.sh";
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
   - conda install conda-build
@@ -58,13 +64,20 @@ test_script:
 
 after_test:
   - conda activate base
-  - cmd: mkdir dist-win-py%CONDA_PY%\win-64
-  - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%CONDA_PY%/win-64
-  - cmd: if errorlevel 1 exit 1
-  - cmd: 7z a dist-win-py%CONDA_PY%.zip %cd%\dist-win-py%CONDA_PY%
-  - sh: mkdir -p dist-linux-py${CONDA_PY}/linux-64
-  - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi dist-linux-py${CONDA_PY}/linux-64
-  - sh: zip -r dist-linux-py${CONDA_PY}.zip dist-linux-py${CONDA_PY}
+  - cmd: >-
+      mkdir dist-win-py%CONDA_PY%\win-64;
+      python recipe\copy_conda_build_packages.py pydrobert-kaldi dist-win-py%CONDA_PY%/win-64;
+      if errorlevel 1 exit 1;
+      7z a dist-win-py%CONDA_PY%.zip %cd%\dist-win-py%CONDA_PY%
+  - sh: >-
+      if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
+        CPY_DIR=dist-linux-py${CONDA_PY}/linux-64;
+      else
+        CPY_DIR=dist-osx-py${CONDA_PY}/osx-64;
+      fi;
+      mkdir -p $CPY_DIR;
+      python recipe/copy_conda_build_packages.py pydrobert-kaldi $CPY_DIR
+      zip -r $(dirname $CPY_DIR).zip $CPY_DIR
 
 artifacts:
   - path: '*.zip'

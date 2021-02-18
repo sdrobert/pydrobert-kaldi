@@ -16,7 +16,9 @@
 # choose the python version
 
 blas_impl:
-  - openblas # [not win]
+  - openblas  # [not win]
+  - mkl
+  - accelerate  # [osx]
 
 numpy:
   - 1.11.3
