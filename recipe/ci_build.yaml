@@ -13,13 +13,13 @@
 # limitations under the License.
 
 python:
-  - 2.7
-  - 3.5
-  - 3.6
-  - 3.7
-  - 3.8
-  - 3.9
+  - 2.7  # [unix]
+  # - 3.5
+  # - 3.6
+  # - 3.7
+  # - 3.8
+  # - 3.9
 
 blas_impl:
-  - openblas
   - mkl
+  - openblas  # [unix]

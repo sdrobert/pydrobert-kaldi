@@ -37,8 +37,8 @@ requirements:
     - numpy 1.11.3                        # [ py < 39 ]
     - numpy 1.16.6                        # [ py >= 39 ]
     # FIXME(sdrobert): openblas-devel headers > 0.3.6 are messed up
-    - openblas-devel 0.3.6                # [blas_impl == 'openblas']
-    - mkl-devel                           # [blas_impl == 'mkl']
+    - openblas-devel 0.3.6                # [ blas_impl == 'openblas' ]
+    - mkl-devel                           # [ blas_impl == 'mkl' ]
     - setuptools
     - setuptools_scm
     - swig 4.0.2
@@ -57,16 +57,14 @@ requirements:
 build:
   number: {{ build_num }}
   detect_binary_files_with_prefix: False
-  requires_features:
-    blas: {{ blas_impl }}
-  features:
-    - nomkl                                # [blas_impl != 'mkl']
+  skip: True  # [(blas_impl == 'openblas' and win) or py2k]
 
 test:
   source_files:
     - tests
   requires:
     - pytest
+    - nomkl                                # [ blas_impl != 'mkl' ]
   imports:
     - pydrobert
     - pydrobert.kaldi
