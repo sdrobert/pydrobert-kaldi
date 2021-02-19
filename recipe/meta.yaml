@@ -1,4 +1,4 @@
-# Copyright 2017 Sean Robertson
+# Copyright 2021 Sean Robertson
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,7 +34,8 @@ source:
 requirements:
   host:
     - python {{ python }}
-    - numpy 1.11.3
+    - numpy 1.11.3                        # [ py < 39 and not osx ]
+    - numpy 1.16                          # [ py >= 39 or osx ]
     # FIXME(sdrobert): openblas-devel headers > 0.3.6 are messed up
     - openblas-devel 0.3.6                # [blas_impl == 'openblas']
     - mkl-devel                           # [blas_impl == 'mkl']
@@ -51,7 +52,7 @@ requirements:
     - {{ pin_compatible('numpy', min_pin='x.x') }}
     - future
     - six
-    - enum34                               # [py2k]
+    - enum34                              # [py2k]
 
 build:
   number: {{ build_num }}
