@@ -25,6 +25,8 @@ fi
 
 export SETUPTOOLS_SCM_PRETEND_VERSION="${PKG_VERSION}"
 
+env
+
 ${PYTHON} setup.py install \
   --single-version-externally-managed \
   --record=record.txt || exit 1

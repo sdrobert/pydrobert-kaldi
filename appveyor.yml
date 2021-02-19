@@ -2,7 +2,7 @@ version: build.{build}.branch.{branch}
 
 image:
   # - Visual Studio 2017
-  - macos-mojave
+  # - macos-mojave
   - Ubuntu
 
 environment:
@@ -14,14 +14,14 @@ environment:
   CIBW_TEST_COMMAND: pytest {project}/tests -m "not pytorch"
   CIBW_BEFORE_BUILD: pip install -r {project}/recipe/cibw_before_requirements.txt
   CIBW_BEFORE_BUILD_LINUX: bash {project}/recipe/cibw_before_build_manylinux.sh
-  WIN_OPENBLAS_VER: "0.2.14.1"
 
 clone_depth: 1
 
 stack: python 3.8
 
-# matrix:
-#   fast_finish: true
+matrix:
+  exclude:
+  fast_finish: true
 
 init:
   - ps: >-
