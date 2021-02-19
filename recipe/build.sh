@@ -23,9 +23,9 @@ else
   exit 1
 fi
 
-export SETUPTOOLS_SCM_PRETEND_VERSION="${PKG_VERSION}"
+export SDKROOT="${CONDA_BUILD_SYSROOT}"
 
-env
+export SETUPTOOLS_SCM_PRETEND_VERSION="${PKG_VERSION}"
 
 ${PYTHON} setup.py install \
   --single-version-externally-managed \
