@@ -12,13 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# this is used by continuous integration when building/testing. We let it
-# choose the python version
+python:
+  - 2.7  # [not win]
+  - 3.5
 
 blas_impl:
   - openblas  # [not win]
   - mkl
   - accelerate  # [osx]
-
-numpy:
-  - 1.11.3

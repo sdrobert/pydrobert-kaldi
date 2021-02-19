@@ -52,7 +52,7 @@ build_script:
   - sh: CIBW_BUILD="cp37-*" cibuildwheel --output-dir ${DIST}
 
 before_deploy:
-  - sh: CIBW_SKIP="cp37-*" cibuildwheel --output-dir ${DIST}
+  - sh: CIBW_BUILD="cp27-*" cibuildwheel --output-dir ${DIST}
   - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - sh: >-
@@ -73,7 +73,7 @@ before_deploy:
   - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi ${DIST}
   - cmd: 7z a %DIST%.zip %DIST%
   - sh: zip -r ${DIST}.zip ${DIST}
-  - ps: Push-AppVeyorArtifact $env:DIST.zip
+  - ps: Push-AppVeyorArtifact $env:DIST".zip"
 
 branches:
   except:
