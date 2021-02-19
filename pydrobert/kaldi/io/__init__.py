@@ -1,4 +1,4 @@
-# Copyright 2017 Sean Robertson
+# Copyright 2021 Sean Robertson
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -60,22 +60,25 @@ __license__ = "Apache 2.0"
 __copyright__ = "Copyright 2017 Sean Robertson"
 
 __all__ = [
-    'KaldiIOBase',
-    'duck_streams',
-    'table_streams',
-    'enums',
-    'util',
-    'corpus',
-    'open',
-    'argparse',
+    "KaldiIOBase",
+    "duck_streams",
+    "table_streams",
+    "enums",
+    "util",
+    "corpus",
+    "open",
+    "argparse",
 ]
 
-if locale.getdefaultlocale() != (None, None):
+try:
+    if locale.getdefaultlocale() != (None, None):
+        warnings.warn(KaldiLocaleWarning.LOCALE_MESSAGE, KaldiLocaleWarning)
+except ValueError:
     warnings.warn(KaldiLocaleWarning.LOCALE_MESSAGE, KaldiLocaleWarning)
 
 
 class KaldiIOBase(object, with_metaclass(abc.ABCMeta)):
-    '''IOBase for kaldi readers and writers
+    """IOBase for kaldi readers and writers
 
     Similar to ``io.IOBase``, but without a lot of the assumed
     functionality.
@@ -125,19 +128,28 @@ class KaldiIOBase(object, with_metaclass(abc.ABCMeta)):
     flush : bool
         ``True`` if the stream is flushed after each write operation
         (writable tables only)
-    '''
+    """
 
     def __init__(self, path):
         from pydrobert.kaldi.io.util import parse_kaldi_input_path
         from pydrobert.kaldi.io.util import parse_kaldi_output_path
+
         self.path = path
         self.closed = False
         if self.readable():
-            self._table_type, self._xfilenames, self._xtypes, options = \
-                parse_kaldi_input_path(path)
+            (
+                self._table_type,
+                self._xfilenames,
+                self._xtypes,
+                options,
+            ) = parse_kaldi_input_path(path)
         else:
-            self._table_type, self._xfilenames, self._xtypes, options = \
-                parse_kaldi_output_path(path)
+            (
+                self._table_type,
+                self._xfilenames,
+                self._xtypes,
+                options,
+            ) = parse_kaldi_output_path(path)
         self.binary = True
         for key, value in options.items():
             setattr(self, key, value)
@@ -145,20 +157,20 @@ class KaldiIOBase(object, with_metaclass(abc.ABCMeta)):
 
     @abc.abstractmethod
     def close(self):
-        '''Close and flush the underlying IO object
+        """Close and flush the underlying IO object
 
         This method has no effect if the file is already closed
-        '''
+        """
         pass
 
     @abc.abstractmethod
     def readable(self):
-        '''Return whether this object was opened for reading'''
+        """Return whether this object was opened for reading"""
         pass
 
     @abc.abstractmethod
     def writable(self):
-        '''Return whether this object was opened for writing'''
+        """Return whether this object was opened for writing"""
         pass
 
     def __enter__(self):
@@ -169,8 +181,15 @@ class KaldiIOBase(object, with_metaclass(abc.ABCMeta)):
 
 
 def open(
-        path, kaldi_dtype=None, mode='r', error_on_str=True,
-        utt2spk='', value_style='b', header=True, cache=False):
+    path,
+    kaldi_dtype=None,
+    mode="r",
+    error_on_str=True,
+    utt2spk="",
+    value_style="b",
+    header=True,
+    cache=False,
+):
     """Factory function for initializing and opening kaldi streams
 
     This function provides a general interface for opening kaldi
@@ -194,7 +213,8 @@ def open(
     from pydrobert.kaldi.io.util import parse_kaldi_output_path
     from pydrobert.kaldi.io.duck_streams import open_duck_stream
     from pydrobert.kaldi.io.table_streams import open_table_stream
-    if 'r' in mode:
+
+    if "r" in mode:
         table_type = parse_kaldi_input_path(path)[0]
     else:
         table_type = parse_kaldi_output_path(path)[0]
@@ -202,5 +222,11 @@ def open(
         return open_duck_stream(path, mode=mode, header=header)
     else:
         return open_table_stream(
-            path, kaldi_dtype, mode=mode, error_on_str=error_on_str,
-            utt2spk=utt2spk, value_style=value_style, cache=cache)
+            path,
+            kaldi_dtype,
+            mode=mode,
+            error_on_str=error_on_str,
+            utt2spk=utt2spk,
+            value_style=value_style,
+            cache=cache,
+        )
