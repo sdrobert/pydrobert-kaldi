@@ -69,7 +69,7 @@ before_deploy:
       source "${HOME}/miniconda3/etc/profile.d/conda.sh";
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
-  - conda install conda-build
+  - conda install conda-build conda-verify
   - conda build recipe -m recipe/ci_build.yaml
   - conda activate base
   - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi %DIST%

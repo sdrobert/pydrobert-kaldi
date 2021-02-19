@@ -49,7 +49,7 @@ requirements:
     - python
     # there have been no major changes in the numpy api since 1.11.3 (currently
     # at 1.13). We'll see how long this lasts us
-    - {{ pin_compatible('numpy', min_pin='x.x') }}
+    - numpy >=1.11.3
     - future
     - six
     - enum34                              # [py2k]
@@ -58,6 +58,8 @@ build:
   number: {{ build_num }}
   detect_binary_files_with_prefix: False
   skip: True  # [blas_impl == 'openblas' and win]
+  force_use_keys:
+    - python
 
 test:
   source_files:
