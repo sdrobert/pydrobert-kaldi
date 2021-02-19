@@ -33,7 +33,7 @@ source:
 
 requirements:
   host:
-    - python {{ python }}
+    - python
     - numpy 1.11.3                        # [ py < 39 ]
     - numpy 1.16.6                        # [ py >= 39 ]
     # FIXME(sdrobert): openblas-devel headers > 0.3.6 are messed up
