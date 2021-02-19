@@ -40,7 +40,7 @@ requirements:
     - mkl-devel                           # [blas_impl == 'mkl']
     - setuptools
     - setuptools_scm
-    - swig >=3.0.8
+    - swig 4.0.2
   build:
     - {{ compiler('cxx') }}
   run:

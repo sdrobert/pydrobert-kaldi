@@ -1,7 +1,7 @@
 version: build.{build}.branch.{branch}
 
 image:
-  - Visual Studio 2017
+  # - Visual Studio 2017
   - macos-mojave
   - Ubuntu
 
@@ -41,19 +41,19 @@ init:
 install:
   - sh: >-
       if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" != "Ubuntu" ]; then
-        brew install swig;
+        brew install swig@4.0;
       fi
-  - sh: pip install cibuildwheel==1.8.0
+  - sh: pip install cibuildwheel==1.9.0
 
 build: script
 
 build_script:
-  - sh: CIBW_BUILD="cp37-*" cibuildwheel --output-dir ${DIST}
+  - sh: CIBW_BUILD="cp38-*" cibuildwheel --output-dir ${DIST}
 
 before_deploy:
   - sh: export MACOSX_DEPLOYMENT_TARGET=10.9
   - sh: export SDKROOT=
-  - sh: CIBW_SKIP="cp37-*" cibuildwheel --output-dir ${DIST}
+  - sh: CIBW_SKIP="cp38-*" cibuildwheel --output-dir ${DIST}
   - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - sh: >-
