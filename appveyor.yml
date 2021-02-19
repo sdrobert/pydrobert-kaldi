@@ -37,7 +37,6 @@ init:
         export ACCELERATE=1;
       fi;
   - cmd: set DIST=dist-win
-  - cmd: set PATH=C:\Python37;C:\Python37\Scripts;%PATH%
 
 install:
   - sh: >-
@@ -52,7 +51,9 @@ build_script:
   - sh: CIBW_BUILD="cp37-*" cibuildwheel --output-dir ${DIST}
 
 before_deploy:
-  - sh: CIBW_BUILD="cp27-*" cibuildwheel --output-dir ${DIST}
+  - sh: export MACOSX_DEPLOYMENT_TARGET=10.9
+  - sh: export SDKROOT=
+  - sh: CIBW_SKIP="cp37-*" cibuildwheel --output-dir ${DIST}
   - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - sh: >-
@@ -68,7 +69,8 @@ before_deploy:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
   - conda install conda-build
-  - conda build recipe --no-test -m recipe/ci_build.yaml
+  - conda build recipe -m recipe/ci_build.yaml
+  - conda activate base
   - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi %DIST%
   - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi ${DIST}
   - cmd: 7z a %DIST%.zip %DIST%
