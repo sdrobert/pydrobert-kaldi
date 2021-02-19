@@ -2,8 +2,8 @@ version: build.{build}.branch.{branch}
 
 image:
   # - Visual Studio 2017
-  # - macos-mojave
-  - Ubuntu
+  - macos-mojave
+  # - Ubuntu
 
 environment:
   # MINICONDA_PATH_32: "C:\\Miniconda3"
@@ -38,11 +38,11 @@ init:
   - cmd: set DIST=dist-win
 
 install:
-  - sh: >-
-      if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" != "Ubuntu" ]; then
-        brew install swig@4.0;
-      fi
-  - sh: pip install cibuildwheel==1.9.0
+  # - sh: >-
+  #     if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" != "Ubuntu" ]; then
+  #       brew install swig@4.0;
+  #     fi
+  # - sh: pip install cibuildwheel==1.9.0
 
 build: script
 
