@@ -48,10 +48,8 @@ install:
 build: script
 
 build_script:
-  - sh: >-
-      if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
-        CIBW_BUILD="cp27-*" cibuildwheel --output-dir ${DIST};
-      fi
+  # - sh: CIBW_BUILD="cp27-*" cibuildwheel --output-dir ${DIST}
+  - echo built
 
 before_deploy:
   # - sh: CIBW_BUILD="cp39-*" cibuildwheel --output-dir ${DIST}
