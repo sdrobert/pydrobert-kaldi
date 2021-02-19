@@ -1,2 +1,2 @@
-oldest-supported-numpy; python >= '3.0'
-numpy==1.11.3; python < '3.0'
+oldest-supported-numpy; python_version > '3.4'
+numpy==1.11.3; python_version <= '3.4'
