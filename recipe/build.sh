@@ -23,8 +23,6 @@ else
   exit 1
 fi
 
-export SDKROOT="${CONDA_BUILD_SYSROOT}"
-
 export SETUPTOOLS_SCM_PRETEND_VERSION="${PKG_VERSION}"
 
 ${PYTHON} setup.py install \

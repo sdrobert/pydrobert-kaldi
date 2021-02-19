@@ -13,7 +13,7 @@
 # limitations under the License.
 
 python:
-  - 2.7  # [unix]
+  - 2.7  # [not win]
   # - 3.5
   # - 3.6
   # - 3.7
@@ -22,4 +22,4 @@ python:
 
 blas_impl:
   - mkl
-  - openblas  # [unix]
+  - openblas  # [not win]
