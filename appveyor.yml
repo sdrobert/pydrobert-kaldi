@@ -60,6 +60,7 @@ before_deploy:
         wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh;
       else
         curl "${MINICONDA_OSX_URL}" -o miniconda_install.sh;
+        ln -s /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /opt/MacOSX10.9.sdk;
       fi
   - sh: >-
       chmod +x miniconda_install.sh;
