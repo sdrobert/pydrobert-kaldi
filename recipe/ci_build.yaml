@@ -22,4 +22,4 @@ python:
 
 blas_impl:
   - mkl
-  - openblas  # [not win]
+  - openblas
