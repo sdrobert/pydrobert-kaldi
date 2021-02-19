@@ -48,12 +48,13 @@ install:
 build: script
 
 build_script:
-  - sh: CIBW_BUILD="cp38-*" cibuildwheel --output-dir ${DIST}
+  - sh: CIBW_BUILD="cp27-*" cibuildwheel --output-dir ${DIST}
 
 before_deploy:
+  - sh: CIBW_BUILD="cp39-*" cibuildwheel --output-dir ${DIST}
+  # cibuildwheel sets these, which could result in badness if we don't reset
   - sh: export MACOSX_DEPLOYMENT_TARGET=10.9
   - sh: export SDKROOT=
-  - sh: CIBW_SKIP="cp38-*" cibuildwheel --output-dir ${DIST}
   - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - sh: >-
