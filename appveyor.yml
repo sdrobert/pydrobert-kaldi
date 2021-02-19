@@ -49,9 +49,9 @@ build: script
 
 build_script:
   - sh: >-
-    if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
-      CIBW_BUILD="cp27-*" cibuildwheel --output-dir ${DIST};
-    fi
+      if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
+        CIBW_BUILD="cp27-*" cibuildwheel --output-dir ${DIST};
+      fi
 
 before_deploy:
   # - sh: CIBW_BUILD="cp39-*" cibuildwheel --output-dir ${DIST}
