@@ -25,4 +25,4 @@ popd
 
 yum install -y openblas-devel${MARCH_SUFFIX}
 
-pip install oldest-supported-numpy
+pip install -r recipe/cibw_before_requirements.txt

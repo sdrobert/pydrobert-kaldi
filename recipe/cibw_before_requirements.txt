@@ -1,0 +1,2 @@
+oldest-supported-numpy; python >= '3.5'
+numpy==1.11.3; python < '3.5'
