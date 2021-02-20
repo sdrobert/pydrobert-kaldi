@@ -62,6 +62,7 @@ before_deploy:
         curl "${MINICONDA_OSX_URL}" -o miniconda_install.sh;
         sudo mkdir /opt;
         sudo ln -s /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /opt/MacOSX10.9.sdk;
+        conda create -n unused python=2.7 numpy=1.16.6;
       fi
   - sh: >-
       chmod +x miniconda_install.sh;
