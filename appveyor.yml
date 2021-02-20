@@ -72,7 +72,6 @@ before_deploy:
   - conda install conda-build conda-verify
   - conda build recipe -m recipe/ci_build.yaml
   - conda activate base
-  - conda create -n unused python=2.7 numpy=1.16.6
   - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi %DIST%
   - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi ${DIST}
   - cmd: 7z a %DIST%.zip %DIST%

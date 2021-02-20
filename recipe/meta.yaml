@@ -34,6 +34,8 @@ source:
 requirements:
   host:
     - python
+    # FIXME(sdrobert): there's an unfortunate bug that I only get with py 2.7
+    # osx and I'm pretty sure it isn't my fault. Conda
     - numpy 1.11.3                        # [ py < 39 ]
     - numpy 1.16.6                        # [ py >= 39 ]
     # FIXME(sdrobert): openblas-devel headers > 0.3.6 are messed up
@@ -57,7 +59,7 @@ requirements:
 build:
   number: {{ build_num }}
   detect_binary_files_with_prefix: False
-  skip: True  # [(blas_impl == 'openblas' or py27) and win]
+  skip: True  # [blas_impl == 'openblas' and win]
   force_use_keys:
     - python
 
@@ -67,9 +69,7 @@ test:
   requires:
     - pytest
     - nomkl                                # [ blas_impl != 'mkl' ]
-    # The osx version of numpy they choose gets import errors on its very own,
-    # so we force the choice here
-    - {{ pin_compatible('numpy') }}
+    - scipy                                # [py2k]
   imports:
     - pydrobert
     - pydrobert.kaldi
