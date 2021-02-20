@@ -36,8 +36,7 @@ requirements:
     - python
     # FIXME(sdrobert): there's an unfortunate bug that I only get with py 2.7
     # osx and I'm pretty sure it isn't my fault. Conda
-    - numpy 1.11.3                        # [ py < 39 ]
-    - numpy 1.16.6                        # [ py >= 39 ]
+    - numpy 1.16.6
     # FIXME(sdrobert): openblas-devel headers > 0.3.6 are messed up
     - openblas-devel 0.3.6                # [ blas_impl == 'openblas' ]
     - mkl-devel                           # [ blas_impl == 'mkl' ]
@@ -69,7 +68,6 @@ test:
   requires:
     - pytest
     - nomkl                                # [ blas_impl != 'mkl' ]
-    - scipy                                # [py2k]
   imports:
     - pydrobert
     - pydrobert.kaldi
