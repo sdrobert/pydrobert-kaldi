@@ -34,9 +34,7 @@ source:
 requirements:
   host:
     - python
-    # FIXME(sdrobert): there's an unfortunate bug that I only get with py 2.7
-    # osx and I'm pretty sure it isn't my fault. Conda
-    - numpy 1.16.6
+    - numpy {{ numpy }}
     # FIXME(sdrobert): openblas-devel headers > 0.3.6 are messed up
     - openblas-devel 0.3.6                # [ blas_impl == 'openblas' ]
     - mkl-devel                           # [ blas_impl == 'mkl' ]
@@ -48,9 +46,7 @@ requirements:
   run:
     # *-devel packages provide library packages as run_exports
     - python
-    # there have been no major changes in the numpy api since 1.11.3 (currently
-    # at 1.13). We'll see how long this lasts us
-    - {{ pin_compatible('numpy', min_pin='x.x') }}
+    - numpy
     - future
     - six
     - enum34                              # [py2k]

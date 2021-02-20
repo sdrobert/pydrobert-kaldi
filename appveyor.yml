@@ -1,13 +1,11 @@
 version: build.{build}.branch.{branch}
 
 image:
-  # - Visual Studio 2017
+  - Visual Studio 2017
   - macos-mojave
-  # - Ubuntu
+  - Ubuntu
 
 environment:
-  # MINICONDA_PATH_32: "C:\\Miniconda3"
-  # MINICONDA_PATH_64: "C:\\Miniconda3-x64"
   MINICONDA_LINUX_URL: "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
   MINICONDA_OSX_URL: "https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
   CIBW_TEST_REQUIRES: pytest
@@ -38,20 +36,22 @@ init:
   - cmd: set DIST=dist-win
 
 install:
-  # - sh: >-
-  #     if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" != "Ubuntu" ]; then
-  #       brew install swig@4.0;
-  #     fi
-  # - sh: pip install cibuildwheel==1.9.0
+  - sh: >-
+      if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" != "Ubuntu" ]; then
+        brew install swig@4.0;
+      fi
+  - sh: pip install cibuildwheel==1.9.0
 
 build: script
 
 build_script:
-  # - sh: CIBW_BUILD="cp27-*" cibuildwheel --output-dir ${DIST}
-  - echo built
+  - sh: CIBW_BUILD="cp27-*" cibuildwheel --output-dir ${DIST}
+  - sh: zip -r ${DIST}.zip ${DIST}
+  - cmd: type nul > %DIST%.zip
 
 before_deploy:
-  # - sh: CIBW_BUILD="cp39-*" cibuildwheel --output-dir ${DIST}
+  - ps: rm $env:DIST".zip"
+  - sh: CIBW_BUILD="cp39-*" cibuildwheel --output-dir ${DIST}
   # cibuildwheel sets these, which could result in badness if we don't reset
   - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
@@ -70,13 +70,16 @@ before_deploy:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q --all
   - conda install conda-build conda-verify
-  - conda build recipe -m recipe/ci_build.yaml
+  - conda build recipe
   - conda activate base
   - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi %DIST%
   - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi ${DIST}
   - cmd: 7z a %DIST%.zip %DIST%
   - sh: zip -r ${DIST}.zip ${DIST}
   - ps: Push-AppVeyorArtifact $env:DIST".zip"
+
+artifacts:
+  path: '*.zip'
 
 branches:
   except:

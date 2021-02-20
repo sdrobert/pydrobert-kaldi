@@ -14,3 +14,23 @@
 
 blas_impl:
   - mkl
+  - openblas
+
+# sdrobert(2021-02-19): This doesn't need to be as high as it is for all
+# python versions. 1.11.3 works for py < 38.
+numpy: 1.16.6
+
+# sdrobert(2021-02-19): For some reason, if these go above the other
+# requirements, the matrix doesn't get built.
+python:
+  - 2.7
+  - 3.5
+  - 3.6
+  - 3.7
+  - 3.8
+  - 3.9
+
+pin_run_as_build:
+  numpy:
+    min_pin: x.x
+    max_pin: x
