@@ -49,7 +49,7 @@ requirements:
     - python
     # there have been no major changes in the numpy api since 1.11.3 (currently
     # at 1.13). We'll see how long this lasts us
-    - numpy >=1.11.3
+    - {{ pin_compatible('numpy', min_pin='x.x') }}
     - future
     - six
     - enum34                              # [py2k]
@@ -57,7 +57,7 @@ requirements:
 build:
   number: {{ build_num }}
   detect_binary_files_with_prefix: False
-  skip: True  # [blas_impl == 'openblas' and win]
+  skip: True  # [(blas_impl == 'openblas' or py27) and win]
   force_use_keys:
     - python
 
@@ -67,6 +67,9 @@ test:
   requires:
     - pytest
     - nomkl                                # [ blas_impl != 'mkl' ]
+    # The osx version of numpy they choose gets import errors on its very own,
+    # so we force the choice here
+    - {{ pin_compatible('numpy') }}
   imports:
     - pydrobert
     - pydrobert.kaldi
