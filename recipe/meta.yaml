@@ -57,7 +57,7 @@ requirements:
 build:
   number: {{ build_num }}
   detect_binary_files_with_prefix: False
-  skip: True  # [blas_impl == 'openblas' and win]
+  skip: True  # [(blas_impl == 'openblas' or py2k) and win]
   force_use_keys:
     - python
 

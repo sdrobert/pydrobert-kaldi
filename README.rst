@@ -2,7 +2,7 @@
 pydrobert-kaldi
 ===============
 
-|travis| |appveyor| |readthedocs|
+|appveyor| |readthedocs|
 
 `Read the latest docs <http://pydrobert-kaldi.readthedocs.io/en/latest>`_
 
@@ -100,13 +100,7 @@ install going:
 +----------+------+--------+--------+-------+
 | Platform | Arch | Python | Conda? | PyPI? |
 +==========+======+========+========+=======+
-| Windows  | 32   | 2.7    | No     | No    |
-+----------+------+--------+--------+-------+
-| Windows  | 32   | 3.5    | Yes    | No    |
-+----------+------+--------+--------+-------+
-| Windows  | 32   | 3.6    | Yes    | No    |
-+----------+------+--------+--------+-------+
-| Windows  | 32   | 3.7    | Yes    | No    |
+| Windows  | 32   | -      | No     | No    |
 +----------+------+--------+--------+-------+
 | Windows  | 64   | 2.7    | No     | No    |
 +----------+------+--------+--------+-------+
@@ -115,6 +109,10 @@ install going:
 | Windows  | 64   | 3.6    | Yes    | No    |
 +----------+------+--------+--------+-------+
 | Windows  | 64   | 3.7    | Yes    | No    |
++----------+------+--------+--------+-------+
+| Windows  | 64   | 3.8    | Yes    | No    |
++----------+------+--------+--------+-------+
+| Windows  | 64   | 3.9    | Yes    | No    |
 +----------+------+--------+--------+-------+
 | OSX      | 32   | -      | No     | No    |
 +----------+------+--------+--------+-------+
@@ -126,7 +124,21 @@ install going:
 +----------+------+--------+--------+-------+
 | OSX      | 64   | 3.7    | Yes    | Yes   |
 +----------+------+--------+--------+-------+
-| Linux    | 32   | -      | No     | No    |
+| OSX      | 64   | 3.8    | Yes    | Yes   |
++----------+------+--------+--------+-------+
+| OSX      | 64   | 3.9    | Yes    | Yes   |
++----------+------+--------+--------+-------+
+| Linux    | 32   | 2.7    | No     | Yes   |
++----------+------+--------+--------+-------+
+| Linux    | 32   | 3.5    | No     | Yes   |
++----------+------+--------+--------+-------+
+| Linux    | 32   | 3.6    | No     | Yes   |
++----------+------+--------+--------+-------+
+| Linux    | 32   | 3.7    | No     | Yes   |
++----------+------+--------+--------+-------+
+| Linux    | 32   | 3.8    | No     | Yes   |
++----------+------+--------+--------+-------+
+| Linux    | 32   | 3.9    | No     | Yes   |
 +----------+------+--------+--------+-------+
 | Linux    | 64   | 2.7    | Yes    | Yes   |
 +----------+------+--------+--------+-------+
@@ -136,6 +148,11 @@ install going:
 +----------+------+--------+--------+-------+
 | Linux    | 64   | 3.7    | Yes    | Yes   |
 +----------+------+--------+--------+-------+
+| Linux    | 64   | 3.8    | Yes    | Yes   |
++----------+------+--------+--------+-------+
+| Linux    | 64   | 3.9    | Yes    | Yes   |
++----------+------+--------+--------+-------+
+
 
 To install via ``conda``::
 
@@ -153,6 +170,9 @@ BLAS install is somehow::
      git+https://github.com/sdrobert/pydrobert-kaldi.git
    # for MKL
    MKLROOT=/path/to/mkl/install pip install \
+     git+https://github.com/sdrobert/pydrobert-kaldi.git
+   # for Accelerate (OSX only)
+   ACCELLERATE=1 pip install \
      git+https://github.com/sdrobert/pydrobert-kaldi.git
    # see setup.py for more options
 
@@ -180,9 +200,6 @@ more details.
 .. _Conda: http://conda.pydata.org/docs/
 .. _PyPI: https://pypi.org/
 .. _PyTorch: https://pytorch.org/
-.. |travis| image:: https://travis-ci.com/sdrobert/pydrobert-kaldi.svg?branch=master
-            :target: https://travis-ci.com/sdrobert/pydrobert-kaldi
-            :alt: Travis Build Status
 .. |appveyor| image:: https://ci.appveyor.com/api/projects/status/lvjhj9pgju90wn8j/branch/master?svg=true
               :target: https://ci.appveyor.com/project/sdrobert/pydrobert-kaldi
               :alt: AppVeyor Build Status
