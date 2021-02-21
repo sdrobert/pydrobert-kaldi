@@ -105,6 +105,8 @@ deploy:
   - provider: GitHub
     description: pydrobert-kaldi version $(appveyor_build_version)
     artifact: /.*\.zip/
+    draft: true
+    prerelease: true
     auth_token:
       secure: hALzL1jnrc8sTk3Plujt2pVy4Vrxi9sM+CO5VbGsQx0P6Hr1J91fPVWd/+AueZ4h
     on:
