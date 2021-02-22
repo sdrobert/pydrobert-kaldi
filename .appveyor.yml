@@ -21,7 +21,7 @@ environment:
       BUILD_SYS: cibuildwheel
       CIBW_ARCHS_LINUX: x86_64
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-    - job_name: linux-i686
+    - job_name: linux-cibw-i686
       BUILD_SYS: cibuildwheel
       CIBW_ARCHS_LINUX: i686
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
@@ -42,9 +42,6 @@ init:
   - cmd: set DIST=dist-%APPVEYOR_JOB_NAME%
 
 build: script
-
-build_script:
-  - sh: CIBW_BUILD="cp38-*" cibuildwheel --output-dir ${DIST}
 
 artifacts:
   path: '*.zip'
