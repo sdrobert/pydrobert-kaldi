@@ -22,12 +22,16 @@ environment:
     - job_name: linux-i686
       CIBW_ARCHS_LINUX: i686
 
-clone_depth: 1
-
 stack: python 3.8
+
+shallow_clone: true
 
 matrix:
   fast_finish: true
+
+branches:
+  except:
+    - /docs/
 
 init:
   - ps: >-
@@ -43,38 +47,28 @@ init:
   - cmd: set DIST=dist-win
 
 
-build: off
+install:
+- sh: >-
+    if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" != "Ubuntu" ]; then
+      brew install swig@4.0;
+    fi
+- sh: pip install cibuildwheel==1.9.0
+
+build: script
+
+build_script:
+  - sh: CIBW_BUILD="cp38-*" cibuildwheel --output-dir ${DIST}
+
+deploy: off
 
 for:
   -
     branches:
-      except: docs
-    on:
-      - job_name: osx
-      - job_name: linux-x86_64
-      - job_name: linux-i686
-
-    install:
-    - sh: >-
-        if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" != "Ubuntu" ]; then
-          brew install swig@4.0;
-        fi
-    - sh: pip install cibuildwheel==1.9.0
-
-    build: script
+      only:
+        - /appveyor/
 
     build_script:
-      - sh: CIBW_BUILD="cp38-*" cibuildwheel --output-dir ${DIST}
-
-  -
-    on:
-      - appveyor_repo_tag: true
-      - branches:
-          only: /appveyor.*/
-
-    after_build:
-      - sh: CIBW_SKIP="cp38-* pp*" cibuildwheel --output-dir ${DIST}
-      # cibuildwheel sets these, which could result in badness if we don't reset
+      - sh: CIBW_SKIP="pp*" cibuildwheel --output-dir ${DIST}
       - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
       - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
       - sh: >-
@@ -101,24 +95,3 @@ for:
 
     artifacts:
       path: '*.zip'
-
-    deploy:
-      - provider: GitHub
-        description: pydrobert-kaldi version $(appveyor_build_version)
-        artifact: /.*\.zip/
-        draft: true
-        prerelease: true
-        auth_token:
-          secure: hALzL1jnrc8sTk3Plujt2pVy4Vrxi9sM+CO5VbGsQx0P6Hr1J91fPVWd/+AueZ4h
-        on:
-          appveyor_repo_tag: true
-      - provider: GitHub
-        tag: appveyor_dummy
-        description: a dummy deployment
-        artifact: /.*\.zip/
-        auth_token:
-          secure: hALzL1jnrc8sTk3Plujt2pVy4Vrxi9sM+CO5VbGsQx0P6Hr1J91fPVWd/+AueZ4h
-        draft: true
-        prerelease: true
-        on:
-          branch: /appveyor.*/
