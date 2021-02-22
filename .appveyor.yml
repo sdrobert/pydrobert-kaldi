@@ -65,6 +65,7 @@ for:
     matrix:
       only:
         - CIBW_ARCHS_LINUX: i686
+          image: Linux
 
     before_deploy:
       - ps: rm $env:DIST".zip"
