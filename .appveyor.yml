@@ -17,6 +17,9 @@ environment:
     - job_name: osx-cibw
       BUILD_SYS: cibuildwheel
       APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
+    - job_name: linux-conda
+      BUILD_SYS: conda
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     - job_name: linux-cibw-x86_64
       BUILD_SYS: cibuildwheel
       CIBW_ARCHS_LINUX: x86_64
