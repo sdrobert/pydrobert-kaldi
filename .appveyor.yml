@@ -21,11 +21,6 @@ environment:
 
 stack: python 3.8
 
-shallow_clone: true
-
-matrix:
-  fast_finish: true
-
 branches:
   except:
     - /docs/
