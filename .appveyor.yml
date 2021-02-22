@@ -9,15 +9,15 @@ environment:
   CIBW_BEFORE_BUILD_LINUX: bash {project}/recipe/cibw_before_build_manylinux.sh
   matrix:
     # - job_name: win
-    #   appveyor_build_worker_image: Visual Studio 2017
+    #   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     # - job_name: osx
-    #   appveyor_build_worker_image: macos-mojave
+    #   APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
     - job_name: linux-x86_64
       CIBW_ARCHS_LINUX: x86_64
-      appveyor_build_worker_image: Ubuntu
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     - job_name: linux-i686
       CIBW_ARCHS_LINUX: i686
-      appveyor_build_worker_image: Ubuntu
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
 
 stack: python 3.8
 
