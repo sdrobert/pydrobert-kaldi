@@ -47,12 +47,12 @@ build: off
 
 for:
   -
+    branches:
+      except: docs
     on:
       - job_name: osx
       - job_name: linux-x86_64
       - job_name: linux-i686
-      branches:
-        except: docs
 
     install:
     - sh: >-
