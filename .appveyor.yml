@@ -61,37 +61,37 @@ build_script:
 
 deploy: off
 
-for:
-  -
-    branches:
-      only:
-        - /appveyor/
+# for:
+#   -
+#     branches:
+#       only:
+#         - /appveyor/
 
-    build_script:
-      - sh: CIBW_SKIP="pp*" cibuildwheel --output-dir ${DIST}
-      - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
-      - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
-      - sh: >-
-          if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
-            wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh;
-          else
-            curl "${MINICONDA_OSX_URL}" -o miniconda_install.sh;
-            sudo mkdir /opt;
-            sudo ln -s /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /opt/MacOSX10.9.sdk;
-          fi
-      - sh: >-
-          chmod +x miniconda_install.sh;
-          ./miniconda_install.sh -b -p "${HOME}/miniconda3";
-          source "${HOME}/miniconda3/etc/profile.d/conda.sh";
-      - conda config --set always_yes yes --set changeps1 no
-      - conda update -q --all
-      - conda install conda-build conda-verify
-      - conda build recipe
-      - conda activate base
-      - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi %DIST%
-      - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi ${DIST}
-      - cmd: 7z a %DIST%.zip %DIST%
-      - sh: zip -r ${DIST}.zip ${DIST}
+#     build_script:
+#       - sh: CIBW_SKIP="pp*" cibuildwheel --output-dir ${DIST}
+#       - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
+#       - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+#       - sh: >-
+#           if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
+#             wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh;
+#           else
+#             curl "${MINICONDA_OSX_URL}" -o miniconda_install.sh;
+#             sudo mkdir /opt;
+#             sudo ln -s /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /opt/MacOSX10.9.sdk;
+#           fi
+#       - sh: >-
+#           chmod +x miniconda_install.sh;
+#           ./miniconda_install.sh -b -p "${HOME}/miniconda3";
+#           source "${HOME}/miniconda3/etc/profile.d/conda.sh";
+#       - conda config --set always_yes yes --set changeps1 no
+#       - conda update -q --all
+#       - conda install conda-build conda-verify
+#       - conda build recipe
+#       - conda activate base
+#       - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi %DIST%
+#       - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi ${DIST}
+#       - cmd: 7z a %DIST%.zip %DIST%
+#       - sh: zip -r ${DIST}.zip ${DIST}
 
-    artifacts:
-      path: '*.zip'
+#     artifacts:
+#       path: '*.zip'
