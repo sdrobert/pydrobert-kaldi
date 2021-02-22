@@ -8,10 +8,10 @@ environment:
   CIBW_BEFORE_BUILD: pip install -r {project}/recipe/cibw_before_requirements.txt
   CIBW_BEFORE_BUILD_LINUX: bash {project}/recipe/cibw_before_build_manylinux.sh
   matrix:
-    - job_name: win
-      appveyor_build_worker_image: Visual Studio 2017
-    - job_name: osx
-      appveyor_build_worker_image: macos-mojave
+    # - job_name: win
+    #   appveyor_build_worker_image: Visual Studio 2017
+    # - job_name: osx
+    #   appveyor_build_worker_image: macos-mojave
     - job_name: linux-x86_64
       CIBW_ARCHS_LINUX: x86_64
       appveyor_build_worker_image: Ubuntu
@@ -40,6 +40,7 @@ init:
 
 
 install:
+- sh: echo "<${APPVEYOR_BUILD_WORKER_IMAGE}>"
 - sh: >-
     if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" != "Ubuntu" ]; then
       brew install swig@4.0;
