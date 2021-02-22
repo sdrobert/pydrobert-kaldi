@@ -1,9 +1,9 @@
 version: build.{build}.branch.{branch}
 
 image:
+  - Ubuntu
   - Visual Studio 2017
   - macos-mojave
-  - Ubuntu
 
 environment:
   MINICONDA_LINUX_URL: "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
@@ -12,6 +12,11 @@ environment:
   CIBW_TEST_COMMAND: pytest {project}/tests -m "not pytorch"
   CIBW_BEFORE_BUILD: pip install -r {project}/recipe/cibw_before_requirements.txt
   CIBW_BEFORE_BUILD_LINUX: bash {project}/recipe/cibw_before_build_manylinux.sh
+  matrix:
+    # the goal here is to separate 32-bit builds from 64-bit ones on linux
+    # to stay under the maximum AppVeyor time per job. The only
+    - CIBW_ARCHS_LINUX: "native"
+    - CIBW_ARCHS_LINUX: "i686"
 
 clone_depth: 1
 
@@ -19,6 +24,12 @@ stack: python 3.8
 
 matrix:
   fast_finish: true
+  # 32-bit builds only relevant to linux
+  exclude:
+    - image: Windows
+      CIBW_ARCHS_LINUX: "i686"
+    - image: macosx-mojave
+      CIBW_ARCHS_LINUX: "i686"
 
 init:
   - ps: >-
@@ -28,7 +39,7 @@ init:
       }
   - sh: >-
       if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
-        export DIST=dist-linux;
+        export DIST=dist-linux-${CIBW_ARCHS_LINUX};
       else
         export DIST=dist-osx;
         export ACCELERATE=1;
@@ -45,38 +56,53 @@ install:
 build: script
 
 build_script:
-  - sh: CIBW_BUILD="cp27-*" cibuildwheel --output-dir ${DIST}
+  - sh: CIBW_BUILD="cp38-*" cibuildwheel --output-dir ${DIST}
   - sh: zip -r ${DIST}.zip ${DIST}
   - cmd: type nul > %DIST%.zip
 
-before_deploy:
-  - ps: rm $env:DIST".zip"
-  - sh: CIBW_BUILD="cp39-*" cibuildwheel --output-dir ${DIST}
-  # cibuildwheel sets these, which could result in badness if we don't reset
-  - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
-  - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
-  - sh: >-
-      if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
-        wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh;
-      else
-        curl "${MINICONDA_OSX_URL}" -o miniconda_install.sh;
-        sudo mkdir /opt;
-        sudo ln -s /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /opt/MacOSX10.9.sdk;
-      fi
-  - sh: >-
-      chmod +x miniconda_install.sh;
-      ./miniconda_install.sh -b -p "${HOME}/miniconda3";
-      source "${HOME}/miniconda3/etc/profile.d/conda.sh";
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q --all
-  - conda install conda-build conda-verify
-  - conda build recipe
-  - conda activate base
-  - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi %DIST%
-  - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi ${DIST}
-  - cmd: 7z a %DIST%.zip %DIST%
-  - sh: zip -r ${DIST}.zip ${DIST}
-  - ps: Push-AppVeyorArtifact $env:DIST".zip"
+for:
+  -
+    matrix:
+      only:
+        - CIBW_ARCHS_LINUX: i686
+
+    before_deploy:
+      - ps: rm $env:DIST".zip"
+      - sh: CIBW_BUILD="cp38-* pp*" cibuildwheel --output-dir ${DIST}
+
+  -
+    matrix:
+      only:
+        - CIBW_ARCH_LINUX: native
+
+    before_deploy:
+      - ps: rm $env:DIST".zip"
+      - sh: CIBW_SKIP="cp38-* pp*" cibuildwheel --output-dir ${DIST}
+      # cibuildwheel sets these, which could result in badness if we don't reset
+      - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
+      - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+      - sh: >-
+          if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
+            wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh;
+          else
+            curl "${MINICONDA_OSX_URL}" -o miniconda_install.sh;
+            sudo mkdir /opt;
+            sudo ln -s /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /opt/MacOSX10.9.sdk;
+          fi
+      - sh: >-
+          chmod +x miniconda_install.sh;
+          ./miniconda_install.sh -b -p "${HOME}/miniconda3";
+          source "${HOME}/miniconda3/etc/profile.d/conda.sh";
+      - conda config --set always_yes yes --set changeps1 no
+      - conda update -q --all
+      - conda install conda-build conda-verify
+      - conda build recipe
+      - conda activate base
+      - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi %DIST%
+      - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi ${DIST}
+      - cmd: 7z a %DIST%.zip %DIST%
+      - sh: zip -r ${DIST}.zip ${DIST}
+      - ps: Push-AppVeyorArtifact $env:DIST".zip"
 
 artifacts:
   path: '*.zip'
