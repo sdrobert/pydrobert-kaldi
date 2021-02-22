@@ -45,79 +45,80 @@ init:
 
 build: off
 
--
-  on:
-    - job_name: osx
-    - job_name: linux-x86_64
-    - job_name: linux-i686
-    branches:
-      except: docs
+for:
+  -
+    on:
+      - job_name: osx
+      - job_name: linux-x86_64
+      - job_name: linux-i686
+      branches:
+        except: docs
 
-  install:
-  - sh: >-
-      if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" != "Ubuntu" ]; then
-        brew install swig@4.0;
-      fi
-  - sh: pip install cibuildwheel==1.9.0
-
-  build: script
-
-  build_script:
-    - sh: CIBW_BUILD="cp38-*" cibuildwheel --output-dir ${DIST}
-
--
-  on:
-    - appveyor_repo_tag: true
-    - branches:
-        only: /appveyor.*/
-
-  after_build:
-    - sh: CIBW_SKIP="cp38-* pp*" cibuildwheel --output-dir ${DIST}
-    # cibuildwheel sets these, which could result in badness if we don't reset
-    - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
-    - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+    install:
     - sh: >-
-        if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
-          wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh;
-        else
-          curl "${MINICONDA_OSX_URL}" -o miniconda_install.sh;
-          sudo mkdir /opt;
-          sudo ln -s /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /opt/MacOSX10.9.sdk;
+        if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" != "Ubuntu" ]; then
+          brew install swig@4.0;
         fi
-    - sh: >-
-        chmod +x miniconda_install.sh;
-        ./miniconda_install.sh -b -p "${HOME}/miniconda3";
-        source "${HOME}/miniconda3/etc/profile.d/conda.sh";
-    - conda config --set always_yes yes --set changeps1 no
-    - conda update -q --all
-    - conda install conda-build conda-verify
-    - conda build recipe
-    - conda activate base
-    - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi %DIST%
-    - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi ${DIST}
-    - cmd: 7z a %DIST%.zip %DIST%
-    - sh: zip -r ${DIST}.zip ${DIST}
+    - sh: pip install cibuildwheel==1.9.0
 
-  artifacts:
-    path: '*.zip'
+    build: script
 
-  deploy:
-    - provider: GitHub
-      description: pydrobert-kaldi version $(appveyor_build_version)
-      artifact: /.*\.zip/
-      draft: true
-      prerelease: true
-      auth_token:
-        secure: hALzL1jnrc8sTk3Plujt2pVy4Vrxi9sM+CO5VbGsQx0P6Hr1J91fPVWd/+AueZ4h
-      on:
-        appveyor_repo_tag: true
-    - provider: GitHub
-      tag: appveyor_dummy
-      description: a dummy deployment
-      artifact: /.*\.zip/
-      auth_token:
-        secure: hALzL1jnrc8sTk3Plujt2pVy4Vrxi9sM+CO5VbGsQx0P6Hr1J91fPVWd/+AueZ4h
-      draft: true
-      prerelease: true
-      on:
-        branch: /appveyor.*/
+    build_script:
+      - sh: CIBW_BUILD="cp38-*" cibuildwheel --output-dir ${DIST}
+
+  -
+    on:
+      - appveyor_repo_tag: true
+      - branches:
+          only: /appveyor.*/
+
+    after_build:
+      - sh: CIBW_SKIP="cp38-* pp*" cibuildwheel --output-dir ${DIST}
+      # cibuildwheel sets these, which could result in badness if we don't reset
+      - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
+      - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+      - sh: >-
+          if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
+            wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh;
+          else
+            curl "${MINICONDA_OSX_URL}" -o miniconda_install.sh;
+            sudo mkdir /opt;
+            sudo ln -s /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /opt/MacOSX10.9.sdk;
+          fi
+      - sh: >-
+          chmod +x miniconda_install.sh;
+          ./miniconda_install.sh -b -p "${HOME}/miniconda3";
+          source "${HOME}/miniconda3/etc/profile.d/conda.sh";
+      - conda config --set always_yes yes --set changeps1 no
+      - conda update -q --all
+      - conda install conda-build conda-verify
+      - conda build recipe
+      - conda activate base
+      - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi %DIST%
+      - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi ${DIST}
+      - cmd: 7z a %DIST%.zip %DIST%
+      - sh: zip -r ${DIST}.zip ${DIST}
+
+    artifacts:
+      path: '*.zip'
+
+    deploy:
+      - provider: GitHub
+        description: pydrobert-kaldi version $(appveyor_build_version)
+        artifact: /.*\.zip/
+        draft: true
+        prerelease: true
+        auth_token:
+          secure: hALzL1jnrc8sTk3Plujt2pVy4Vrxi9sM+CO5VbGsQx0P6Hr1J91fPVWd/+AueZ4h
+        on:
+          appveyor_repo_tag: true
+      - provider: GitHub
+        tag: appveyor_dummy
+        description: a dummy deployment
+        artifact: /.*\.zip/
+        auth_token:
+          secure: hALzL1jnrc8sTk3Plujt2pVy4Vrxi9sM+CO5VbGsQx0P6Hr1J91fPVWd/+AueZ4h
+        draft: true
+        prerelease: true
+        on:
+          branch: /appveyor.*/
