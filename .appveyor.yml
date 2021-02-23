@@ -89,12 +89,12 @@ for:
       - conda install conda-build conda-verify
       - conda build recipe
       - conda activate base
-      - cmd: 7z a %DIST%.zip %DIST%
-      - sh: zip -r ${DIST}.zip ${DIST}
+      - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi %DIST%
+      - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi ${DIST}
 
 after_build:
-  - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi %DIST%
-  - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi ${DIST}
+  - cmd: 7z a %DIST%.zip %DIST%
+  - sh: zip -r ${DIST}.zip ${DIST}
 
 artifacts:
   path: '*.zip'
