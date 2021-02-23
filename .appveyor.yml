@@ -17,7 +17,6 @@ environment:
     - job_name: osx-cibw
       BUILD_SYS: cibuildwheel
       ACCELERATE: 1
-      CIBW_SKIP: 'pp*'
       APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
     - job_name: linux-conda
       BUILD_SYS: conda
@@ -61,8 +60,9 @@ for:
           fi
       - sh: pip install cibuildwheel==1.9.0
 
+    # The PyPy builds don't work.
     build_script:
-      - sh: cibuildwheel --output-dir ${DIST}
+      - sh: CIBW_SKIP="pp*" cibuildwheel --output-dir ${DIST}
 
   -
     matrix:
