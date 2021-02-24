@@ -19,17 +19,20 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+import locale
+
+import pytest
 
 from tempfile import NamedTemporaryFile
 from tempfile import mkdtemp
 from shutil import rmtree
 
-import pytest
+locale.setlocale(locale.LC_ALL, "")
 
 
 @pytest.fixture
 def temp_file_1_name():
-    temp = NamedTemporaryFile(delete=False, suffix='_1')
+    temp = NamedTemporaryFile(delete=False, suffix="_1")
     temp.close()
     yield temp.name
     os.remove(temp.name)
@@ -37,7 +40,7 @@ def temp_file_1_name():
 
 @pytest.fixture
 def temp_file_2_name():
-    temp = NamedTemporaryFile(delete=False, suffix='_2')
+    temp = NamedTemporaryFile(delete=False, suffix="_2")
     temp.close()
     yield temp.name
     os.remove(temp.name)
@@ -45,7 +48,7 @@ def temp_file_2_name():
 
 @pytest.fixture
 def temp_file_3_name():
-    temp = NamedTemporaryFile(suffix='_2', delete=False)
+    temp = NamedTemporaryFile(suffix="_2", delete=False)
     temp.close()
     yield temp.name
     os.remove(temp.name)
@@ -62,4 +65,5 @@ def temp_dir():
 def logging_cleanup():
     yield
     from pydrobert.kaldi.logging import deregister_all_loggers_for_kaldi
+
     deregister_all_loggers_for_kaldi()

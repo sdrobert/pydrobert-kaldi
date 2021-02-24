@@ -33,39 +33,40 @@ source:
 
 requirements:
   host:
-    - python {{ python }}
-    - numpy {{ numpy }}
-    - openblas-devel # [blas_impl == 'openblas']
-    - mkl-devel 2018 # [blas_impl == 'mkl']
+    - python
+    - numpy 1.11.3                        # [ py < 39 and (not osx or not py2k) ]
+    - numpy 1.16.6                        # [ py >= 39 or (osx and py2k) ]
+    # FIXME(sdrobert): openblas-devel headers > 0.3.6 are messed up
+    - openblas-devel 0.3.6                # [ blas_impl == 'openblas' ]
+    - mkl-devel                           # [ blas_impl == 'mkl' ]
     - setuptools
     - setuptools_scm
-    - swig >=3.0.8
+    - swig 4.0.2
   build:
-    - {{ compiler('cxx') }} # [not win or not py34]
+    - {{ compiler('cxx') }}
   run:
     # *-devel packages provide library packages as run_exports
     - python
     # there have been no major changes in the numpy api since 1.11.3 (currently
     # at 1.13). We'll see how long this lasts us
-    - {{ pin_compatible('numpy') }}
+    - {{ pin_compatible('numpy', min_pin='x.x') }}
     - future
     - six
-    - enum34                               # [py2k]
+    - enum34                              # [py2k]
 
 build:
   number: {{ build_num }}
   detect_binary_files_with_prefix: False
-  requires_features:
-    blas: {{ blas_impl }}
-  features:
-    - nomkl                                # [blas_impl != 'mkl']
+  skip: True  # [(blas_impl == 'openblas' or py2k) and win]
+  force_use_keys:
+    - python
 
 test:
   source_files:
     - tests
   requires:
     - pytest
-    - scipy
+    - nomkl                                # [ blas_impl != 'mkl' ]
   imports:
     - pydrobert
     - pydrobert.kaldi
