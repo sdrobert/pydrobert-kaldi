@@ -1,4 +1,4 @@
-# Copyright 2017 Sean Robertson
+# Copyright 2021 Sean Robertson
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,10 +13,6 @@
 # limitations under the License.
 
 """Pytests for `pydrobert.kaldi.eval.util`"""
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 
 import pydrobert.kaldi.eval as kaldi_eval
 

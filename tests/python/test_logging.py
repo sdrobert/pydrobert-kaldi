@@ -1,4 +1,4 @@
-# Copyright 2017 Sean Robertson
+# Copyright 2021 Sean Robertson
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,20 +14,16 @@
 
 """Pytests for `pydrobert.kaldi.logging`"""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
+from io import StringIO
 import logging
 
 import numpy as np
 import pytest
 
 from builtins import chr
-from six.moves import StringIO
 
 from pydrobert.kaldi import io
-from pydrobert.kaldi._internal import VerboseLog as verbose_log
+from pydrobert.kaldi._internal import VerboseLog as verbose_log  # type: ignore
 from pydrobert.kaldi.logging import KaldiLogger
 from pydrobert.kaldi.logging import deregister_logger_for_kaldi
 from pydrobert.kaldi.logging import register_logger_for_kaldi

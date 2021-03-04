@@ -506,7 +506,7 @@ class CustomBuildExtCommand(build_ext):
 
 
 setup(
-    use_scm_version=True,
+    use_scm_version={"write_to": "src/pydrobert/kaldi/version.py"},
     cmdclass={"build_ext": CustomBuildExtCommand},
     setup_requires=SETUP_REQUIRES,
     ext_modules=[KALDI_LIBRARY],

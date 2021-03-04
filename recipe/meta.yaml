@@ -70,12 +70,15 @@ test:
   requires:
     - pytest
     - nomkl                                # [ blas_impl != 'mkl' ]
-    - pytorch
   imports:
     - pydrobert
     - pydrobert.kaldi
   commands:
-    - pytest -Werror
+    - write-table-to-pickle -h
+    - write-pickle-to-table -h
+    - compute-error-rate -h
+    - normalize-feat-lens -h
+    - pytest
 
 about:
   home: https://github.com/sdrobert/pydrobert-kaldi

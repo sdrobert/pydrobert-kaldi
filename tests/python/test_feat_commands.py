@@ -14,12 +14,7 @@
 
 """Pytests for `pydrobert.kaldi.feats.command_line`"""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import numpy as np
-import pytest
 
 from pydrobert.kaldi.feat import command_line
 from pydrobert.kaldi.io import open as kaldi_open

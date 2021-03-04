@@ -26,6 +26,11 @@ from shutil import rmtree
 locale.setlocale(locale.LC_ALL, "C")
 
 
+def pytest_runtest_setup(item):
+    if any(mark.name == "pytorch" for mark in item.iter_markers()):
+        pytest.importorskip("torch")
+
+
 @pytest.fixture
 def temp_file_1_name():
     temp = NamedTemporaryFile(delete=False, suffix="_1")

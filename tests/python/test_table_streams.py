@@ -14,10 +14,6 @@
 
 """Pytests for `pydrobert.kaldi.io.table_streams`"""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import platform
 
 import numpy as np

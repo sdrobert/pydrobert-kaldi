@@ -1,4 +1,4 @@
-# Copyright 2016 Sean Robertson
+# Copyright 2021 Sean Robertson
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,10 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 
 import pydrobert.kaldi.io as kaldi_io
 
@@ -33,7 +29,7 @@ def test_compute_error_rate(temp_file_1_name, temp_file_2_name, temp_file_3_name
     # with insertions = 6 / 8
     # without insertions = 5 / 8
     ret_code = command_line.compute_error_rate(
-        ["ark:" + temp_file_1_name, "ark:" + temp_file_2_name, temp_file_3_name,]
+        ["ark:" + temp_file_1_name, "ark:" + temp_file_2_name, temp_file_3_name]
     )
     assert ret_code == 0
     with open(temp_file_3_name) as out_file_reader:

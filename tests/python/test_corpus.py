@@ -1,4 +1,4 @@
-# Copyright 2017 Sean Robertson
+# Copyright 2021 Sean Robertson
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,10 +13,6 @@
 # limitations under the License.
 
 """Pytests for `pydrobert.kaldi.io.corpus`"""
-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 
 from itertools import product
 from itertools import repeat
@@ -247,7 +243,7 @@ def test_padding():
     )
     assert len(l2_batches) == 2
     assert np.allclose(
-        l2_batches[0], [[[1, 1], [2, 2], [3, 3]], [[4, 5], [6, 7], [6, 7]],]
+        l2_batches[0], [[[1, 1], [2, 2], [3, 3]], [[4, 5], [6, 7], [6, 7]]]
     )
     assert np.allclose(l2_batches[1], [[8], [9]])
     l3_batches = tuple(
@@ -262,7 +258,7 @@ def test_padding():
     assert len(l3_batches) == 1
     assert np.allclose(
         l3_batches[0],
-        [[[1, 1], [2, 2], [3, 3]], [[4, 5], [6, 7], [4, 5]], [[8, 8], [9, 9], [8, 8]],],
+        [[[1, 1], [2, 2], [3, 3]], [[4, 5], [6, 7], [4, 5]], [[8, 8], [9, 9], [8, 8]]],
     )
     # if we do not set cast_to_array, no padding should occur
     no_cast_batches = tuple(

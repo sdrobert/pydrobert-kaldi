@@ -1,4 +1,4 @@
-# Copyright 2018 Sean Robertson
+# Copyright 2021 Sean Robertson
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
 
 """Pytests for `pydrobert.kaldi.io.command_line`"""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import os
+import pickle
 
 import numpy as np
 import pytest
 import pydrobert.kaldi.io.command_line as command_line
 
-from six.moves import cPickle as pickle
+
 from pydrobert.kaldi.io.util import infer_kaldi_data_type
 from pydrobert.kaldi.io import open as kaldi_open
 
@@ -37,9 +34,9 @@ from pydrobert.kaldi.io import open as kaldi_open
             np.array([4], dtype=np.float32),
             np.array([], dtype=np.float32),
         ],
-        [np.random.random((100, 20)),],
+        [np.random.random((100, 20))],
         ["foo", "bar", "baz"],
-        [("foo", "bar"), ("baz",),],
+        [("foo", "bar"), ("baz",)],
         [],
     ],
 )
@@ -75,9 +72,9 @@ def test_write_pickle_to_table(values, temp_file_1_name, temp_file_2_name):
             np.array([4], dtype=np.float32),
             np.array([], dtype=np.float32),
         ],
-        [np.random.random((100, 20)),],
+        [np.random.random((100, 20))],
         ["foo", "bar", "baz"],
-        [("foo", "bar"), ("baz",),],
+        [("foo", "bar"), ("baz",)],
         [],
     ],
 )
