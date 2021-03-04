@@ -25,28 +25,29 @@ from pydrobert.kaldi.feat import command_line
 from pydrobert.kaldi.io import open as kaldi_open
 
 
-def test_normalize_feat_lens(
-        temp_file_1_name, temp_file_2_name, temp_file_3_name):
+def test_normalize_feat_lens(temp_file_1_name, temp_file_2_name, temp_file_3_name):
     feats_a = np.random.random((10, 4))
     feats_b = np.random.random((5, 4))
     feats_c = np.random.random((4, 4))
-    with kaldi_open('ark:' + temp_file_1_name, 'dm', 'w') as feats_in_writer:
-        feats_in_writer.write('A', feats_a)
-        feats_in_writer.write('B', feats_b)
-        feats_in_writer.write('C', feats_c)
-    with kaldi_open('ark:' + temp_file_2_name, 'i', 'w') as len_in_writer:
-        len_in_writer.write('A', 9)
-        len_in_writer.write('B', 7)
-        len_in_writer.write('C', 4)
-    ret_code = command_line.normalize_feat_lens([
-        'ark:' + temp_file_1_name,
-        'ark:' + temp_file_2_name,
-        'ark:' + temp_file_3_name,
-        '--type=dm',
-        '--pad-mode=zero',
-    ])
+    with kaldi_open("ark:" + temp_file_1_name, "dm", "w") as feats_in_writer:
+        feats_in_writer.write("A", feats_a)
+        feats_in_writer.write("B", feats_b)
+        feats_in_writer.write("C", feats_c)
+    with kaldi_open("ark:" + temp_file_2_name, "i", "w") as len_in_writer:
+        len_in_writer.write("A", 9)
+        len_in_writer.write("B", 7)
+        len_in_writer.write("C", 4)
+    ret_code = command_line.normalize_feat_lens(
+        [
+            "ark:" + temp_file_1_name,
+            "ark:" + temp_file_2_name,
+            "ark:" + temp_file_3_name,
+            "--type=dm",
+            "--pad-mode=zero",
+        ]
+    )
     assert ret_code == 0
-    with kaldi_open('ark:' + temp_file_3_name, 'dm') as feats_out_reader:
+    with kaldi_open("ark:" + temp_file_3_name, "dm") as feats_out_reader:
         out_a = next(feats_out_reader)
         out_b = next(feats_out_reader)
         out_c = next(feats_out_reader)
@@ -57,12 +58,14 @@ def test_normalize_feat_lens(
         assert np.allclose(out_b[5:], 0)
         assert out_c.shape == (4, 4)
         assert np.allclose(out_c, feats_c)
-    ret_code = command_line.normalize_feat_lens([
-        'ark:' + temp_file_1_name,
-        'ark:' + temp_file_2_name,
-        'ark:' + temp_file_3_name,
-        '--type=dm',
-        '--tolerance=1',
-        '--strict=true',
-    ])
+    ret_code = command_line.normalize_feat_lens(
+        [
+            "ark:" + temp_file_1_name,
+            "ark:" + temp_file_2_name,
+            "ark:" + temp_file_3_name,
+            "--type=dm",
+            "--tolerance=1",
+            "--strict=true",
+        ]
+    )
     assert ret_code == 1

@@ -21,37 +21,34 @@ import pydrobert.kaldi.io as kaldi_io
 from pydrobert.kaldi.eval import command_line
 
 
-def test_compute_error_rate(
-        temp_file_1_name, temp_file_2_name, temp_file_3_name):
-    with kaldi_io.open('ark:' + temp_file_1_name, 'tv', 'w') as ref_writer:
-        ref_writer.write('A', ('lorem', 'ipsum', 'dolor', 'sit', 'amet'))
-        ref_writer.write('B', ('consectetur', 'adipiscing', 'elit'))
-    with kaldi_io.open('ark:' + temp_file_2_name, 'tv', 'w') as hyp_writer:
-        hyp_writer.write(
-            'A', ('laura', 'ipsum', 'dollars', 'sit', 'down', 'amet'))
-        hyp_writer.write(
-            'B', ('consecutive', 'elite'))
+def test_compute_error_rate(temp_file_1_name, temp_file_2_name, temp_file_3_name):
+    with kaldi_io.open("ark:" + temp_file_1_name, "tv", "w") as ref_writer:
+        ref_writer.write("A", ("lorem", "ipsum", "dolor", "sit", "amet"))
+        ref_writer.write("B", ("consectetur", "adipiscing", "elit"))
+    with kaldi_io.open("ark:" + temp_file_2_name, "tv", "w") as hyp_writer:
+        hyp_writer.write("A", ("laura", "ipsum", "dollars", "sit", "down", "amet"))
+        hyp_writer.write("B", ("consecutive", "elite"))
     # A : lorem -> laura, dolor -> dollars, -> down
     # B : consectetur -> consecutive, adipiscing -> , elit -> elite
     # with insertions = 6 / 8
     # without insertions = 5 / 8
-    ret_code = command_line.compute_error_rate([
-        'ark:' + temp_file_1_name,
-        'ark:' + temp_file_2_name,
-        temp_file_3_name,
-    ])
+    ret_code = command_line.compute_error_rate(
+        ["ark:" + temp_file_1_name, "ark:" + temp_file_2_name, temp_file_3_name,]
+    )
     assert ret_code == 0
     with open(temp_file_3_name) as out_file_reader:
         out_text = out_file_reader.read()
-    assert 'Error rate: 75.00%' in out_text
-    ret_code = command_line.compute_error_rate([
-        'ark:' + temp_file_1_name,
-        'ark:' + temp_file_2_name,
-        temp_file_3_name,
-        '--include-inserts-in-cost=false',
-        '--report-accuracy=true',
-    ])
+    assert "Error rate: 75.00%" in out_text
+    ret_code = command_line.compute_error_rate(
+        [
+            "ark:" + temp_file_1_name,
+            "ark:" + temp_file_2_name,
+            temp_file_3_name,
+            "--include-inserts-in-cost=false",
+            "--report-accuracy=true",
+        ]
+    )
     assert ret_code == 0
     with open(temp_file_3_name) as out_file_reader:
         out_text = out_file_reader.read()
-    assert 'Accuracy: {:.2f}%'.format((1 - 5 / 8) * 100) in out_text
+    assert "Accuracy: {:.2f}%".format((1 - 5 / 8) * 100) in out_text

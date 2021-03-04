@@ -62,7 +62,7 @@ for:
 
     # The PyPy builds don't work.
     build_script:
-      - sh: CIBW_SKIP="pp*" cibuildwheel --output-dir ${DIST}
+      - sh: CIBW_SKIP="pp* cp27-* cp35-*" cibuildwheel --output-dir ${DIST}
 
   -
     matrix:

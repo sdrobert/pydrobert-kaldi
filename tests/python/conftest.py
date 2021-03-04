@@ -1,4 +1,4 @@
-# Copyright 2018 Sean Robertson
+# Copyright 2021 Sean Robertson
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,10 +14,6 @@
 
 """Fixtures for pytests"""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import os
 import locale
 
@@ -27,7 +23,7 @@ from tempfile import NamedTemporaryFile
 from tempfile import mkdtemp
 from shutil import rmtree
 
-locale.setlocale(locale.LC_ALL, "")
+locale.setlocale(locale.LC_ALL, "C")
 
 
 @pytest.fixture

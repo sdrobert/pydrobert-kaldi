@@ -34,8 +34,8 @@ source:
 requirements:
   host:
     - python
-    - numpy 1.11.3                        # [ py < 39 and (not osx or not py2k) ]
-    - numpy 1.16.6                        # [ py >= 39 or (osx and py2k) ]
+    - numpy 1.11.3                        # [ py < 39 and not osx ]
+    - numpy 1.16.6                        # [ py >= 39 or osx ]
     # FIXME(sdrobert): openblas-devel headers > 0.3.6 are messed up
     - openblas-devel 0.3.6                # [ blas_impl == 'openblas' ]
     - mkl-devel                           # [ blas_impl == 'mkl' ]
@@ -50,28 +50,32 @@ requirements:
     # there have been no major changes in the numpy api since 1.11.3 (currently
     # at 1.13). We'll see how long this lasts us
     - {{ pin_compatible('numpy', min_pin='x.x') }}
-    - future
-    - six
-    - enum34                              # [py2k]
+  # new namespace package style does not play nicely with old style
+  run_constrained:
+    - pydrobert-param >0.2.0
+    - pydrobert-pytorch >0.2.1
+    - pydrobert-speech >0.1.0
 
 build:
   number: {{ build_num }}
   detect_binary_files_with_prefix: False
-  skip: True  # [(blas_impl == 'openblas' or py2k) and win]
+  skip: True  # [(blas_impl == 'openblas' and win) or py2k]
   force_use_keys:
     - python
 
 test:
   source_files:
     - tests
+    - pytest.ini
   requires:
     - pytest
     - nomkl                                # [ blas_impl != 'mkl' ]
+    - pytorch
   imports:
     - pydrobert
     - pydrobert.kaldi
   commands:
-    - pytest -m "not pytorch"
+    - pytest -Werror
 
 about:
   home: https://github.com/sdrobert/pydrobert-kaldi

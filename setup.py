@@ -12,12 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import platform
 import sys
 
-from codecs import open
 from distutils.spawn import find_executable
 from os import environ
 from os import path
@@ -382,10 +379,6 @@ if platform.system() == "Darwin":
     FLAGS += ["-flax-vector-conversions", "-stdlib=libc++"]
     LD_FLAGS += ["-stdlib=libc++"]
 
-# Get the long description from the README file
-with open(path.join(PWD, "README.rst"), encoding="utf-8") as f:
-    LONG_DESCRIPTION = f.read()
-
 SRC_FILES = []
 if find_executable("swig"):
     SRC_FILES.append(path.join(SWIG_DIR, "pydrobert", "kaldi.i"))
@@ -404,15 +397,11 @@ else:
 for base_dir, _, files in walk(SRC_DIR):
     SRC_FILES += [path.join(base_dir, f) for f in files if f.endswith(".cc")]
 
-INSTALL_REQUIRES = ["numpy >= 1.11.3", "six", "future"]
 SETUP_REQUIRES = ["setuptools_scm"]
-if {"pytest", "test", "ptr"}.intersection(sys.argv):
-    SETUP_REQUIRES.append("pytest-runner")
 try:
     import numpy  # type: ignore
 except ImportError:
     SETUP_REQUIRES.append("oldest-supported-numpy")
-TESTS_REQUIRE = ["pytest"]
 
 KALDI_LIBRARY = Extension(
     "pydrobert.kaldi._internal",
@@ -499,7 +488,13 @@ class CustomBuildExtCommand(build_ext):
             print("Using {}".format(info_name))
             found_blas = True
         if not found_blas:
-            raise Exception("Unable to find BLAS library via numpy")
+            if {"bdist_wheel", "build", "develop", "install"}.intersection(sys.argv):
+                raise Exception("Unable to find BLAS library via numpy")
+            else:
+                print(
+                    "Unable to find BLAS library, but we might not be building "
+                    "anything. Might run into an exception later"
+                )
 
     def finalize_options(self):
         build_ext.finalize_options(self)
@@ -511,50 +506,8 @@ class CustomBuildExtCommand(build_ext):
 
 
 setup(
-    name="pydrobert-kaldi",
     use_scm_version=True,
-    description="Swig bindings for kaldi",
-    long_description=LONG_DESCRIPTION,
-    url="https://github.com/pydrobert-kaldi",
-    author="Sean Robertson",
-    author_email="sdrobert@cs.toronto.edu",
-    license="Apache 2.0",
-    zip_safe=False,
-    classifiers=[
-        "Development Status :: 3 - Alpha",
-        "License :: OSI Approved :: Apache Software License",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-    ],
-    packages=[
-        "pydrobert",
-        "pydrobert.kaldi",
-        "pydrobert.kaldi.io",
-        "pydrobert.kaldi.feat",
-        "pydrobert.kaldi.eval",
-    ],
     cmdclass={"build_ext": CustomBuildExtCommand},
     setup_requires=SETUP_REQUIRES,
-    install_requires=INSTALL_REQUIRES,
-    tests_require=TESTS_REQUIRE,
     ext_modules=[KALDI_LIBRARY],
-    entry_points={
-        "console_scripts": [
-            "write-table-to-pickle = pydrobert.kaldi.command_line:"
-            "write_table_to_pickle",
-            "write-pickle-to-table = pydrobert.kaldi.command_line:"
-            "write_pickle_to_table",
-            "compute-error-rate = pydrobert.kaldi.command_line:" "compute_error_rate",
-            "normalize-feat-lens = pydrobert.kaldi.command_line:" "normalize_feat_lens",
-            "write-table-to-torch-dir = pydrobert.kaldi.command_line:"
-            "write_table_to_torch_dir [pytorch]",
-            "write-torch-dir-to-table = pydrobert.kaldi.command_line:"
-            "write_torch_dir_to_table [pytorch]",
-        ]
-    },
-    extras_require={':python_version<"3.4"': ["enum34"], "pytorch": ["torch"],},
 )

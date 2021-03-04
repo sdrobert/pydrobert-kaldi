@@ -1,4 +1,4 @@
-# Copyright 2017 Sean Robertson
+# Copyright 2021 Sean Robertson
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,14 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-blas_impl:
-  - mkl
-  - openblas
+"""Tools related to evaluating models"""
 
-# sdrobert(2021-02-19): For some reason, if these go above the other
-# requirements, the matrix doesn't get built.
-python:
-  - 3.6
-  # - 3.7
-  # - 3.8
-  # - 3.9
+__all__ = [
+    "util",
+]
