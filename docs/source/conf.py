@@ -26,7 +26,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath("../../src"))
 
-autodoc_mock_imports = ["pydrobert.kaldi._internal", "_internal", "numpy"]
+autodoc_mock_imports = ["pydrobert.kaldi._internal", "_i", "_internal", "numpy"]
 
 # class Mock(MagicMock):
 #     @classmethod
