@@ -24,22 +24,18 @@
 import os
 import sys
 
-try:
-    from unittest.mock import MagicMock
-except ImportError:
-    from mock import Mock as MagicMock  # type: ignore
-
 sys.path.insert(0, os.path.abspath("../../src"))
 
+autodoc_mock_imports = ["pydrobert.kaldi._internal", "_internal", "numpy"]
 
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
-        return MagicMock()
+# class Mock(MagicMock):
+#     @classmethod
+#     def __getattr__(cls, name):
+#         return MagicMock()
 
 
-MOCK_MODULES = ["pydrobert.kaldi._internal", "_internal", "numpy"]
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+# MOCK_MODULES = ["pydrobert.kaldi._internal", "_internal", "numpy"]
+# sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 # import pydrobert.kaldi as kaldi
 
 # kaldi._internal = Mock()
