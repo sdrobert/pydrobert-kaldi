@@ -12,14 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-blas_impl:
-  - mkl
-  - openblas
+"""Access to kaldi routines/types involving features"""
 
-# sdrobert(2021-02-19): For some reason, if these go above the other
-# requirements, the matrix doesn't get built.
-python:
-  - 3.6
-  - 3.7
-  - 3.8
-  - 3.9
+__all__ = ["command_line"]

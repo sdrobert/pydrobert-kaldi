@@ -1,4 +1,0 @@
-future
-six
-numpy >= 1.11.3
-enum34 ; python_version < "3.4"

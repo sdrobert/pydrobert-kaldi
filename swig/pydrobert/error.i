@@ -13,7 +13,7 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
- 
+
 */
 
 // wrapping kaldi's logging to fit into python-o-sphere
@@ -24,7 +24,7 @@
 
 namespace kaldi {
   static PyObject *g_py_log_handler = NULL;
-  
+
   void SetPythonLogHandler(PyObject *py_func) {
     Py_BEGIN_ALLOW_THREADS;
     Py_XDECREF(g_py_log_handler);
@@ -45,11 +45,7 @@ namespace kaldi {
           // kaldi does not guarantee that the message is of a specific
           // encoding, so we send it as bytes and decode it there, replacing
           // errors with <?>
-#if PY_VERSION_HEX >= 0x03000000
           PyObject *arg_list = Py_BuildValue("(Oy)", envelope_obj, message);
-#else
-          PyObject *arg_list = Py_BuildValue("(Os)", envelope_obj, message);
-#endif
           PyObject *result = PyObject_CallObject(g_py_log_handler, arg_list);
           Py_DECREF(arg_list);
           Py_DECREF(envelope_obj);

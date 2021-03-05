@@ -6,7 +6,8 @@ import shutil
 import conda_build.config as config
 
 binary_package_glob = os.path.join(
-    config.Config().bldpkgs_dir, '{0}*.tar.bz2'.format(sys.argv[1]))
+    config.Config().bldpkgs_dir, "{0}*.tar.bz2".format(sys.argv[1])
+)
 print(binary_package_glob)
 binary_packages = glob.glob(binary_package_glob)
 print(binary_packages)
