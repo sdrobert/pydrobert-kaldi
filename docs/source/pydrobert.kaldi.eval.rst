@@ -1,5 +1,5 @@
-pydrobert.kaldi.eval module
-===========================
+pydrobert.kaldi.eval
+====================
 
 pydrobert.kaldi.eval.util module
 --------------------------------

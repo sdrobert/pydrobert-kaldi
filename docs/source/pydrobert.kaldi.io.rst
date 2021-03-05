@@ -1,13 +1,13 @@
-pydrobert.kaldi.io module
-=========================
+pydrobert.kaldi.io
+==================
 
 .. automodule:: pydrobert.kaldi.io
     :members:
     :undoc-members:
     :show-inheritance:
 
-pydrobert.kaldi.io.argparse module
-----------------------------------
+pydrobert.kaldi.io.argparse
+---------------------------
 
 .. automodule:: pydrobert.kaldi.io.argparse
     :members:

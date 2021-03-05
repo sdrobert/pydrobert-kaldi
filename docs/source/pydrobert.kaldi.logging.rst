@@ -1,5 +1,5 @@
-pydrobert.kaldi.logging module
-------------------------------
+pydrobert.kaldi.logging
+-----------------------
 
 .. automodule:: pydrobert.kaldi.logging
     :members:
