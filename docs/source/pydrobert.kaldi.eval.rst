@@ -1,8 +1,8 @@
-pydrobert.kaldi.eval module
-===========================
+pydrobert.kaldi.eval
+====================
 
-pydrobert.kaldi.eval.util module
---------------------------------
+pydrobert.kaldi.eval.util
+-------------------------
 
 .. automodule:: pydrobert.kaldi.eval.util
     :members:
