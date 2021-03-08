@@ -36,20 +36,22 @@ requirements:
     - python
     - numpy 1.11.3                        # [ py < 39 and not osx ]
     - numpy 1.16.6                        # [ py >= 39 or osx ]
-    # FIXME(sdrobert): openblas-devel headers > 0.3.6 are messed up
-    - openblas-devel 0.3.6                # [ blas_impl == 'openblas' ]
-    - mkl-devel                           # [ blas_impl == 'mkl' ]
+    - openblas-devel 0.2.20               # [ blas_impl == 'openblas' ]
+    - mkl-devel 2017                      # [ blas_impl == 'mkl' ]
     - setuptools
     - setuptools_scm
     - swig 4.0.2
   build:
     - {{ compiler('cxx') }}
   run:
-    # *-devel packages provide library packages as run_exports
     - python
     # there have been no major changes in the numpy api since 1.11.3 (currently
     # at 1.13). We'll see how long this lasts us
     - {{ pin_compatible('numpy', min_pin='x.x') }}
+    # we only need basic BLAS routines, which should be available in all
+    # versions
+    - mkl >=2017                            # [blas_impl == 'mkl']
+    - libopenblas >=0.2.20                  # [blas_impl == 'openblas']
   # new namespace package style does not play nicely with old style
   run_constrained:
     - pydrobert-param >0.2.0
@@ -59,9 +61,14 @@ requirements:
 build:
   number: {{ build_num }}
   detect_binary_files_with_prefix: False
-  skip: True  # [(blas_impl == 'openblas' and win) or py2k]
+  skip: True                              # [(blas_impl == 'openblas' and win) or py2k]
   force_use_keys:
     - python
+  ignore_run_exports:
+    # run_exports from *-devel pin the major.minor version. We use very basic
+    #
+    - mkl
+    - libopenblas
 
 test:
   source_files:

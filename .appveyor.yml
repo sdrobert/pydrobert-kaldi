@@ -14,21 +14,21 @@ environment:
     - job_name: osx-conda
       BUILD_SYS: conda
       APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
-    - job_name: osx-cibw
-      BUILD_SYS: cibuildwheel
-      ACCELERATE: 1
-      APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
     - job_name: linux-conda
       BUILD_SYS: conda
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-    - job_name: linux-cibw-x86_64
-      BUILD_SYS: cibuildwheel
-      CIBW_ARCHS_LINUX: x86_64
-      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-    - job_name: linux-cibw-i686
-      BUILD_SYS: cibuildwheel
-      CIBW_ARCHS_LINUX: i686
-      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+    # - job_name: osx-cibw
+    #   BUILD_SYS: cibuildwheel
+    #   ACCELERATE: 1
+    #   APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
+    # - job_name: linux-cibw-x86_64
+    #   BUILD_SYS: cibuildwheel
+    #   CIBW_ARCHS_LINUX: x86_64
+    #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+    # - job_name: linux-cibw-i686
+    #   BUILD_SYS: cibuildwheel
+    #   CIBW_ARCHS_LINUX: i686
+    #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
 
 stack: python 3.8
 
@@ -42,6 +42,7 @@ init:
       {
         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
       }
+  - ps: $env:APPVEYOR_REPO_TAG_NAME = "v0."
   - sh: export DIST=dist-${APPVEYOR_JOB_NAME}
   - cmd: set DIST=dist-%APPVEYOR_JOB_NAME%
 
