@@ -44,7 +44,7 @@ requirements:
     - setuptools
     - setuptools_scm
     - swig 4.0.2
-    - wget
+    - wget  # [ blas_impl == 'openblas' ]
   build:
     - {{ compiler('cxx') }}
   run:
