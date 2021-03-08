@@ -40,11 +40,12 @@ requirements:
     # whichever's easiest to resolve. We're only using basic BLAS functionality
     # which should be available in all versions of the library, so we'll muck
     # around with the version requirements below
-    - {{ blas_impl }}-devel
+    - openblas-devel                      # [ blas_impl == 'openblas' ]
+    - mkl-devel                           # [ blas_impl == 'mkl' ]
     - setuptools
     - setuptools_scm
     - swig 4.0.2
-    - wget  # [ blas_impl == 'openblas' ]
+    - wget                                # [ blas_impl == 'openblas' ]
   build:
     - {{ compiler('cxx') }}
   run:
