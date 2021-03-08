@@ -36,11 +36,15 @@ requirements:
     - python
     - numpy 1.11.3                        # [ py < 39 and not osx ]
     - numpy 1.16.6                        # [ py >= 39 or osx ]
-    - openblas-devel 0.2.20               # [ blas_impl == 'openblas' ]
-    - mkl-devel 2017                      # [ blas_impl == 'mkl' ]
+    # Numpy gets compiled to only a few versions of openblas. We'll choose
+    # whichever's easiest to resolve. We're only using basic BLAS functionality
+    # which should be available in all versions of the library, so we'll muck
+    # around with the version requirements below
+    - {{ blas_impl }}-devel
     - setuptools
     - setuptools_scm
     - swig 4.0.2
+    - wget
   build:
     - {{ compiler('cxx') }}
   run:
@@ -48,8 +52,6 @@ requirements:
     # there have been no major changes in the numpy api since 1.11.3 (currently
     # at 1.13). We'll see how long this lasts us
     - {{ pin_compatible('numpy', min_pin='x.x') }}
-    # we only need basic BLAS routines, which should be available in all
-    # versions
     - mkl >=2017                            # [blas_impl == 'mkl']
     - libopenblas >=0.2.20                  # [blas_impl == 'openblas']
   # new namespace package style does not play nicely with old style
@@ -65,8 +67,8 @@ build:
   force_use_keys:
     - python
   ignore_run_exports:
-    # run_exports from *-devel pin the major.minor version. We use very basic
-    #
+    # run_exports from *-devel pin the major.minor version. See above for why
+    # we ignore these
     - mkl
     - libopenblas
 
