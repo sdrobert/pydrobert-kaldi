@@ -42,7 +42,7 @@ init:
       {
         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
       }
-  - ps: $env:APPVEYOR_REPO_TAG_NAME = "v0."
+  - ps: $env:APPVEYOR_REPO_TAG_NAME = "v0.6.0"
   - sh: export DIST=dist-${APPVEYOR_JOB_NAME}
   - cmd: set DIST=dist-%APPVEYOR_JOB_NAME%
 
