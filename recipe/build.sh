@@ -18,6 +18,15 @@ elif [ $blas_impl = "accelerate" ]; then
   export ACCELERATE=1
 elif [ $blas_impl = "openblas" ]; then
   export OPENBLASROOT="${PREFIX}"
+  if [ ! -f "${PREFIX}/include/lapack.h" ]; then
+    # issue with some openblas-devel versions. Shove the copy we downloaded
+    # from the repo into our includes
+    # Ideally we have some checksum in here, but I'm not sure if we're
+    # guaranteed it
+    wget "https://raw.githubusercontent.com/xianyi/OpenBLAS/v0.3.13/lapack-netlib/LAPACKE/include/lapack.h"
+    mv "lapack.h" "${PREFIX}/include/lapack.h"
+    trap "rm -f '${PREFIX}/include/lapack.h'" EXIT
+  fi
 else
   1>&2 echo Unknown blas_impl
   exit 1
