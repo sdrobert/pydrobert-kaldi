@@ -7,28 +7,22 @@ environment:
   CIBW_TEST_COMMAND: pytest {project}/tests -m "not pytorch"
   CIBW_BEFORE_BUILD: pip install -r {project}/recipe/cibw_before_requirements.txt
   CIBW_BEFORE_BUILD_LINUX: bash {project}/recipe/cibw_before_build_manylinux.sh
+  CIBW_BEFORE_BUILD_MACOS: bash {project}/recipe/cibw_before_build_osx.sh
+  CIBW_BEFORE_BUILD_WINDOWS: powershell.exe {project}/recipe/cibw_before_build_win.ps1
+  CIBW_SKIP: pp* cp27-* cp35-*
   matrix:
-    - job_name: win-conda
-      BUILD_SYS: conda
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-    - job_name: osx-conda
-      BUILD_SYS: conda
-      APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
-    - job_name: linux-conda
-      BUILD_SYS: conda
-      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     - job_name: osx-cibw
-      BUILD_SYS: cibuildwheel
       ACCELERATE: 1
       APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
+    - job_name: win-cibw
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     - job_name: linux-cibw-x86_64
-      BUILD_SYS: cibuildwheel
       CIBW_ARCHS_LINUX: x86_64
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     - job_name: linux-cibw-i686
-      BUILD_SYS: cibuildwheel
       CIBW_ARCHS_LINUX: i686
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+
 
 stack: python 3.8
 
@@ -47,50 +41,12 @@ init:
 
 build: script
 
-for:
-  -
-    matrix:
-      only:
-        - BUILD_SYS: cibuildwheel
+install:
+  - python -m pip install cibuildwheel==2.3.1
 
-    install:
-      - sh: >-
-          if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" != "Ubuntu" ]; then
-            brew install swig@4.0;
-          fi
-      - sh: pip install cibuildwheel==1.9.0
-
-    # The PyPy builds don't work.
-    build_script:
-      - sh: CIBW_SKIP="pp* cp27-* cp35-*" cibuildwheel --output-dir ${DIST}
-
-  -
-    matrix:
-      only:
-        - BUILD_SYS: conda
-
-    build_script:
-      - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
-      - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
-      - sh: >-
-          if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
-            wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh;
-          else
-            curl "${MINICONDA_OSX_URL}" -o miniconda_install.sh;
-            sudo mkdir /opt;
-            sudo ln -s /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /opt/MacOSX10.9.sdk;
-          fi
-      - sh: >-
-          chmod +x miniconda_install.sh;
-          ./miniconda_install.sh -b -p "${HOME}/miniconda3";
-          source "${HOME}/miniconda3/etc/profile.d/conda.sh";
-      - conda config --set always_yes yes --set changeps1 no
-      - conda update -q --all
-      - conda install conda-build conda-verify
-      - conda build recipe
-      - conda activate base
-      - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi %DIST%
-      - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi ${DIST}
+build_script:
+  - sh: cibuildwheel --output-dir ${DIST}
+  - cmd: cibuildwheel --output-dir %DIST%
 
 after_build:
   - cmd: 7z a %DIST%.zip %DIST%
