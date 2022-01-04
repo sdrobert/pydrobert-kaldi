@@ -11,6 +11,7 @@ environment:
   matrix:
     - job_name: win-cibw
       OPENBLASROOT: C:\Libraries\openblas
+      LIBPATH: C:\Libraries\openblas\bin
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
     # - job_name: osx-cibw
     #   ACCELERATE: 1
