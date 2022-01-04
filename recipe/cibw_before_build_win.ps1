@@ -17,4 +17,6 @@ choco install swig --version=4.0.1 -y
 
 nuget install OpenBLAS -Version 0.2.14.1 -OutputDirectory $env:OPENBLASROOT
 
+Dir -Recurse $env:OPENBLASROOT
+
 python -m pip install -r recipe/cibw_before_requirements.txt

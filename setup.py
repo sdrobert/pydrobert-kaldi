@@ -90,12 +90,17 @@ def mkl_setup(roots, mkl_threading=None):
         for root_name, _, base_names in walk(root):
             for base_name in base_names:
                 if ON_WINDOWS:
-                    if base_name.endswith(".dll"):
-                        # this is a windows runtime library. We want to link
-                        # the static .lib stub, so skip this
-                        continue
-                    library_name = base_name.split(".")[0]
-                else:
+                    if base_name.endswith(".lib"):
+                        library_name = base_name.split(".")[0]
+                    elif base_name.endswith(".dll.a"):
+                        library_name = base_name[3:].split(".")[0]
+                    else:
+                        library_name = None
+                elif (
+                    base_name.endswith(".so")
+                    or base_name.endswith(".a")
+                    or base_name.endswith(".dylib")
+                ):
                     library_name = base_name[3:].split(".")[0]
                 if library_name in found_mkl_libs and not found_mkl_libs[library_name]:
                     found_mkl_libs[library_name] = True
@@ -159,12 +164,17 @@ def blas_setup(roots, library_names, headers, extra_entries_on_success):
         for root_name, _, base_names in walk(root):
             for base_name in base_names:
                 if ON_WINDOWS:
-                    if base_name.endswith(".dll"):
-                        # this is a windows runtime library. We want to link
-                        # the static .lib stub, so skip this
-                        continue
-                    library_name = base_name.split(".")[0]
-                else:
+                    if base_name.endswith(".lib"):
+                        library_name = base_name.split(".")[0]
+                    elif base_name.endswith(".dll.a"):
+                        library_name = base_name[3:].split(".")[0]
+                    else:
+                        library_name = None
+                elif (
+                    base_name.endswith(".so")
+                    or base_name.endswith(".a")
+                    or base_name.endswith(".dylib")
+                ):
                     library_name = base_name[3:].split(".")[0]
                 if library_name in library_names and not library_names[library_name]:
                     library_names[library_name] = True

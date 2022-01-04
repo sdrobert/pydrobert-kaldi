@@ -10,8 +10,8 @@ environment:
   CIBW_SKIP: pp*
   matrix:
     - job_name: win-cibw
-      OPENBLASROOT: C:\projects\pydrobert-kaldi\openblas
-      LIBPATH: C:\projects\pydrobert-kaldi\openblas\bin
+      OPENBLASROOT: C:\Libraries\openblas
+      LIBPATH: C:\Libraries\openblas\bin
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
     # - job_name: osx-cibw
     #   ACCELERATE: 1
