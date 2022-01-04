@@ -25,5 +25,4 @@ popd
 
 yum install -y openblas-devel${MARCH_SUFFIX}
 
-export OPENBLASROOT=/usr
 python -m pip install -r recipe/cibw_before_requirements.txt
