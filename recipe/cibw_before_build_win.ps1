@@ -1,8 +1,7 @@
 $ErrorActionPreference = 'Stop'
 Set-PSDebug -Trace 1
 
-# choco install swig --version=4.0.2 -y
-conda install swig -y
+choco install swig --version=4.0.1 -y
 
 # $tempFolderPath = Join-Path $Env:Temp $(New-Guid); New-Item -Type Directory -Path $tempFolderPath | Out-Null
 # Push-Location $tempFolderPath
