@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 Set-PSDebug -Trace 1
 
-choco install swig --version=4.0.2 -y
+nuget install swigwintools -Version 4.0.0
 
 # $tempFolderPath = Join-Path $Env:Temp $(New-Guid); New-Item -Type Directory -Path $tempFolderPath | Out-Null
 # Push-Location $tempFolderPath
