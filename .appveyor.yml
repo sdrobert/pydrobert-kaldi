@@ -1,21 +1,18 @@
 version: build.{build}.branch.{branch}
 
 environment:
-  MINICONDA_LINUX_URL: "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
-  MINICONDA_OSX_URL: "https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
   CIBW_TEST_REQUIRES: pytest
   CIBW_TEST_COMMAND: pytest {project}/tests -m "not pytorch"
   CIBW_BEFORE_BUILD: pip install -r {project}/recipe/cibw_before_requirements.txt
   CIBW_BEFORE_BUILD_LINUX: bash {project}/recipe/cibw_before_build_manylinux.sh
   CIBW_BEFORE_BUILD_MACOS: bash {project}/recipe/cibw_before_build_osx.sh
   CIBW_BEFORE_BUILD_WINDOWS: powershell.exe {project}/recipe/cibw_before_build_win.ps1
-  CIBW_SKIP: pp* cp27-* cp35-*
+  CIBW_SKIP: pp*
   matrix:
-    - job_name: osx-cibw
-      ACCELERATE: 1
-      APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
     - job_name: win-cibw
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+    - job_name: osx-cibw
+      APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
     - job_name: linux-cibw-x86_64
       CIBW_ARCHS_LINUX: x86_64
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
@@ -24,7 +21,7 @@ environment:
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
 
 
-stack: python 3.8
+stack: python 3.7
 
 branches:
   except:
@@ -38,6 +35,7 @@ init:
       }
   - sh: export DIST=dist-${APPVEYOR_JOB_NAME}
   - cmd: set DIST=dist-%APPVEYOR_JOB_NAME%
+  - cmd: set PATH=C:\Python37;C:\Python37\Scripts;%PATH%
 
 build: script
 

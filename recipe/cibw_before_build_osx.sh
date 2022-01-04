@@ -2,7 +2,7 @@
 
 set -e -x
 
-brew install swig@4.0
+brew install swig@4.0.2
 
 export ACCELERATE=1
 
