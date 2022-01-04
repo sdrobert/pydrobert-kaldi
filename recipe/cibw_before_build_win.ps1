@@ -17,7 +17,6 @@ $env:OPENBLASROOT = "$curDir\openblas"
 # cmake --build . --target install
 # Pop-Location
 
-
-Install-Package OpenBLAS -Version 0.2.14.1 -OutputDirectory $env:OPENBLASROOT
+nuget install OpenBLAS -Version 0.2.14.1 -OutputDirectory $env:OPENBLASROOT
 
 python -m pip install -r recipe/cibw_before_requirements.txt
