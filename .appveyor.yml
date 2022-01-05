@@ -11,7 +11,7 @@ environment:
   matrix:
     - job_name: win-cibw
       OPENBLASROOT: C:\Libraries\openblas
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     # - job_name: osx-cibw
     #   ACCELERATE: 1
     #   APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
@@ -39,12 +39,12 @@ init:
       }
   - sh: export DIST=dist-${APPVEYOR_JOB_NAME}
   - cmd: set DIST=dist-%APPVEYOR_JOB_NAME%
-  - cmd: set PATH=C:\Python37;C:\Python37\Scripts;%PATH%
+  - cmd: call C:\Miniconda37\Scripts\activate.bat
 
 build: script
 
 cache:
-  - C:\Libraries\openblas -> recipe\cibw_before_build_win.ps1
+  - C:\Libraries\openblas # -> recipe\cibw_before_build_win.ps1
 
 install:
   - python -m pip install cibuildwheel==2.3.1

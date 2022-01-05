@@ -92,8 +92,6 @@ def mkl_setup(roots, mkl_threading=None):
                 if ON_WINDOWS:
                     if base_name.endswith(".lib"):
                         library_name = base_name.split(".")[0]
-                    elif base_name.endswith(".dll.a"):
-                        library_name = base_name[3:].split(".")[0]
                     else:
                         library_name = None
                 elif (
@@ -166,8 +164,6 @@ def blas_setup(roots, library_names, headers, extra_entries_on_success):
                 if ON_WINDOWS:
                     if base_name.endswith(".lib"):
                         library_name = base_name.split(".")[0]
-                    elif base_name.endswith(".dll.a"):
-                        library_name = base_name[3:].split(".")[0]
                     else:
                         library_name = None
                 elif (
@@ -224,7 +220,7 @@ def lapacke_setup(roots):
         roots,
         ("blas", "lapack", "lapacke"),
         ("cblas.h", "lapacke.h"),
-        {"DEFINES": [("HAVE_LAPACKE", None)]},
+        {"DEFINES": [("HAVE_OPENBLAS", None)]},
     )
 
 
