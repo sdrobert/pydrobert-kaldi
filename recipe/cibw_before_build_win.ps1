@@ -17,7 +17,7 @@ $lapackeh = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "lapacke.h" -
 if (($null -eq $openblaslib) -or ($null -eq $cblash) -or ($null -eq $lapackeh)) {
   & conda create -n openblas-compile flang clangdev libflang -c conda-forge -y
   if (-not $?) { Write-Error -Message "openblas environment creation failed" }
-  & conda activate openblas-compie
+  & conda activate openblas-compile
   $tempFolderPath = Join-Path $Env:Temp $(New-Guid); New-Item -Type Directory -Path $tempFolderPath | Out-Null
   Push-Location $tempFolderPath
   Invoke-WebRequest -Uri "https://github.com/xianyi/OpenBLAS/archive/v0.3.19.zip" -OutFile "v0.3.19.zip"

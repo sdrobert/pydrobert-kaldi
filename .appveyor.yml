@@ -39,7 +39,7 @@ init:
       }
   - sh: export DIST=dist-${APPVEYOR_JOB_NAME}
   - cmd: set DIST=dist-%APPVEYOR_JOB_NAME%
-  - cmd: call C:\Miniconda37\Scripts\activate.bat
+  - cmd: call C:\Miniconda37-x64\Scripts\activate.bat
 
 build: script
 
