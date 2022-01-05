@@ -17,7 +17,7 @@ if (($null -eq $libpath) -or ($null -eq $cblaspath) -or ($null -eq $lapackepath)
   7z x "v0.3.19.zip"
   Set-Location ".\OpenBLAS-0.3.19"
   & cmake -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_INSTALL_PREFIX=$env:OPENBLASROOT"
-  Get-Content -Path "CMake*"
+  Get-Content "CMakeCache.txt"
   Write-Error -Message "Crap"
   if (-not $?) { Write-Error -Message "cmake configuration failed" }
   & cmake --build . --target install
