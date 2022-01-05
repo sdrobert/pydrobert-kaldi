@@ -1,13 +1,19 @@
 $ErrorActionPreference = 'Stop'
 Set-PSDebug -Trace 1
 
-choco install swig --version=4.0.1 -y
+$swigexe = Get-Command swig -ErrorAction "ignore"
+if ($null -eq $swigexe) {
+  & choco install swig --version=4.0.1 -y
+  if (-not $?) { Write-Error -Message "swig installation failed" }
+  $swig = Get-Command swig
+}
+Write-Output "SWIG found at:", $swig.Source
 
-$libpath = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "openblas.lib" -ErrorAction "ignore"
-$cblaspath = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "cblas.h" -ErrorAction "ignore"
-$lapackepath = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "lapacke.h" -ErrorAction "ignore"
+$openblaslib = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "openblas.lib" -ErrorAction "ignore"
+$cblash = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "cblas.h" -ErrorAction "ignore"
+$lapackeh = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "lapacke.h" -ErrorAction "ignore"
 
-if (($null -eq $libpath) -or ($null -eq $cblaspath) -or ($null -eq $lapackepath)) {
+if (($null -eq $openblaslib) -or ($null -eq $cblash) -or ($null -eq $lapackeh)) {
   $tempFolderPath = Join-Path $Env:Temp $(New-Guid); New-Item -Type Directory -Path $tempFolderPath | Out-Null
   Push-Location $tempFolderPath
   Invoke-WebRequest -Uri "https://github.com/xianyi/OpenBLAS/archive/v0.3.19.zip" -OutFile "v0.3.19.zip"
@@ -17,18 +23,16 @@ if (($null -eq $libpath) -or ($null -eq $cblaspath) -or ($null -eq $lapackepath)
   7z x "v0.3.19.zip"
   Set-Location ".\OpenBLAS-0.3.19"
   & cmake -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_INSTALL_PREFIX=$env:OPENBLASROOT"
-  Get-Content "CMakeCache.txt"
-  Write-Error -Message "Crap"
   if (-not $?) { Write-Error -Message "cmake configuration failed" }
   & cmake --build . --target install
   if (-not $?) { Write-Error -Message "cmake build failed" }
   Pop-Location
   # check that they all exist
-  Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "openblas.lib"
-  Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "cblas.h"
-  Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "lapacke.h"
+  $openblaslib = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "openblas.lib"
+  $cblash = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "cblas.h"
+  $lapackeh = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "lapacke.h"
 }
 
-Get-ChildItem -Recurse $env:OPENBLASROOT
+Write-Output "openblas.lib found at:", $openblaslib.Source, "cblas.h found at:", $cblash.Source, "lapacke.h found at", $lapackeh.Source
 
 python -m pip install -r recipe/cibw_before_requirements.txt
