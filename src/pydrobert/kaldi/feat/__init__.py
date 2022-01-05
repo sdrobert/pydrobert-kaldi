@@ -14,4 +14,4 @@
 
 """Access to kaldi routines/types involving features"""
 
-__all__ = ["command_line"]
+__all__ = []

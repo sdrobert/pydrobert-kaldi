@@ -15,10 +15,12 @@
 """Command line hooks for I/O-related activities"""
 
 
+import argparse
 import logging
 import sys
 import os
 import pickle
+
 from typing import Optional, Sequence
 
 import numpy as np
@@ -41,7 +43,10 @@ __all__ = [
 def _write_table_to_pickle_parse_args(args, logger):
     """Parse args for write_table_to_pickle"""
     parser = KaldiParser(
-        description=write_table_to_pickle.__doc__, add_verbose=True, logger=logger
+        description=write_table_to_pickle.__doc__,
+        add_verbose=True,
+        logger=logger,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("rspecifier", type="kaldi_rspecifier", help="The table to read")
     parser.add_argument(
@@ -152,7 +157,10 @@ def write_table_to_pickle(args: Optional[Sequence[str]] = None) -> None:
 def _write_pickle_to_table_parse_args(args, logger):
     """Parse args for write_pickle_to_table"""
     parser = KaldiParser(
-        description=write_pickle_to_table.__doc__, add_verbose=True, logger=logger
+        description=write_pickle_to_table.__doc__,
+        add_verbose=True,
+        logger=logger,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "value_in",
@@ -401,7 +409,10 @@ def write_pickle_to_table(args: Optional[Sequence[str]] = None) -> None:
 
 def _write_table_to_torch_dir_parse_args(args, logger):
     parser = KaldiParser(
-        description=write_table_to_torch_dir.__doc__, add_verbose=True, logger=logger,
+        description=write_table_to_torch_dir.__doc__,
+        add_verbose=True,
+        logger=logger,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("rspecifier", type="kaldi_rspecifier", help="The table to read")
     parser.add_argument("dir", type=str, help="The folder to write files to")
@@ -438,15 +449,14 @@ def write_table_to_torch_dir(args: Optional[Sequence[str]] = None) -> None:
     """Write a Kaldi table to a series of PyTorch data files in a directory
 
     Writes to a folder in the format:
-
-    ::
+    
         folder/
-          <file_prefix><key_1><file_suffix>
-          <file_prefix><key_2><file_suffix>
-          ...
+            <file_prefix><key_1><file_suffix>
+            <file_prefix><key_2><file_suffix>
+            ...
 
-    The contents of the file ``<file_prefix><key_1><file_suffix>`` will be
-    a PyTorch tensor corresponding to the entry in the table for ``<key_1>``
+    The contents of the file "<file_prefix><key_1><file_suffix>" will be a PyTorch
+    tensor corresponding to the entry in the table for "<key_1>"
     """
     logger = logging.getLogger(sys.argv[0])
     if not logger.handlers:
@@ -529,7 +539,10 @@ def write_table_to_torch_dir(args: Optional[Sequence[str]] = None) -> None:
 
 def _write_torch_dir_to_table_parse_args(args, logger):
     parser = KaldiParser(
-        description=write_torch_dir_to_table.__doc__, add_verbose=True, logger=logger,
+        description=write_torch_dir_to_table.__doc__,
+        add_verbose=True,
+        logger=logger,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("dir", type=str, help="The folder to read files from")
     parser.add_argument(
@@ -561,15 +574,14 @@ def write_torch_dir_to_table(args: Optional[Sequence[str]] = None) -> None:
 
     Reads from a folder in the format:
 
-    ::
         folder/
           <file_prefix><key_1><file_suffix>
           <file_prefix><key_2><file_suffix>
           ...
 
     Where each file contains a PyTorch tensor. The contents of the file
-    ``<file_prefix><key_1><file_suffix>`` will be written as a value in
-    a Kaldi table with key ``<key_1>``
+    "<file_prefix><key_1><file_suffix>" will be written as a value in a Kaldi table with
+    key "<key_1>"
     """
     logger = logging.getLogger(sys.argv[0])
     if not logger.handlers:

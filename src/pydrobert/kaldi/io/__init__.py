@@ -37,7 +37,7 @@ A full account of Kaldi IO can be found on Kaldi's website under `Kaldi I/O Mech
 
 See Also
 --------
-pydrobert.kaldi.io.enums.KaldiDataTypes
+pydrobert.kaldi.io.enums.KaldiDataType
     For more information on the types of streams that can be read or
     written
 """
@@ -56,13 +56,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     "KaldiIOBase",
-    "duck_streams",
-    "table_streams",
-    "enums",
-    "util",
-    "corpus",
     "open",
-    "argparse",
 ]
 
 try:
@@ -78,14 +72,13 @@ except ValueError:
 class KaldiIOBase(object, metaclass=abc.ABCMeta):
     """IOBase for kaldi readers and writers
 
-    Similar to ``io.IOBase``, but without a lot of the assumed
-    functionality.
+    Similar to ``io.IOBase``, but without a lot of the assumed functionality.
 
     Arguments
     ---------
     path : str
-        The path passed to ``pydrobert.kaldi.io.open``. One of an
-        rspecifier, wspecifier, rxfilename, or wxfilename
+        The path passed to ``pydrobert.kaldi.io.open``. One of an rspecifier,
+        wspecifier, rxfilename, or wxfilename
 
     Attributes
     ----------

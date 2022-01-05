@@ -14,6 +14,7 @@
 
 """Command line hooks for feature-related activities"""
 
+import argparse
 import logging
 import sys
 from typing import Optional, Sequence
@@ -33,7 +34,10 @@ __all__ = [
 
 def _normalize_feat_lens_parse_args(args, logger):
     parser = KaldiParser(
-        description=normalize_feat_lens.__doc__, add_verbose=True, logger=logger,
+        description=normalize_feat_lens.__doc__,
+        add_verbose=True,
+        logger=logger,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "feats_in_rspecifier",
@@ -87,9 +91,8 @@ frame edges, mean=pad with mean feature values
         default="right",
         choices=("left", "right", "center"),
         help="""\
-If an utterance needs to be padded or truncated, specify what side of the
-utterance to do this on. left=beginning, right=end, center=distribute
-evenly on either side
+If an utterance needs to be padded or truncated, specify what side of the utterance to
+do this on. left=beginning, right=end, center=distribute evenly on either side
 """,
     )
     return parser.parse_args(args)
@@ -100,9 +103,8 @@ evenly on either side
 def normalize_feat_lens(args: Optional[Sequence[str]] = None) -> None:
     """Ensure features match some reference lengths
 
-    Incoming features are either clipped or padded to match
-    reference lengths (stored as an int32 table), if they are within
-    tolerance.
+    Incoming features are either clipped or padded to match reference lengths (stored as
+    an int32 table), if they are within tolerance.
     """
     logger = logging.getLogger(sys.argv[0])
     if not logger.handlers:

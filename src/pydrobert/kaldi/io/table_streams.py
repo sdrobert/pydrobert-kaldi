@@ -25,10 +25,11 @@ from pydrobert.kaldi.io import KaldiIOBase
 from pydrobert.kaldi.io.enums import KaldiDataType
 
 __all__ = [
-    "KaldiTable",
-    "KaldiSequentialReader",
     "KaldiRandomAccessReader",
+    "KaldiSequentialReader",
+    "KaldiTable",
     "KaldiWriter",
+    "open_table_stream",
 ]
 
 

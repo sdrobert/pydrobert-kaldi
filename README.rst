@@ -26,18 +26,18 @@ decoding.
 Input/Output
 ------------
 
-Most I/O can be performed with the ``pydrobert.kaldi.io.open`` function:
+Most I/O can be performed with the :func:`pydrobert.kaldi.io.open` function:
 
 >>> from pydrobert.kaldi import io
 >>> with io.open('scp:foo.scp', 'bm') as f:
 >>>     for matrix in f:
 >>>         pass # do something
 
-``open`` is a factory function that determines the appropriate underlying
-stream to open, much like Python's built-in ``open``. The data types we can
-read (here, a ``BaseMatrix``) are listed in
-``pydrobert.kaldi.io.enums.KaldiDataType``. Big data types, like matrices and
-vectors, are piped into Numpy_ arrays. Passing an extended filename  (e.g.
+:func:`open` is a factory function that determines the appropriate underlying
+stream to open, much like Python's built-in :func:`open`. The data types we can
+read (here, a :class:`BaseMatrix`) are listed in
+:class:`pydrobert.kaldi.io.enums.KaldiDataType`. Big data types, like matrices
+and vectors, are piped into Numpy_ arrays. Passing an extended filename  (e.g.
 paths to files on discs, ``'-'`` for stdin/stdout, ``'gzip -c a.ark.gz |'``,
 etc.) opens a stream from which data types can be read one-by-one and in the
 order they were written. Alternatively, prepending the extended filename with
@@ -47,8 +47,8 @@ type allows one to open a Kaldi table for iterator-like sequential reading
 (``mode='w'``). For more information on the open function, consult the
 docstring. Information on `Kaldi I/O`_ can be found on their website.
 
-The submodule ``pydrobert.kaldi.io.corpus`` contains useful wrappers around
-Kaldi I/O to serve up batches of data to, say, a neural network:
+The submodule `pydrobert.kaldi.io.corpus` contains useful wrappers around Kaldi
+I/O to serve up batches of data to, say, a neural network:
 
 >>> train = ShuffledData('scp:feats.scp', 'scp:labels.scp', batch_size=10)
 >>> for feat_batch, label_batch in train:
@@ -58,16 +58,17 @@ Logging and CLI
 ---------------
 
 By default, Kaldi error, warning, and critical messages are piped to standard
-error. The ``pydrobert.kaldi.logging`` submodule provides hooks into python's
-native logging interface: the ``logging`` module. The ``KaldiLogger`` can
+error. The `pydrobert.kaldi.logging` submodule provides hooks into python's
+native logging interface: the `logging` module. The :class:`KaldiLogger` can
 handle stack traces from Kaldi C++ code, and there are a variety of decorators
 to finagle the kaldi logging patterns to python logging patterns, or vice
 versa.
 
 You'd likely want to explicitly handle logging when creating new kaldi-style
-commands for command line. ``pydrobert.kaldi.io.argparse`` provides
-``KaldiParser``, an ``ArgumentParser`` tailored to Kaldi inputs/outputs. It is
-used by a few command-line entry points added by this package. They are:
+commands for command line. `pydrobert.kaldi.io.argparse` provides
+:class:`KaldiParser`, an :class:`ArgumentParser` tailored to Kaldi
+inputs/outputs. It is used by a few command-line entry points added by this
+package. They are:
 
 write-table-to-pickle
   Write the contents of a kaldi table to a pickle file(s). Good for late night
@@ -87,9 +88,6 @@ normalize-feat-lens
 compute-error-rate
   Compute an error rate between reference and hypothesis texts, such as a WER
   or PER.
-normalize-feat-lens
-  Ensure features match some reference length, either by padding or clipping
-  the end.
 
 Installation
 ------------
