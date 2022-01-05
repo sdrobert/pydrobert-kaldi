@@ -3,6 +3,8 @@ Set-PSDebug -Trace 1
 
 choco install swig --version=4.0.1 -y
 
+Write-Error -Message $env:OPENBLASROOT
+
 $tempFolderPath = Join-Path $Env:Temp $(New-Guid); New-Item -Type Directory -Path $tempFolderPath | Out-Null
 Push-Location $tempFolderPath
 Invoke-WebRequest -Uri "https://github.com/xianyi/OpenBLAS/archive/v0.3.19.zip" -OutFile "v0.3.19.zip"
