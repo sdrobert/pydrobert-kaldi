@@ -43,6 +43,9 @@ init:
 
 build: script
 
+cache:
+  - C:\Libraries\openblas -> recipe\cibw_before_build_win.ps1
+
 install:
   - python -m pip install cibuildwheel==2.3.1
 
