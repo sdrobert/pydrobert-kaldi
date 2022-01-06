@@ -15,7 +15,8 @@ $cblash = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "cblas.h" -Erro
 $lapackeh = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "lapacke.h" -ErrorAction "ignore"
 
 if (($null -eq $openblaslib) -or ($null -eq $cblash) -or ($null -eq $lapackeh)) {
-  & conda create -n openblas-compile flang clangdev libflang -c conda-forge -y
+  & conda update -n base conda
+  & conda create -n openblas-compile flang clangdev libflang -c conda-forge cmake ninja perl -y
   if (-not $?) { Write-Error -Message "openblas environment creation failed" }
   & conda activate openblas-compile
   $tempFolderPath = Join-Path $Env:Temp $(New-Guid); New-Item -Type Directory -Path $tempFolderPath | Out-Null
