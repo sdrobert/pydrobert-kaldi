@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 
-& conda install swig=4.0.2 openblas -y
+& conda install swig=4.0.2 openblas=0.2.20 -c conda-forge -y
 if (-not $?) { Write-Error -Message "Unable to install conda packages" }
 
 # swig
