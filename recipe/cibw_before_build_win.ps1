@@ -27,6 +27,8 @@ if (($null -eq $openblaslib) -or ($null -eq $cblash) -or ($null -eq $lapackeh)) 
   $lapackeh = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "lapacke.h"
 }
 
+Get-ChildItem $env:OPENBLASROOT -Recurse
+
 Write-Output "openblas.lib found at:", $openblaslib.Source, "cblas.h found at:", $cblash.Source, "lapacke.h found at", $lapackeh.Source
 
 & python -m pip install -r recipe/cibw_before_requirements.txt
