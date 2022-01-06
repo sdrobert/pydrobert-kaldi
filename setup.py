@@ -29,11 +29,11 @@ IS_64_BIT = sys.maxsize > 2 ** 32
 ON_WINDOWS = platform.system() == "Windows"
 
 if ON_WINDOWS:
-    LIBRARY_SUFFIXES = {'lib'}
+    LIBRARY_SUFFIXES = {"lib"}
 elif platform.system() == "Darwin":
-    LIBRARY_SUFFIXES = {'a', 'dylib'}
+    LIBRARY_SUFFIXES = {"a", "dylib"}
 else:
-    LIBRARY_SUFFIXES = {'a', 'so'}
+    LIBRARY_SUFFIXES = {"a", "so"}
 
 # modified this bad boy from
 # https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex
@@ -105,17 +105,6 @@ def mkl_setup(roots, mkl_threading=None):
                             library_name = None  # not sure what to do with this
                 else:
                     library_name = None
-                if ON_WINDOWS:
-                    if base_name.endswith(".lib"):
-                        library_name = 
-                    else:
-                        library_name = None
-                elif (
-                    base_name.endswith(".so")
-                    or base_name.endswith(".a")
-                    or base_name.endswith(".dylib")
-                ):
-                    library_name = 
                 if library_name in found_mkl_libs and not found_mkl_libs[library_name]:
                     found_mkl_libs[library_name] = True
                     blas_library_dirs.add(root_name)
