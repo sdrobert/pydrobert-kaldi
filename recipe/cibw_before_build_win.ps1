@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 # swig
 $swigexe = Get-Command swig -ErrorAction "ignore"
 if ($null -eq $swigexe) {
-  & conda install swig=4.0.2 -y
+  & choco install swig --version 4.0.1 -y
   if (-not $?) { Write-Error -Message "swig installation failed" }
   $swig = Get-Command swig
 }
