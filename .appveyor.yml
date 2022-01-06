@@ -12,7 +12,7 @@ environment:
   matrix:
     - job_name: linux-cibw-x86_64
       CIBW_ARCHS_LINUX: x86_64
-      OPENBLASROOT: /usr/local
+      OPENBLASROOT: /usr
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     - job_name: win-cibw
       OPENBLASROOT: C:\Libraries\openblas
@@ -22,7 +22,7 @@ environment:
       APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
     - job_name: linux-cibw-i686
       CIBW_ARCHS_LINUX: i686
-      OPENBLASROOT: /usr/local
+      OPENBLASROOT: /usr
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
 
 
@@ -50,7 +50,7 @@ cache:
   - C:\Libraries\openblas -> recipe\cibw_before_build_win.ps1
 
 install:
-  - python -m pip install cibuildwheel==2.3.1
+  - python -m pip install cibuildwheel
 
 build_script:
   - sh: cibuildwheel --output-dir ${DIST}

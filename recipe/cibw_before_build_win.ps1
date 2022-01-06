@@ -16,7 +16,7 @@ $lapackeh = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "lapacke.h" -
 
 if (($null -eq $openblaslib) -or ($null -eq $cblash) -or ($null -eq $lapackeh)) {
   Invoke-WebRequest -Uri "https://anaconda.org/conda-forge/openblas/0.2.20/download/win-64/openblas-0.2.20-vc14_8.tar.bz2" -OutFile "openblas.tar.bz2"
-  $hash = Get-FileHash openblas.tar.bz2 -
+  $hash = Get-FileHash openblas.tar.bz2
   if (-not ($hash.Hash -eq "74BB55BCC4C5B760A08424ED7A53D08FF9581278BB05441F7F6E5F43AADCF8CA")) { Write-Error "openblas hash does not match" }
   & 7z x openblas.tar.bz2
   & 7z x -aoa openblas.tar
