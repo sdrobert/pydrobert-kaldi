@@ -7,7 +7,7 @@ environment:
   CIBW_BEFORE_BUILD_LINUX: bash {project}/recipe/cibw_before_build_manylinux.sh
   CIBW_BEFORE_BUILD_MACOS: bash {project}/recipe/cibw_before_build_osx.sh
   CIBW_BEFORE_BUILD_WINDOWS: powershell.exe {project}/recipe/cibw_before_build_win.ps1
-  CIBW_SKIP: pp*
+  CIBW_SKIP: pp* *-win32
   matrix:
     - job_name: win-cibw
       OPENBLASROOT: C:\Libraries\openblas
@@ -44,7 +44,6 @@ init:
   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
   # - cmd: call C:\Miniconda37-x64\Scripts\activate.bat
   # - cmd: conda init powershell
-  # - cmd: set LIBPATH=C:\Miniconda37-x64\Library\bin;%LIBPATH%
 
 build: script
 
