@@ -7,6 +7,7 @@ environment:
   CIBW_BEFORE_BUILD_LINUX: bash {project}/recipe/cibw_before_build_manylinux.sh
   CIBW_BEFORE_BUILD_MACOS: bash {project}/recipe/cibw_before_build_osx.sh
   CIBW_BEFORE_BUILD_WINDOWS: powershell.exe {project}/recipe/cibw_before_build_win.ps1
+  CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel} --add-path "C:\Libraries\openblas"
   CIBW_SKIP: pp* *-win32
   matrix:
     - job_name: win-cibw
