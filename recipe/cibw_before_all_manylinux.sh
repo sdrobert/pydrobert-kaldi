@@ -32,7 +32,7 @@ if ! command -v swig; then
   fi
 fi
 
-swig --version
+swig -version
 
 if [ ! -f "${OPENBLASROOT}/include/cblas.h" ] ; then
   yum install -y openblas-devel || apk add openblas-dev
