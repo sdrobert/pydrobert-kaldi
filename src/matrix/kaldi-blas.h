@@ -96,22 +96,20 @@
     #include <mkl.h>
   }
 #elif defined(HAVE_OPENBLAS)
+  #include <complex>
   // getting cblas.h and lapacke.h from <openblas-install-dir>/.
   // putting in "" not <> to search -I before system libraries.
-  
+
 #ifdef _MSC_VER
   // sdrobert: following
   // https://stackoverflow.com/questions/24853450/errors-using-lapack-c-header-in-c-with-visual-studio-2010.
   // It'll spew a lot of errors, but should be okay.
-  #include <complex>
   #define lapack_complex_float std::complex<float>
   #define lapack_complex_double std::complex<double>
 #endif
 
-  extern "C" {
-    #include "cblas.h"
-    #include "lapacke.h"
-  }
+  #include "cblas.h"
+  #include "lapacke.h"
   #undef I
   #undef complex
   // get rid of macros from f2c.h -- these are dangerous.

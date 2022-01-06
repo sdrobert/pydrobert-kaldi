@@ -2,11 +2,11 @@
 
 set -e -x
 
-if [ `uname -m` = 'x86_64' ]; then
-  MARCH_SUFFIX=.x86_64
-else
-  MARCH_SUFFIX=.i686
-fi
+# if [ `uname -m` = 'x86_64' ]; then
+#   MARCH_SUFFIX=.x86_64
+# else
+#   MARCH_SUFFIX=.i686
+# fi
 
 if ! command -v curl; then
   yum install -y curl || apk add curl 
@@ -31,6 +31,8 @@ if ! command -v swig; then
     command -v swig
   fi
 fi
+
+swig --version
 
 if [ ! -f "${OPENBLASROOT}/include/cblas.h" ] ; then
   yum install -y openblas-devel || apk add openblas-dev
