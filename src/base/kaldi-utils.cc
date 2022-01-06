@@ -21,9 +21,10 @@
 #include <chrono>
 #include <cstdio>
 #include <thread>
+#include <cctype>
 
 #if defined(_MSC_VER) && _MSC_VER < 1900
-  #define mysnprintf _snprintf
+  #define mysnprintf c99_snprintf
 #else
   #define mysnprintf std::snprintf
 #endif
