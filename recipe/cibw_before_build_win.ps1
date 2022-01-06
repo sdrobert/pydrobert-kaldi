@@ -28,7 +28,7 @@ if (($null -eq $openblaslib) -or ($null -eq $cblash) -or ($null -eq $lapackeh)) 
   & 7z x "v0.3.19.zip"
   New-Item -Path ".\OpenBLAS-0.3.19\build" -ItemType "directory"
   Set-Location ".\OpenBLAS-0.3.19\build"
-  & cmake ... -G Ninja "-DCMAKE_INSTALL_PREFIX=$env:OPENBLASROOT" -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_C_COMPILER=clang-cl -DCMAKE_Fortran_COMPILER=flang -DCMAKE_MT=mt -DBUILD_WITHOUT_LAPACK=no -DNOFORTRAN=0 -DDYNAMIC_ARCH=ON -DCMAKE_BUILD_TYPE=Release
+  & cmake .. -G Ninja "-DCMAKE_INSTALL_PREFIX=$env:OPENBLASROOT" -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_C_COMPILER=clang-cl -DCMAKE_Fortran_COMPILER=flang -DCMAKE_MT=mt -DBUILD_WITHOUT_LAPACK=no -DNOFORTRAN=0 -DCMAKE_BUILD_TYPE=Release
   if (-not $?) { Write-Error -Message "cmake configuration failed" }
   & cmake --build . --target install
   if (-not $?) { Write-Error -Message "cmake build failed" }
