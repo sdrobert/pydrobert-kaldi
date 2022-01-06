@@ -8,14 +8,22 @@ set -e -x
 #   MARCH_SUFFIX=.i686
 # fi
 
+if command -v yum &> /dev/null; then
+  install_command="yum install -y"
+  openblas_pkg=openblas-devel
+else
+  install_command="apk add"
+  openblas_pkg=openblas_dev
+  $install_command libexecinfo-dev || true
+fi
+
 if ! command -v curl; then
-  yum install -y curl || apk add curl 
+  $install_command add curl 
   command -v curl
 fi
 
-
 if ! command -v swig; then
-  if ! apk add 'swig=4.0.2-r4' || ! command -v swig; then
+  if ! $install_command 'swig=4.0.2-r4' || ! command -v swig; then
     # build swig 4.0.2
     tmpdir=$(mktemp -d)
     pushd $tmpdir
@@ -33,6 +41,6 @@ if ! command -v swig; then
 fi
 
 if [ ! -f "${OPENBLASROOT}/include/cblas.h" ] ; then
-  yum install -y openblas-devel || apk add openblas-dev
+  $install_command $openblas_pkg
   find "${OPENBLASROOT}" \( -name 'cblas.h' -o -name 'lapacke.h' -o -name 'libopenblas.so' \)
 fi
