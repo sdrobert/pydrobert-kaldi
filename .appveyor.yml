@@ -51,12 +51,12 @@ branches:
     - /docs/
 
 for:
-  -
+  - 
+    # skip 32-bit and musl linux unless we're a tag
     matrix:
       only:
-        - job_name: /musllinux/
-        - job_name: /-i686/
-
+        - CIBW_ARCHS_LINUX: i686
+        - CIBW_SKIP: /-manylinux/
     skip_non_tags: true
   
 
