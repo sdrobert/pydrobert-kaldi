@@ -10,6 +10,7 @@ fi
 
 if ! command -v curl; then
   yum install -y curl
+  command -v curl
 fi
 
 
@@ -26,6 +27,7 @@ if ! command -v swig; then
   make
   make install
   popd
+  command -v swig
 fi
 
 if [ ! -f "${OPENBLASROOT}/include/cblas.h" ] ; then
