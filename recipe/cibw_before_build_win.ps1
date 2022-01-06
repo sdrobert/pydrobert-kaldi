@@ -18,8 +18,12 @@ $lapackeh = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "lapacke.h" -
 if (($null -eq $openblaslib) -or ($null -eq $cblash) -or ($null -eq $lapackeh)) {
   Invoke-WebRequest -Uri "https://anaconda.org/conda-forge/openblas/0.2.20/download/win-64/openblas-0.2.20-vc14_8.tar.bz2" -OutFile "openblas.tar.bz2"
   & 7z x openblas.tar.bz2
-  & 7z x openblas.tar
+  & 7z x -aoa openblas.tar
   if (-not $?) { Write-Error "Unable to extract openblas" }
+  Invoke-WebRequest -Uri "https://anaconda.org/conda-forge/libflang/5.0.0/download/win-64/libflang-5.0.0-vc14_1.tar.bz2" -OutFile "libflang.tar.bz2"
+  & 7z x libflang.tar.bz2
+  & 7z x -aoa libflang.tar
+  if (-not $?) { Write-Error "Unable to extract libflang" }
   Copy-Item -Path ".\Library\*" -Destination $env:OPENBLASROOT -Recurse
   # check that they all exist
   $openblaslib = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "openblas.lib"
