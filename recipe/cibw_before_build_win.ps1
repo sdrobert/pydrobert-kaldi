@@ -16,18 +16,19 @@ $lapackeh = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "lapacke.h" -
 
 if (($null -eq $openblaslib) -or ($null -eq $cblash) -or ($null -eq $lapackeh)) {
   & conda update -n base conda -y
-  & conda create -n openblas-compile flang clangdev libflang cmake ninja perl  -c conda-forge -y
+  & conda create -n openblas-compile flang clangdev libflang cmake ninja perl -c conda-forge -y
   if (-not $?) { Write-Error -Message "openblas environment creation failed" }
   & conda activate openblas-compile
-  $tempFolderPath = Join-Path $Env:Temp $(New-Guid); New-Item -Type Directory -Path $tempFolderPath | Out-Null
-  Push-Location $tempFolderPath
-  Invoke-WebRequest -Uri "https://github.com/xianyi/OpenBLAS/archive/v0.3.19.zip" -OutFile "v0.3.19.zip"
-  if (-not ((Get-FileHash "v0.3.19.zip").Hash -eq "B3BECAEBC2CB905F4769EBEF621D7969002FF87BCBAA166C53338611E17AA05A")) {
-    Write-Error -Message "Hash did not match"
+  if (-not (Test-Path -Path "v0.3.19.zip")) {
+    Invoke-WebRequest -Uri "https://github.com/xianyi/OpenBLAS/archive/v0.3.19.zip" -OutFile "v0.3.19.zip"
+    if (-not ((Get-FileHash "v0.3.19.zip").Hash -eq "B3BECAEBC2CB905F4769EBEF621D7969002FF87BCBAA166C53338611E17AA05A")) {
+      Write-Error -Message "Hash did not match"
+    }
   }
-  7z x "v0.3.19.zip"
-  Set-Location ".\OpenBLAS-0.3.19"
-  & cmake -G Ninja "-DCMAKE_INSTALL_PREFIX=$env:OPENBLASROOT" -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_C_COMPILER=clang-cl -DCMAKE_Fortran_COMPILER=flang -DCMAKE_MT=mt -DBUILD_WITHOUT_LAPACK=no -DNOFORTRAN=0 -DDYNAMIC_ARCH=ON -DCMAKE_BUILD_TYPE=Release
+  & 7z x "v0.3.19.zip"
+  New-Item -Path ".\OpenBLAS-0.3.19\build" -ItemType "directory"
+  Set-Location ".\OpenBLAS-0.3.19\build"
+  & cmake ... -G Ninja "-DCMAKE_INSTALL_PREFIX=$env:OPENBLASROOT" -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_C_COMPILER=clang-cl -DCMAKE_Fortran_COMPILER=flang -DCMAKE_MT=mt -DBUILD_WITHOUT_LAPACK=no -DNOFORTRAN=0 -DDYNAMIC_ARCH=ON -DCMAKE_BUILD_TYPE=Release
   if (-not $?) { Write-Error -Message "cmake configuration failed" }
   & cmake --build . --target install
   if (-not $?) { Write-Error -Message "cmake build failed" }

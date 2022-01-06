@@ -40,10 +40,12 @@ init:
   - sh: export DIST=dist-${APPVEYOR_JOB_NAME}
   - cmd: set DIST=dist-%APPVEYOR_JOB_NAME%
   - cmd: call C:\Miniconda37-x64\Scripts\activate.bat
+  - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
 
 build: script
 
 cache:
+  - '%APPVEYOR_BUILD_FOLDER%\v0.3.19.zip'
   - C:\Libraries\openblas # -> recipe\cibw_before_build_win.ps1
 
 install:
