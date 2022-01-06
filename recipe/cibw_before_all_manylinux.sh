@@ -32,8 +32,6 @@ if ! command -v swig; then
   fi
 fi
 
-swig -version
-
 if [ ! -f "${OPENBLASROOT}/include/cblas.h" ] ; then
   yum install -y openblas-devel || apk add openblas-dev
   find "${OPENBLASROOT}" \( -name 'cblas.h' -o -name 'lapacke.h' -o -name 'libopenblas.so' \)
