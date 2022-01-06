@@ -34,5 +34,3 @@ if (($null -eq $openblaslib) -or ($null -eq $cblash) -or ($null -eq $lapackeh)) 
   $lapackeh = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "lapacke.h"
 }
 
-& python -m pip install -r recipe/cibw_before_requirements.txt
-if (-not $?) { Write-Error -Message "requirements install failed" }

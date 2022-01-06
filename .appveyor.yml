@@ -3,10 +3,10 @@ version: build.{build}.branch.{branch}
 environment:
   CIBW_TEST_REQUIRES: pytest
   CIBW_TEST_COMMAND: pytest {project}/tests -m "not pytorch"
-  CIBW_BEFORE_BUILD: pip install -r {project}/recipe/cibw_before_requirements.txt
-  CIBW_BEFORE_BUILD_LINUX: bash {project}/recipe/cibw_before_build_manylinux.sh
-  CIBW_BEFORE_BUILD_MACOS: bash {project}/recipe/cibw_before_build_osx.sh
-  CIBW_BEFORE_BUILD_WINDOWS: powershell.exe {project}/recipe/cibw_before_build_win.ps1
+  CIBW_BEFORE_ALL_LINUX: export OPENBLASROOT=/usr; bash {project}/recipe/cibw_before_all_manylinux.sh
+  CIBW_BEFORE_ALL_MACOS: export ACCELERATE=1; bash {project}/recipe/cibw_before_build_osx.sh
+  CIBW_BEFORE_ALL_WINDOWS: set OPENBLASROOT=C:\Libraries\openblas; powershell.exe {project}/recipe/cibw_before_build_win.ps1
+  CIBW_BEFORE_BUILD: python -m pip install -r {project}/recipe/cibw_before_requirements.txt
   CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel} --add-path "C:\Libraries\openblas\bin"
   CIBW_SKIP: pp* *-win32
   matrix:
@@ -16,7 +16,6 @@ environment:
     - job_name: win-cibw
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     - job_name: osx-cibw
-      ACCELERATE: 1
       APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
     - job_name: linux-cibw-i686
       CIBW_ARCHS_LINUX: i686
@@ -36,15 +35,7 @@ init:
         Update-AppveyorBuild -Version "$($env:APPVEYOR_REPO_TAG_NAME.TrimStart("v"))"
       }
   - sh: export DIST=dist-${APPVEYOR_JOB_NAME}
-  - sh: >-
-      if [ "$(uname)" = "Darwin" ]; then
-        export ACCELERATE=1
-      else
-        export OPENBLASROOT=/usr
-      fi
-  - cmd: set OPENBLASROOT=C:\Libraries\openblas
   - cmd: set DIST=dist-%APPVEYOR_JOB_NAME%
-  - cmd: set LIBPATH=%OPENBLASROOT$\bin;%LIBPATH%
   - cmd: set PATH=C:\Python37-x64;C:\Python37-x64\Scripts;%PATH%
   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
 

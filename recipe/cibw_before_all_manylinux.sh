@@ -34,5 +34,3 @@ if [ ! -f "${OPENBLASROOT}/include/cblas.h" ] ; then
   yum install -y openblas-devel${MARCH_SUFFIX}
   find "${OPENBLASROOT}" \( -name 'cblas.h' -o -name 'lapacke.h' -o -name 'libopenblas.so' \)
 fi
-
-python -m pip install -r recipe/cibw_before_requirements.txt

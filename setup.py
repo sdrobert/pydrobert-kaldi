@@ -218,7 +218,7 @@ def atlas_setup(roots):
 def lapacke_setup(roots):
     return blas_setup(
         roots,
-        ("blas", "lapack", "lapacke"),
+        ("blas", "cblas", "lapack", "lapacke"),
         ("cblas.h", "lapacke.h"),
         {"DEFINES": [("HAVE_OPENBLAS", None)]},
     )
