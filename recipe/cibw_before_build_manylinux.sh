@@ -30,7 +30,7 @@ fi
 
 if ! pkg-config --exists 'openblas'; then
   yum install -y openblas-devel${MARCH_SUFFIX}
-  pkg-config --print-variables 'openblas'
+  rpm -q openblas-devel${MARCH_SUFFIX}
 fi
 
 python -m pip install -r recipe/cibw_before_requirements.txt
