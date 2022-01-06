@@ -108,8 +108,10 @@
   #define lapack_complex_double std::complex<double>
 #endif
 
-  #include "cblas.h"
-  #include "lapacke.h"
+  extern "C" {
+    #include "cblas.h"
+    #include "lapacke.h"
+  }
   #undef I
   #undef complex
   // get rid of macros from f2c.h -- these are dangerous.
