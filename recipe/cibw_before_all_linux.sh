@@ -13,7 +13,7 @@ if command -v yum &> /dev/null; then
   openblas_pkg=openblas-devel
 else
   install_command="apk add"
-  openblas_pkg=openblas_dev
+  openblas_pkg=openblas-dev
   $install_command libexecinfo-dev || true
 fi
 

@@ -6,7 +6,7 @@ environment:
   CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr
   CIBW_ENVIRONMENT_MACOS: ACCELERATE=1
   CIBW_ENVIRONMENT_WINDOWS: OPENBLASROOT=C:\\Libraries\\openblas
-  CIBW_BEFORE_ALL_LINUX: bash {project}/recipe/cibw_before_all_manylinux.sh
+  CIBW_BEFORE_ALL_LINUX: bash {project}/recipe/cibw_before_all_linux.sh
   CIBW_BEFORE_ALL_MACOS: bash {project}/recipe/cibw_before_all_osx.sh
   CIBW_BEFORE_ALL_WINDOWS: powershell.exe {project}/recipe/cibw_before_all_win.ps1
   CIBW_BEFORE_BUILD: python -m pip install -r {project}/recipe/cibw_before_requirements.txt
