@@ -326,6 +326,10 @@ else:
     DEFINES += []
 LD_FLAGS = []
 
+# Adds additional libraries. Primarily for alpine libc (musllinux build),
+# which doesn't package execinfo by default.
+LIBRARIES += cmdline_split(environ.get("ADDITIONAL_LIBS", ""))
+
 MKL_ROOT = cmdline_split(environ.get("MKLROOT", ""))
 OPENBLAS_ROOT = cmdline_split(environ.get("OPENBLASROOT", ""))
 ATLAS_ROOT = cmdline_split(environ.get("ATLASROOT", ""))

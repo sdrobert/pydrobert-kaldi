@@ -3,7 +3,6 @@ version: build.{build}.branch.{branch}
 environment:
   CIBW_TEST_REQUIRES: pytest
   CIBW_TEST_COMMAND: pytest {project}/tests -m "not pytorch"
-  CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr
   CIBW_ENVIRONMENT_MACOS: ACCELERATE=1
   CIBW_ENVIRONMENT_WINDOWS: OPENBLASROOT=C:\\Libraries\\openblas
   CIBW_BEFORE_ALL_LINUX: bash {project}/recipe/cibw_before_all_linux.sh
@@ -13,14 +12,16 @@ environment:
   CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel} --add-path "C:\Libraries\openblas\bin"
   CIBW_SKIP: pp* *-win32 *-manylinux*
   matrix:
-    - job_name: manylinux-x86_64
-      CIBW_ARCHS_LINUX: x86_64
-      CIBW_SKIP: pp* *-musllinux*
-      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-    # - job_name: musllinux-x86_64
+    # - job_name: manylinux-x86_64
     #   CIBW_ARCHS_LINUX: x86_64
-    #   CIBW_SKIP: pp* *-manylinux*
+    #   CIBW_SKIP: pp* *-musllinux*
+    #   CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr
     #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+    - job_name: musllinux-x86_64
+      CIBW_ARCHS_LINUX: x86_64
+      CIBW_SKIP: pp* *-manylinux*
+      CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr ADDITIONAL_LIBS="-lexecinfo"
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     # - job_name: win64
     #   CIBW_SKIP: pp* *-win32
     #   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
@@ -30,10 +31,12 @@ environment:
     # - job_name: manylinux-i686
     #   CIBW_ARCHS_LINUX: i686
     #   CIBW_SKIP: pp* *-musllinux*
+    #   CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr
     #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     # - job_name: musllinux-i686
     #   CIBW_ARCHS_LINUX: i686
     #   CIBW_SKIP: pp* *-manylinux*
+    #   CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr ADDITIONAL_LIBS="-lexecinfo"
     #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
 
 stack: python 3.7
