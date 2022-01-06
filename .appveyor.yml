@@ -10,7 +10,7 @@ environment:
   CIBW_SKIP: pp*
   matrix:
     - job_name: win-cibw
-      OPENBLASROOT: C:\Miniconda37-x64\Library
+      OPENBLASROOT: C:\Libraries\openblas
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     # - job_name: osx-cibw
     #   ACCELERATE: 1
@@ -39,15 +39,15 @@ init:
       }
   - sh: export DIST=dist-${APPVEYOR_JOB_NAME}
   - cmd: set DIST=dist-%APPVEYOR_JOB_NAME%
-  - cmd: call C:\Miniconda37-x64\Scripts\activate.bat
-  - cmd: conda init powershell
-  - cmd: set LIBPATH=C:\Miniconda37-x64\Library\bin;%LIBPATH%
+  - cmd: set LIBPATH=%OPENBLASROOT$\bin;%LIBPATH%
+  # - cmd: call C:\Miniconda37-x64\Scripts\activate.bat
+  # - cmd: conda init powershell
+  # - cmd: set LIBPATH=C:\Miniconda37-x64\Library\bin;%LIBPATH%
 
 build: script
 
 cache:
   - '%APPVEYOR_BUILD_FOLDER%\v0.3.19.zip'
-  # - C:\Libraries\openblas # -> recipe\cibw_before_build_win.ps1
 
 install:
   - python -m pip install cibuildwheel==2.3.1
