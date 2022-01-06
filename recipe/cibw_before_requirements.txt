@@ -1,3 +1,4 @@
-oldest-supported-numpy; python_version > '3.4'
-numpy==1.11.3; python_version <= '3.4'
+oldest-supported-numpy
 delvewheel; platform_system == 'Windows'
+auditwheel; platform_system == 'Linux'
+delocate; platform_system == 'Darwin'
