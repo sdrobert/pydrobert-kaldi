@@ -40,6 +40,8 @@ init:
   - sh: export DIST=dist-${APPVEYOR_JOB_NAME}
   - cmd: set DIST=dist-%APPVEYOR_JOB_NAME%
   - cmd: set LIBPATH=%OPENBLASROOT$\bin;%LIBPATH%
+  - cmd: set PATH=C:\Python37-x64;C:\Python37-x64\Scripts;%PATH%
+  - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
   # - cmd: call C:\Miniconda37-x64\Scripts\activate.bat
   # - cmd: conda init powershell
   # - cmd: set LIBPATH=C:\Miniconda37-x64\Library\bin;%LIBPATH%
