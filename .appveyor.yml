@@ -20,7 +20,7 @@ environment:
     - job_name: musllinux-x86_64
       CIBW_ARCHS_LINUX: x86_64
       CIBW_SKIP: pp* *-manylinux*
-      CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr ADDITIONAL_LIBS="-lexecinfo"
+      CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr ADDITIONAL_LIBS="execinfo"
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     # - job_name: win64
     #   CIBW_SKIP: pp* *-win32
