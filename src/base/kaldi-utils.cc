@@ -22,15 +22,20 @@
 #include <cstdio>
 #include <thread>
 
+#if defined(_MSC_VER) && _MSC_VER < 1900
+  #define mysnprintf _snprintf
+#else
+  #define mysnprintf std::snprintf
+#endif
 
 namespace kaldi {
 
 std::string CharToString(const char &c) {
   char buf[20];
   if (std::isprint(c))
-    std::snprintf(buf, sizeof(buf), "\'%c\'", c);
+    mysnprintf(buf, sizeof(buf), "\'%c\'", c);
   else
-    std::snprintf(buf, sizeof(buf), "[character %d]", static_cast<int>(c));
+    mysnprintf(buf, sizeof(buf), "[character %d]", static_cast<int>(c));
   return buf;
 }
 
@@ -41,5 +46,7 @@ void Sleep(double sec) {
     typename std::chrono::high_resolution_clock::duration>(dur_nanos);
   std::this_thread::sleep_for(dur_syshires);
 }
+
+#undef mysnprintf
 
 }  // end namespace kaldi
