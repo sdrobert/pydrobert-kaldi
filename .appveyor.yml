@@ -28,7 +28,6 @@ environment:
       CIBW_SKIP: pp* *-musllinux*
       CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-      skip_non_tags: true
     # FIXME(sdrobert): These work last I checked, but time out. Numpy currently
     # isn't building musllinux wheels
     # (https://github.com/numpy/numpy/issues/20089). Building its wheels each
@@ -39,19 +38,26 @@ environment:
     #   CIBW_SKIP: pp* *-manylinux*
     #   CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr ADDITIONAL_LIBS="execinfo"
     #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-    #   skip_non_tags: true
     # - job_name: musllinux-i686
     #   CIBW_ARCHS_LINUX: i686
     #   CIBW_SKIP: pp* *-manylinux*
     #   CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr ADDITIONAL_LIBS="execinfo"
     #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-    #   skip_non_tags: true
 
 stack: python 3.7
 
 branches:
   except:
     - /docs/
+
+for:
+  -
+    matrix:
+      only:
+        - job_name: /musllinux/
+        - job_name: /-i686/
+
+    skip_non_tags: true
   
 
 init:
