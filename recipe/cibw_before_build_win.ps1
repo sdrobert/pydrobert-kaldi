@@ -15,8 +15,7 @@ $cblash = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "cblas.h" -Erro
 $lapackeh = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "lapacke.h" -ErrorAction "ignore"
 
 if (($null -eq $openblaslib) -or ($null -eq $cblash) -or ($null -eq $lapackeh)) {
-  & conda update -n base conda -y
-  & conda create -n openblas-compile flang clangdev libflang cmake ninja perl -c conda-forge -y
+  & conda create -n openblas-compile flang jom -c conda-forge -y
   if (-not $?) { Write-Error -Message "openblas environment creation failed" }
   & conda activate openblas-compile
   if (-not (Test-Path -Path "v0.3.19.zip")) {
@@ -28,7 +27,7 @@ if (($null -eq $openblaslib) -or ($null -eq $cblash) -or ($null -eq $lapackeh)) 
   & 7z x "v0.3.19.zip"
   New-Item -Path ".\OpenBLAS-0.3.19\build" -ItemType "directory"
   Set-Location ".\OpenBLAS-0.3.19\build"
-  & cmake .. -G Ninja "-DCMAKE_INSTALL_PREFIX=$env:OPENBLASROOT" -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_C_COMPILER=clang-cl -DCMAKE_Fortran_COMPILER=flang -DCMAKE_MT=mt -DBUILD_WITHOUT_LAPACK=no -DNOFORTRAN=0 -DCMAKE_BUILD_TYPE=Release
+  & cmake .. -G "Nmake Makefiles JOM" "-DCMAKE_INSTALL_PREFIX=$env:OPENBLASROOT" -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_C_COMPILER=clang-cl -DCMAKE_Fortran_COMPILER=flang -DCMAKE_MT=mt -DBUILD_WITHOUT_LAPACK=no -DNOFORTRAN=0 -DCMAKE_BUILD_TYPE=Release -DMSVC_STATIC_CRT=ON
   if (-not $?) { Write-Error -Message "cmake configuration failed" }
   & cmake --build . --target install
   if (-not $?) { Write-Error -Message "cmake build failed" }
