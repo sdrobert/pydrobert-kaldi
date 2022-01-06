@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import platform
+from posixpath import basename
 import sys
 
 from distutils.spawn import find_executable
@@ -27,6 +28,12 @@ from setuptools.extension import Extension
 IS_64_BIT = sys.maxsize > 2 ** 32
 ON_WINDOWS = platform.system() == "Windows"
 
+if ON_WINDOWS:
+    LIBRARY_SUFFIXES = {'lib'}
+elif platform.system() == "Darwin":
+    LIBRARY_SUFFIXES = {'a', 'dylib'}
+else:
+    LIBRARY_SUFFIXES = {'a', 'so'}
 
 # modified this bad boy from
 # https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex
@@ -89,9 +96,18 @@ def mkl_setup(roots, mkl_threading=None):
         root = path.abspath(root)
         for root_name, _, base_names in walk(root):
             for base_name in base_names:
+                if base_name.split(".")[-1] in LIBRARY_SUFFIXES:
+                    library_name = base_name.rsplit(".", maxsplit=1)[0]
+                    if not ON_WINDOWS:
+                        if library_name.startswith("lib"):
+                            library_name = library_name[3:]
+                        else:
+                            library_name = None  # not sure what to do with this
+                else:
+                    library_name = None
                 if ON_WINDOWS:
                     if base_name.endswith(".lib"):
-                        library_name = base_name.split(".")[0]
+                        library_name = 
                     else:
                         library_name = None
                 elif (
@@ -99,7 +115,7 @@ def mkl_setup(roots, mkl_threading=None):
                     or base_name.endswith(".a")
                     or base_name.endswith(".dylib")
                 ):
-                    library_name = base_name[3:].split(".")[0]
+                    library_name = 
                 if library_name in found_mkl_libs and not found_mkl_libs[library_name]:
                     found_mkl_libs[library_name] = True
                     blas_library_dirs.add(root_name)
@@ -161,17 +177,15 @@ def blas_setup(roots, library_names, headers, extra_entries_on_success):
         root = path.abspath(root)
         for root_name, _, base_names in walk(root):
             for base_name in base_names:
-                if ON_WINDOWS:
-                    if base_name.endswith(".lib"):
-                        library_name = base_name.split(".")[0]
-                    else:
-                        library_name = None
-                elif (
-                    base_name.endswith(".so")
-                    or base_name.endswith(".a")
-                    or base_name.endswith(".dylib")
-                ):
-                    library_name = base_name[3:].split(".")[0]
+                if base_name.split(".")[-1] in LIBRARY_SUFFIXES:
+                    library_name = base_name.rsplit(".", maxsplit=1)[0]
+                    if not ON_WINDOWS:
+                        if library_name.startswith("lib"):
+                            library_name = library_name[3:]
+                        else:
+                            library_name = None  # not sure what to do with this
+                else:
+                    library_name = None
                 if library_name in library_names and not library_names[library_name]:
                     library_names[library_name] = True
                     library_dirs.add(root_name)

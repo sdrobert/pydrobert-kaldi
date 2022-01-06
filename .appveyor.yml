@@ -7,8 +7,8 @@ environment:
   CIBW_ENVIRONMENT_MACOS: ACCELERATE=1
   CIBW_ENVIRONMENT_WINDOWS: OPENBLASROOT=C:\\Libraries\\openblas
   CIBW_BEFORE_ALL_LINUX: bash {project}/recipe/cibw_before_all_manylinux.sh
-  CIBW_BEFORE_ALL_MACOS: bash {project}/recipe/cibw_before_build_osx.sh
-  CIBW_BEFORE_ALL_WINDOWS: powershell.exe {project}/recipe/cibw_before_build_win.ps1
+  CIBW_BEFORE_ALL_MACOS: bash {project}/recipe/cibw_before_all_osx.sh
+  CIBW_BEFORE_ALL_WINDOWS: powershell.exe {project}/recipe/cibw_before_all_win.ps1
   CIBW_BEFORE_BUILD: python -m pip install -r {project}/recipe/cibw_before_requirements.txt
   CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel} --add-path "C:\Libraries\openblas\bin"
   CIBW_SKIP: pp* *-win32
