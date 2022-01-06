@@ -37,7 +37,7 @@ void ComputePowerSpectrum(VectorBase<BaseFloat> *waveform) {
   // as we just want power spectrum.
 
   // now we have in waveform, first half of complex spectrum
-  // it's stored as [real0, realN/2-1, real1, im1, real2, im2, ...]
+  // it's stored as [real0, realN/2, real1, im1, real2, im2, ...]
   int32 half_dim = dim/2;
   BaseFloat first_energy = (*waveform)(0) * (*waveform)(0),
       last_energy = (*waveform)(1) * (*waveform)(1);  // handle this special case
@@ -321,7 +321,8 @@ void SlidingWindowCmnInternal(const SlidingWindowCmnOptions &opts,
         variance.AddVec2(-1.0 / (window_frames * window_frames), cur_sum);
         // now "variance" is the variance of the features in the window,
         // around their own mean.
-        int32 num_floored = variance.ApplyFloor(1.0e-10);
+        int32 num_floored;
+	variance.ApplyFloor(1.0e-10, &num_floored);
         if (num_floored > 0 && num_frames > 1) {
           if (opts.max_warnings == warning_count) {
             KALDI_WARN << "Suppressing the remaining variance flooring "
