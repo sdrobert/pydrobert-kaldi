@@ -10,7 +10,7 @@ environment:
   CIBW_SKIP: pp*
   matrix:
     - job_name: win-cibw
-      OPENBLASROOT: C:\Libraries\openblas
+      OPENBLASROOT: C:\Miniconda37-x64\Library
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     # - job_name: osx-cibw
     #   ACCELERATE: 1
@@ -47,7 +47,7 @@ build: script
 
 cache:
   - '%APPVEYOR_BUILD_FOLDER%\v0.3.19.zip'
-  - C:\Libraries\openblas # -> recipe\cibw_before_build_win.ps1
+  # - C:\Libraries\openblas # -> recipe\cibw_before_build_win.ps1
 
 install:
   - python -m pip install cibuildwheel==2.3.1
