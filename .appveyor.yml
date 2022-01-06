@@ -10,19 +10,19 @@ environment:
   CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel} --add-path "C:\Libraries\openblas\bin"
   CIBW_SKIP: pp* *-win32
   matrix:
+    - job_name: linux-cibw-x86_64
+      CIBW_ARCHS_LINUX: x86_64
+      OPENBLASROOT: /usr/local
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     - job_name: win-cibw
       OPENBLASROOT: C:\Libraries\openblas
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     - job_name: osx-cibw
       ACCELERATE: 1
       APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
-    - job_name: linux-cibw-x86_64
-      CIBW_ARCHS_LINUX: x86_64
-      OPENBLASROOT: /usr
-      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     - job_name: linux-cibw-i686
       CIBW_ARCHS_LINUX: i686
-      OPENBLASROOT: /usr
+      OPENBLASROOT: /usr/local
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
 
 

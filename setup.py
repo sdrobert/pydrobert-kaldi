@@ -418,7 +418,7 @@ KALDI_LIBRARY = Extension(
     extra_compile_args=FLAGS,
     extra_link_args=LD_FLAGS,
     define_macros=DEFINES,
-    swig_opts=["-c++", "-builtin", "-castmode", "-O", "-I{}".format(SWIG_DIR)],
+    swig_opts=["-py3", "-c++", "-builtin", "-castmode", "-O", "-I{}".format(SWIG_DIR)],
     language="c++",
 )
 
