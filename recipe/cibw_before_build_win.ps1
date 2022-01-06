@@ -18,8 +18,8 @@ if (($null -eq $openblaslib) -or ($null -eq $cblash) -or ($null -eq $lapackeh)) 
   & conda create -n openblas-compile flang jom -c conda-forge -y
   if (-not $?) { Write-Error -Message "openblas environment creation failed" }
   & conda activate openblas-compile
-  $env:LIB = "$env:CONDA_PREFIX\Library\include:$env:LIB"
-  $env:CPATH = "$env:CONDA_PREFIX\Library\include:$env:CPATH"
+  # $env:LIB = "$env:CONDA_PREFIX\Library\include:$env:LIB"
+  # $env:CPATH = "$env:CONDA_PREFIX\Library\include:$env:CPATH"
   if (-not (Test-Path -Path "v0.3.19.zip")) {
     Invoke-WebRequest -Uri "https://github.com/xianyi/OpenBLAS/archive/v0.3.19.zip" -OutFile "v0.3.19.zip"
     if (-not ((Get-FileHash "v0.3.19.zip").Hash -eq "B3BECAEBC2CB905F4769EBEF621D7969002FF87BCBAA166C53338611E17AA05A")) {
