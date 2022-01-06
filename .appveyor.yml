@@ -40,6 +40,7 @@ init:
   - sh: export DIST=dist-${APPVEYOR_JOB_NAME}
   - cmd: set DIST=dist-%APPVEYOR_JOB_NAME%
   - cmd: call C:\Miniconda37-x64\Scripts\activate.bat
+  - cmd: conda init powershell
   - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
 
 build: script

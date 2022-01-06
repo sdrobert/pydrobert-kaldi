@@ -16,7 +16,7 @@ $lapackeh = Get-ChildItem -Path $env:OPENBLASROOT -Recurse -Filter "lapacke.h" -
 
 if (($null -eq $openblaslib) -or ($null -eq $cblash) -or ($null -eq $lapackeh)) {
   & conda update -n base conda -y
-  & conda create -n openblas-compile flang clangdev libflang cmake jom perl -c conda-forge -y
+  & conda create -n openblas-compile flang=11.0.1 clangdev cmake ninja -c conda-forge -y
   if (-not $?) { Write-Error -Message "openblas environment creation failed" }
   & cmake --version
   & clang-cl --version
