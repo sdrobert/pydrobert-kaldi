@@ -1,40 +1,64 @@
 version: build.{build}.branch.{branch}
 
 environment:
-  MINICONDA_LINUX_URL: "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
-  MINICONDA_OSX_URL: "https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
   CIBW_TEST_REQUIRES: pytest
   CIBW_TEST_COMMAND: pytest {project}/tests -m "not pytorch"
-  CIBW_BEFORE_BUILD: pip install -r {project}/recipe/cibw_before_requirements.txt
-  CIBW_BEFORE_BUILD_LINUX: bash {project}/recipe/cibw_before_build_manylinux.sh
+  CIBW_ENVIRONMENT_MACOS: ACCELERATE=1
+  CIBW_ENVIRONMENT_WINDOWS: OPENBLASROOT=C:\\Libraries\\openblas
+  CIBW_BEFORE_ALL_LINUX: bash {project}/recipe/cibw_before_all_linux.sh
+  CIBW_BEFORE_ALL_MACOS: bash {project}/recipe/cibw_before_all_osx.sh
+  CIBW_BEFORE_ALL_WINDOWS: powershell.exe {project}/recipe/cibw_before_all_win.ps1
+  CIBW_BEFORE_BUILD: python -m pip install -r {project}/recipe/cibw_before_requirements.txt
+  CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel} --add-path "C:\Libraries\openblas\bin"
+  CIBW_SKIP: pp* *-win32 *-manylinux*
   matrix:
-    - job_name: win-conda
-      BUILD_SYS: conda
+    - job_name: win64
+      CIBW_SKIP: pp* *-win32
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-    - job_name: osx-conda
-      BUILD_SYS: conda
+    - job_name: osx
+      CIBW_SKIP: pp*
       APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
-    - job_name: linux-conda
-      BUILD_SYS: conda
-      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-    - job_name: osx-cibw
-      BUILD_SYS: cibuildwheel
-      ACCELERATE: 1
-      APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
-    - job_name: linux-cibw-x86_64
-      BUILD_SYS: cibuildwheel
+    - job_name: manylinux-x86_64
       CIBW_ARCHS_LINUX: x86_64
+      CIBW_SKIP: pp* *-musllinux*
+      CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-    - job_name: linux-cibw-i686
-      BUILD_SYS: cibuildwheel
+    - job_name: manylinux-i686
       CIBW_ARCHS_LINUX: i686
+      CIBW_SKIP: pp* *-musllinux*
+      CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+    # FIXME(sdrobert): These work last I checked, but time out. Numpy currently
+    # isn't building musllinux wheels
+    # (https://github.com/numpy/numpy/issues/20089). Building its wheels each
+    # time before building mine (and after, on install) is hideously slow.
+    # Uncomment when numpy builds its own musllinux wheels.
+    # - job_name: musllinux-x86_64
+    #   CIBW_ARCHS_LINUX: x86_64
+    #   CIBW_SKIP: pp* *-manylinux*
+    #   CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr ADDITIONAL_LIBS="execinfo"
+    #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+    # - job_name: musllinux-i686
+    #   CIBW_ARCHS_LINUX: i686
+    #   CIBW_SKIP: pp* *-manylinux*
+    #   CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr ADDITIONAL_LIBS="execinfo"
+    #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
 
-stack: python 3.8
+stack: python 3.7
 
 branches:
   except:
     - /docs/
+
+for:
+  - 
+    # skip 32-bit and musl linux unless we're a tag
+    matrix:
+      only:
+        - CIBW_ARCHS_LINUX: i686
+        - CIBW_SKIP: /-manylinux/
+    skip_non_tags: true
+  
 
 init:
   - ps: >-
@@ -44,53 +68,20 @@ init:
       }
   - sh: export DIST=dist-${APPVEYOR_JOB_NAME}
   - cmd: set DIST=dist-%APPVEYOR_JOB_NAME%
+  - cmd: set PATH=C:\Python37-x64;C:\Python37-x64\Scripts;%PATH%
+  - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
 
 build: script
 
-for:
-  -
-    matrix:
-      only:
-        - BUILD_SYS: cibuildwheel
+cache:
+  - C:\Libraries\openblas -> recipe\cibw_before_build_win.ps1
 
-    install:
-      - sh: >-
-          if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" != "Ubuntu" ]; then
-            brew install swig@4.0;
-          fi
-      - sh: pip install cibuildwheel==1.9.0
+install:
+  - python -m pip install cibuildwheel
 
-    # The PyPy builds don't work.
-    build_script:
-      - sh: CIBW_SKIP="pp* cp27-* cp35-*" cibuildwheel --output-dir ${DIST}
-
-  -
-    matrix:
-      only:
-        - BUILD_SYS: conda
-
-    build_script:
-      - cmd: call "C:\Miniconda3-x64\Scripts\activate.bat"
-      - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
-      - sh: >-
-          if [ "${APPVEYOR_BUILD_WORKER_IMAGE}" = "Ubuntu" ]; then
-            wget "${MINICONDA_LINUX_URL}" -O miniconda_install.sh;
-          else
-            curl "${MINICONDA_OSX_URL}" -o miniconda_install.sh;
-            sudo mkdir /opt;
-            sudo ln -s /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk /opt/MacOSX10.9.sdk;
-          fi
-      - sh: >-
-          chmod +x miniconda_install.sh;
-          ./miniconda_install.sh -b -p "${HOME}/miniconda3";
-          source "${HOME}/miniconda3/etc/profile.d/conda.sh";
-      - conda config --set always_yes yes --set changeps1 no
-      - conda update -q --all
-      - conda install conda-build conda-verify
-      - conda build recipe
-      - conda activate base
-      - cmd: python recipe\copy_conda_build_packages.py pydrobert-kaldi %DIST%
-      - sh: python recipe/copy_conda_build_packages.py pydrobert-kaldi ${DIST}
+build_script:
+  - sh: cibuildwheel --output-dir ${DIST}
+  - cmd: cibuildwheel --output-dir %DIST%
 
 after_build:
   - cmd: 7z a %DIST%.zip %DIST%

@@ -23,6 +23,7 @@
 #define KALDI_THREAD_KALDI_THREAD_H_ 1
 
 #include <thread>
+#include <algorithm>
 #include "itf/options-itf.h"
 #include "util/kaldi-semaphore.h"
 
@@ -174,6 +175,7 @@ template<class C>
 class TaskSequencer {
  public:
   TaskSequencer(const TaskSequencerConfig &config):
+      num_threads_(config.num_threads),
       threads_avail_(config.num_threads),
       tot_threads_avail_(config.num_threads_total > 0 ? config.num_threads_total :
                          config.num_threads + 20),
@@ -186,6 +188,13 @@ class TaskSequencer {
   /// This function takes ownership of the pointer "c", and will delete it
   /// in the same sequence as Run was called on the jobs.
   void Run(C *c) {
+    // run in main thread
+    if (num_threads_ == 0) {
+      (*c)();
+      delete c;
+      return;
+    }
+
     threads_avail_.Wait(); // wait till we have a thread for computation free.
     tot_threads_avail_.Wait(); // this ensures we don't have too many threads
     // waiting on I/O, and consume too much memory.
@@ -200,6 +209,9 @@ class TaskSequencer {
   void Wait() { // You call this at the end if it's more convenient
     // than waiting for the destructor.  It waits for all tasks to finish.
     if (thread_list_ != NULL) {
+      while (!thread_list_->thread.joinable()) {
+        Sleep(1);
+      }
       thread_list_->thread.join();
       KALDI_ASSERT(thread_list_->tail == NULL); // thread would not
       // have exited without setting tail to NULL.
@@ -235,9 +247,11 @@ class TaskSequencer {
     //     we first wait till the previous thread, whose details will be in "tail",
     //     is finished.
     if (args->tail != NULL) {
-      args->tail->thread.join();
+      while (!args->tail->thread.joinable()){
+        Sleep(1);
+      }
+	    args->tail->thread.join();
     }
-
     delete args->c; // delete the object "c".  This may cause some output,
     // e.g. to a stream.  We don't need to worry about concurrent access to
     // the output stream, because each thread waits for the previous thread
@@ -259,6 +273,8 @@ class TaskSequencer {
     // that are waiting on I/O or other threads.
     args->me->tot_threads_avail_.Signal();
   }
+
+  int32 num_threads_; // copy of config.num_threads (since Semaphore doesn't store original count)
 
   Semaphore threads_avail_; // Initialized to the number of threads we are
   // supposed to run with; the function Run() waits on this.

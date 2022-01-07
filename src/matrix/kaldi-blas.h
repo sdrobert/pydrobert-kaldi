@@ -2,6 +2,8 @@
 
 // Copyright 2009-2011  Ondrej Glembek;  Microsoft Corporation
 
+// Modified 2021 by Sean Robertson, listed.
+
 // See ../../COPYING for clarification regarding multiple authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,8 +53,8 @@
 
 #ifdef HAVE_ATLAS
   extern "C" {
-    #include <cblas.h>
-    #include <clapack.h>
+    #include "cblas.h"
+    #include "clapack.h"
   }
 #elif defined(HAVE_CLAPACK)
   #ifdef __APPLE__
@@ -94,8 +96,17 @@
     #include <mkl.h>
   }
 #elif defined(HAVE_OPENBLAS)
+  #include <complex>
   // getting cblas.h and lapacke.h from <openblas-install-dir>/.
   // putting in "" not <> to search -I before system libraries.
+
+#ifdef _MSC_VER
+  // sdrobert: following
+  // https://stackoverflow.com/questions/24853450/errors-using-lapack-c-header-in-c-with-visual-studio-2010.
+  // It'll spew a lot of errors, but should be okay.
+  #define lapack_complex_float std::complex<float>
+  #define lapack_complex_double std::complex<double>
+#endif
 
   #include "cblas.h"
   #include "lapacke.h"

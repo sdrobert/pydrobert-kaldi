@@ -1,6 +1,8 @@
 // base/kaldi-utils.cc
 // Copyright 2009-2011   Karel Vesely;  Yanmin Qian;  Microsoft Corporation
 
+// Modified by Sean Robertson 2022. Updates listed below.
+
 // See ../../COPYING for clarification regarding multiple authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,38 +18,42 @@
 // See the Apache 2 License for the specific language governing permissions and
 // limitations under the License.
 
-#ifdef _WIN32_WINNT_WIN8
-#include <Synchapi.h>
-#elif defined(_WIN32) || defined(_MSC_VER) || defined(MINGW)
-#include <Windows.h>
+#include "base/kaldi-utils.h"
+
+#include <chrono>
+#include <cstdio>
+#include <thread>
+
+// sdrobert: Not guaranteed to have been included beforehand on all MSVC for
+// some reason
+#include <cctype>
+
+// sdrobert: std::snprintf did not exist pre-2015 on MSVC
 #if defined(_MSC_VER) && _MSC_VER < 1900
-#define snprintf _snprintf
-#endif /* _MSC_VER < 1900 */
+  #define mysnprintf c99_snprintf
 #else
-#include <unistd.h>
+  #define mysnprintf std::snprintf
 #endif
-
-#include <string>
-#include "base/kaldi-common.h"
-
 
 namespace kaldi {
 
 std::string CharToString(const char &c) {
   char buf[20];
   if (std::isprint(c))
-    snprintf(buf, sizeof(buf), "\'%c\'", c);
+    mysnprintf(buf, sizeof(buf), "\'%c\'", c);
   else
-    snprintf(buf, sizeof(buf), "[character %d]", static_cast<int>(c));
-  return (std::string) buf;
+    mysnprintf(buf, sizeof(buf), "[character %d]", static_cast<int>(c));
+  return buf;
 }
 
-void Sleep(float seconds) {
-#if defined(_MSC_VER) || defined(MINGW)
-  ::Sleep(static_cast<int>(seconds * 1000.0));
-#else
-  usleep(static_cast<int>(seconds * 1000000.0));
-#endif
+void Sleep(double sec) {
+  // duration_cast<> rounds down, add 0.5 to compensate.
+  auto dur_nanos = std::chrono::duration<double, std::nano>(sec * 1E9 + 0.5);
+  auto dur_syshires = std::chrono::duration_cast<
+    typename std::chrono::high_resolution_clock::duration>(dur_nanos);
+  std::this_thread::sleep_for(dur_syshires);
 }
+
+#undef mysnprintf
 
 }  // end namespace kaldi
