@@ -107,8 +107,8 @@ def test_read_write_valid(temp_file_1_name, ktype, value, binary):
         ("iv", np.int32, (1, 1, 2, 3, 5, 8, 13, 21)),
         ("ivv", np.int32, ((0, 1), (2, 3), (4, 5))),
         ("ipv", np.int32, ((0, 1), (2, 3), (4, 5))),
-        ("t", np.str, "foo"),
-        ("tv", np.str, ("foo", "bar")),
+        ("t", str, "foo"),
+        ("tv", str, ("foo", "bar")),
     ],
 )
 def test_write_read_numpy_versions(temp_file_1_name, ktype, dtype, value):
