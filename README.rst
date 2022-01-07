@@ -68,26 +68,8 @@ You'd likely want to explicitly handle logging when creating new kaldi-style
 commands for command line. `pydrobert.kaldi.io.argparse` provides
 :class:`KaldiParser`, an :class:`ArgumentParser` tailored to Kaldi
 inputs/outputs. It is used by a few command-line entry points added by this
-package. They are:
-
-write-table-to-pickle
-  Write the contents of a kaldi table to a pickle file(s). Good for late night
-  attempts at reaching a paper deadline.
-write-pickle-to-table
-  Write the contents of of a pickle file(s) to a kaldi table.
-write-table-to-torch-dir
-  Write the contents of a kaldi table into a directory as a series of PyTorch
-  tensor files. Suitable for PyTorch data loaders with multiprocessing.
-  Requires PyTorch_.
-write-torch-dir-to-table
-  Write the contents of a directory of tensor files back to a Kaldi table.
-  Requires PyTorch_.
-normalize-feat-lens
-  Ensure that features have the same length as some reference by truncating
-  or appending frames.
-compute-error-rate
-  Compute an error rate between reference and hypothesis texts, such as a WER
-  or PER.
+package. See the `Command-Line Interface
+<http://pydrobert-kaldi.readthedocs.io/en/latest/cli.html>`__ page for details.
 
 Installation
 ------------
@@ -154,7 +136,7 @@ BLAS install is somehow::
    MKLROOT=/path/to/mkl/install pip install \
      git+https://github.com/sdrobert/pydrobert-kaldi.git
    # for Accelerate (OSX only)
-   ACCELLERATE=1 pip install \
+   ACCELERATE=1 pip install \
      git+https://github.com/sdrobert/pydrobert-kaldi.git
    # see setup.py for more options
 
