@@ -44,12 +44,9 @@ pydrobert.kaldi.io.enums.KaldiDataType
 
 
 import abc
-import locale
-import warnings
 
 from typing import TYPE_CHECKING
 
-from pydrobert.kaldi import KaldiLocaleWarning
 
 if TYPE_CHECKING:
     from pydrobert.kaldi.io.enums import KaldiDataType
@@ -58,15 +55,6 @@ __all__ = [
     "KaldiIOBase",
     "open",
 ]
-
-try:
-    # FIXME(sdrobert): not sure if the python locale gets pushed down to the C level.
-    # This will dictate whether the warning should be using locale.getdefaultlocale()
-    # or locale.getlocale()
-    if locale.getdefaultlocale() != (None, None):
-        warnings.warn(KaldiLocaleWarning.LOCALE_MESSAGE, KaldiLocaleWarning)
-except ValueError:
-    warnings.warn(KaldiLocaleWarning.LOCALE_MESSAGE, KaldiLocaleWarning)
 
 
 class KaldiIOBase(object, metaclass=abc.ABCMeta):
