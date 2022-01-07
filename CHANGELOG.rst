@@ -1,9 +1,14 @@
 v0.7.0
 ------
 
-- Updated CI to only use cibuildwheel_. Able to compile Win-64 builds.
+- Updated documentation, including a special page for the CLI.
+- Updated CI to only use
+  `cibuildwheel <https://github.com/pypa/cibuildwheel/>`__. Able to compile
+  Win-64 builds.
 - Updated Kaldi source.
-- Got rid of Conda recipe. Will switch to conda-forge_.
+- Fixed ``setup.py``.
+- Got rid of Conda recipe. Will switch to
+  `conda-forge <https://conda-forge.org/>`__.
 
 v0.6.0
 ------
@@ -33,5 +38,3 @@ Miscellaneous other changes include:
 - Shuffled around the indexing of documentation
 - Added changelog :D
 
-.. _cibuildwheel: https://github.com/pypa/cibuildwheel/
-.. _conda-forge: https://conda-forge.org/

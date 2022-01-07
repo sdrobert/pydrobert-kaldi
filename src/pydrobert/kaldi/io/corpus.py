@@ -337,10 +337,6 @@ class Data(Iterable, Sized):
     _DATA_ATTRIBUTES_DOC = """
     Attributes
     ----------
-    num_samples : int
-        Total number of samples to serve per epoch
-    num_batches : int
-        Total number of batches to serve per epoch
     table_specifiers : tuple
         A tuple of triples indicating ``(rspecifier, kaldi_dtype,
         open_kwargs)`` for each table

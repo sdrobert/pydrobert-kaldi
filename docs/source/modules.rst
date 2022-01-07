@@ -1,10 +1,15 @@
-API
-===
+pydrobert.kaldi API
+===================
+
+.. automodule:: pydrobert.kaldi
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
+   :caption: Submodules:
 
-   pydrobert.kaldi.command_line
    pydrobert.kaldi.eval
    pydrobert.kaldi.io
    pydrobert.kaldi.logging

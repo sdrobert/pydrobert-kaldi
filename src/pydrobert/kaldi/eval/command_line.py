@@ -14,6 +14,7 @@
 
 """Command-line hooks for evalulation"""
 
+import argparse
 import logging
 import sys
 
@@ -35,7 +36,10 @@ __all__ = [
 
 def _compute_error_rate_parse_args(args, logger):
     parser = KaldiParser(
-        description=compute_error_rate.__doc__, add_verbose=True, logger=logger,
+        description=compute_error_rate.__doc__,
+        add_verbose=True,
+        logger=logger,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "ref_rspecifier",
@@ -105,16 +109,15 @@ def _compute_error_rate_parse_args(args, logger):
 def compute_error_rate(args: Optional[Sequence[str]] = None) -> None:
     """Compute error rates between reference and hypothesis token vectors
 
-    Two common error rates in speech are the word (WER) and phone (PER),
-    though the computation is the same. Given a reference and hypothesis
-    sequence, the error rate is
+    Two common error rates in speech are the word (WER) and phone (PER), though the
+    computation is the same. Given a reference and hypothesis sequence, the error rate
+    is
 
-    >>> error_rate = (substitutions + insertions + deletions) / (
-    ...     ref_tokens * 100)
+        error_rate = (substitutions + insertions + deletions) / (ref_tokens * 100)
 
-    Where the number of substitutions (e.g. ``A B C -> A D C``),
-    deletions (e.g. ``A B C -> A C``), and insertions (e.g.
-    ``A B C -> A D B C``) are determined by Levenshtein distance.
+    Where the number of substitutions (e.g. "A B C -> A D C"), deletions (e.g. "A B C ->
+    A C"), and insertions (e.g. "A B C -> A D B C") are determined by Levenshtein
+    distance.
     """
     logger = logging.getLogger(sys.argv[0])
     if not logger.handlers:

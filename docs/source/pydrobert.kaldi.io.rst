@@ -6,50 +6,14 @@ pydrobert.kaldi.io
     :undoc-members:
     :show-inheritance:
 
-pydrobert.kaldi.io.argparse
----------------------------
 
-.. automodule:: pydrobert.kaldi.io.argparse
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. toctree::
+    :maxdepth: 1
+    :caption: Submodules:
 
-pydrobert.kaldi.io.corpus
--------------------------
-
-.. automodule:: pydrobert.kaldi.io.corpus
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pydrobert.kaldi.io.duck_streams
--------------------------------
-
-.. automodule:: pydrobert.kaldi.io.duck_streams
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pydrobert.kaldi.io.enums
----------------------------
-
-.. automodule:: pydrobert.kaldi.io.enums
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pydrobert.kaldi.io.table_streams
-------------------------------------
-
-.. automodule:: pydrobert.kaldi.io.table_streams
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pydrobert.kaldi.io.util
---------------------------
-
-.. automodule:: pydrobert.kaldi.io.util
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    pydrobert.kaldi.io.argparse
+    pydrobert.kaldi.io.corpus
+    pydrobert.kaldi.io.duck_streams
+    pydrobert.kaldi.io.enums
+    pydrobert.kaldi.io.table_streams
+    pydrobert.kaldi.io.util

@@ -29,17 +29,16 @@ __all__ = [
 class KaldiDataType(Enum):
     """Enumerates the data types stored and retrieved by Kaldi I/O
 
-    This enumerable lists the types of data written and read to various
-    readers and writers. It is used in the factory method
-    :func:`pydrobert.kaldi.io.open` to dictate the subclass created.
+    This enumerable lists the types of data written and read to various readers and
+    writers. It is used in the factory method :func:`pydrobert.kaldi.io.open` to dictate
+    the subclass created.
 
     Notes
     -----
     The "base float" mentioned in this documentation is the same type as
-    ``kaldi::BaseFloat``, which was determined when Kaldi was built. The
-    easiest way to determine whether this is a double (64-bit) or a
-    float (32-bit) is by checking the value of
-    ``KaldiDataType.BaseVector.is_double()``.
+    ``kaldi::BaseFloat``, which was determined when Kaldi was built. The easiest way to
+    determine whether this is a double (64-bit) or a float (32-bit) is by checking the
+    value of :func:`KaldiDataType.BaseVector.is_double`
     """
 
     BaseVector = "bv"

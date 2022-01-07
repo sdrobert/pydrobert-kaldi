@@ -23,20 +23,13 @@
 
 import os
 import sys
+import mock
 
 sys.path.insert(0, os.path.abspath("../../src"))
 
 autodoc_mock_imports = ["pydrobert.kaldi._internal", "_i", "_internal", "numpy"]
-
-# class Mock(MagicMock):
-#     @classmethod
-#     def __getattr__(cls, name):
-#         return MagicMock()
-
-
-# MOCK_MODULES = ["pydrobert.kaldi._internal", "_internal", "numpy"]
-# sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
-# import pydrobert.kaldi as kaldi
+for mname in autodoc_mock_imports:
+    sys.modules[mname] = mock.Mock()
 
 # kaldi._internal = Mock()
 
@@ -55,6 +48,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
+    "sphinxcontrib.programoutput",
 ]
 intersphinx_mapping = {
     "python": ("https://docs.python.org/", None),
@@ -127,7 +121,7 @@ else:
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+html_static_path = []
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
