@@ -1,6 +1,8 @@
 // base/kaldi-utils.cc
 // Copyright 2009-2011   Karel Vesely;  Yanmin Qian;  Microsoft Corporation
 
+// Modified by Sean Robertson 2022. Updates listed below.
+
 // See ../../COPYING for clarification regarding multiple authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +23,12 @@
 #include <chrono>
 #include <cstdio>
 #include <thread>
+
+// sdrobert: Not guaranteed to have been included beforehand on all MSVC for
+// some reason
 #include <cctype>
 
+// sdrobert: std::snprintf did not exist pre-2015 on MSVC
 #if defined(_MSC_VER) && _MSC_VER < 1900
   #define mysnprintf c99_snprintf
 #else
