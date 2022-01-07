@@ -51,7 +51,7 @@ def open_duck_stream(path: str, mode: str = "r", header: bool = True) -> KaldiIO
     ----------
     path : str
         The extended file name to be opened. This can be quite exotic. More details can
-        be found on the `Kaldi website <http://kaldi-asr.org/doc2/io.html>`_.
+        be found on the `Kaldi website <http://kaldi-asr.org/doc/io.html>`_.
     mode : {'r', 'r+', 'w'}
         Whether to open the stream for input (``'r'``) or output (``'w'``). ``'r+'`` is
         equivalent to ``'r'``
