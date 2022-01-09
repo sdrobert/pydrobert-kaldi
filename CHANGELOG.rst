@@ -1,6 +1,8 @@
 v0.7.0
 ------
 
+- Removed `KaldiLocaleWarning` and added a documentation page addressing
+  locales.
 - Updated documentation, including a special page for the CLI.
 - Updated CI to only use
   `cibuildwheel <https://github.com/pypa/cibuildwheel/>`__. Able to compile

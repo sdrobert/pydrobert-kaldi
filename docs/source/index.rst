@@ -6,6 +6,7 @@
    :caption: Contents:
 
    cli
+   locale
    modules
 
 Indices and tables

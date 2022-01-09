@@ -104,7 +104,7 @@ def write_table_to_pickle(args: Optional[Sequence[str]] = None) -> None:
             else:
                 out_type = np.float32
         else:
-            out_type = np.str
+            out_type = str
 
     try:
         reader = kaldi_open(options.rspecifier, options.in_type, "r")

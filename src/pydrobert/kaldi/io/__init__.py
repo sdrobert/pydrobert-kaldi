@@ -44,12 +44,9 @@ pydrobert.kaldi.io.enums.KaldiDataType
 
 
 import abc
-import locale
-import warnings
 
 from typing import TYPE_CHECKING
 
-from pydrobert.kaldi import KaldiLocaleWarning
 
 if TYPE_CHECKING:
     from pydrobert.kaldi.io.enums import KaldiDataType
@@ -58,15 +55,6 @@ __all__ = [
     "KaldiIOBase",
     "open",
 ]
-
-try:
-    # FIXME(sdrobert): not sure if the python locale gets pushed down to the C level.
-    # This will dictate whether the warning should be using locale.getdefaultlocale()
-    # or locale.getlocale()
-    if locale.getdefaultlocale() != (None, None):
-        warnings.warn(KaldiLocaleWarning.LOCALE_MESSAGE, KaldiLocaleWarning)
-except ValueError:
-    warnings.warn(KaldiLocaleWarning.LOCALE_MESSAGE, KaldiLocaleWarning)
 
 
 class KaldiIOBase(object, metaclass=abc.ABCMeta):
@@ -182,20 +170,18 @@ def open(
 ) -> KaldiIOBase:
     """Factory function for initializing and opening kaldi streams
 
-    This function provides a general interface for opening kaldi
-    streams. Kaldi streams are either simple input/output of kaldi
-    objects (the basic stream) or key-value readers and writers
-    (tables).
+    This function provides a general interface for opening kaldi streams. Kaldi streams
+    are either simple input/output of kaldi objects (the basic/duck stream) or key-value
+    readers and writers (tables).
 
-    When `path` starts with ``'ark:'`` or ``'scp:'`` (possibly with
-    modifiers before the colon), a table is opened. Otherwise, a basic
-    stream is opened.
+    When `path` starts with ``'ark:'`` or ``'scp:'`` (possibly with modifiers before the
+    colon), a table is opened. Otherwise, a basic stream is opened.
 
     See also
     --------
     pydrobert.kaldi.io.table_streams.open_table_stream
         For information on opening tables
-    pydrobert.kaldi.io.basic.open_duck_stream
+    pydrobert.kaldi.io.duck_streams.open_duck_stream
         For information on opening basic streams
     """
     from pydrobert.kaldi.io.enums import TableType

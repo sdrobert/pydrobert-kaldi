@@ -25,11 +25,3 @@ try:
     from .version import version as __version__  # type: ignore
 except ImportError:
     __version__ = "inplace"
-
-
-class KaldiLocaleWarning(Warning):
-    """Class used when LC_ALL != 'C' when pydrobert.kaldi.io is imported"""
-
-    LOCALE_MESSAGE = """\
-It looks like you did not 'export LC_ALL=C' before you started python.
-This is important to do if you plan on using kaldi's sorted tables at all."""
