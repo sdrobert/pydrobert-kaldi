@@ -14,4 +14,4 @@
 
 """Tools related to evaluating models"""
 
-__all__ = []
+__all__ = ["util"]
