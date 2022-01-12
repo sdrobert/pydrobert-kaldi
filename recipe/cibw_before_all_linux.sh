@@ -2,15 +2,15 @@
 
 set -e -x
 
-# if [ `uname -m` = 'x86_64' ]; then
-#   MARCH_SUFFIX=.x86_64
-# else
-#   MARCH_SUFFIX=.i686
-# fi
+if [ `uname -m` = 'x86_64' ]; then
+  MARCH_SUFFIX=.x86_64
+else
+  MARCH_SUFFIX=.i686
+fi
 
 if command -v yum &> /dev/null; then
   install_command="yum install -y"
-  openblas_pkg=openblas-devel
+  openblas_pkg=openblas-devel${MARCH_SUFFIX}
 else
   install_command="apk add"
   openblas_pkg=openblas-dev
