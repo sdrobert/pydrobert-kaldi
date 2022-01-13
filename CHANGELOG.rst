@@ -1,12 +1,17 @@
-v0.7.0
-------
+HEAD
+----
 
+- manylinux i686 wheel now links to
+  `ATLAS <http://math-atlas.sourceforge.net/>`__ instead of OpenBLAS because
+  the latter can no longer be installed with ``yum install openblas-devel`` on
+  CentOS 7 i686.
 - Removed `KaldiLocaleWarning` and added a documentation page addressing
   locales.
 - Updated documentation, including a special page for the CLI.
 - Updated CI to only use
   `cibuildwheel <https://github.com/pypa/cibuildwheel/>`__. Able to compile
-  Win-64 builds.
+  Win-64 wheels. Link to `OpenBLAS <https://www.openblas.net/>`__ and
+  `Flang <https://github.com/flang-compiler/flang>`__.
 - Updated Kaldi source.
 - Fixed ``setup.py``.
 - Got rid of Conda recipe. Will switch to
