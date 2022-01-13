@@ -2,18 +2,14 @@
 
 set -e -x
 
-if [ `uname -m` = 'x86_64' ]; then
-  MARCH_SUFFIX=.x86_64
-else
-  MARCH_SUFFIX=.i686
-fi
-
 if command -v yum &> /dev/null; then
   install_command="yum install -y"
-  openblas_pkg=openblas-devel${MARCH_SUFFIX}
+  openblas_pkg=openblas-devel
+  atlas_pkg=atlas-devel
 else
   install_command="apk add"
   openblas_pkg=openblas-dev
+  atlas_pkg=atlas-dev
   $install_command libexecinfo-dev || true
 fi
 
@@ -40,7 +36,15 @@ if ! command -v swig; then
   fi
 fi
 
-if [ ! -f "${OPENBLASROOT}/include/cblas.h" ] ; then
-  $install_command $openblas_pkg
-  find "${OPENBLASROOT}" \( -name 'cblas.h' -o -name 'lapacke.h' -o -name 'libopenblas.so' \)
+if [ ! -z "${OPENBLASROOT}" ]; then
+  if [ ! -f "${OPENBLASROOT}/include/cblas.h" ] ; then
+    $install_command $openblas_pkg
+    find "${OPENBLASROOT}" \( -name 'cblas.h' -o -name 'lapacke.h' -o -name 'libopenblas.so' \)
+  fi
+fi
+if [ ! -z "${ATLASROOT}" ]; then
+  if [ ! -f "${ATLASROOT}/include/cblas.h" ] ; then
+    $install_command $atlas_pkg
+    find "${ATLASROOT}" \( -name 'cblas.h' -o -name 'clapack.h' -o -name 'libatlas.so' \)
+  fi
 fi

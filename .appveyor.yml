@@ -12,21 +12,21 @@ environment:
   CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel} --add-path "C:\Libraries\openblas\bin"
   CIBW_SKIP: pp* *-win32 *-manylinux*
   matrix:
-    - job_name: win64
-      CIBW_SKIP: pp* *-win32
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-    - job_name: osx
-      CIBW_SKIP: pp*
-      APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
-    - job_name: manylinux-x86_64
-      CIBW_ARCHS_LINUX: x86_64
-      CIBW_SKIP: pp* *-musllinux*
-      CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr
-      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+    # - job_name: win64
+    #   CIBW_SKIP: pp* *-win32
+    #   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    # - job_name: osx
+    #   CIBW_SKIP: pp*
+    #   APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
+    # - job_name: manylinux-x86_64
+    #   CIBW_ARCHS_LINUX: x86_64
+    #   CIBW_SKIP: pp* *-musllinux*
+    #   CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr
+    #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     - job_name: manylinux-i686
       CIBW_ARCHS_LINUX: i686
       CIBW_SKIP: pp* *-musllinux*
-      CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr
+      CIBW_ENVIRONMENT_LINUX: ATLASROOT=/usr
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     # FIXME(sdrobert): These work last I checked, but time out. Numpy currently
     # isn't building musllinux wheels
@@ -55,7 +55,7 @@ for:
     # skip 32-bit and musl linux unless we're a tag
     matrix:
       only:
-        - CIBW_ARCHS_LINUX: i686
+        # - CIBW_ARCHS_LINUX: i686
         - CIBW_SKIP: /-manylinux/
     skip_non_tags: true
   
