@@ -54,6 +54,12 @@ if TYPE_CHECKING:
 __all__ = [
     "KaldiIOBase",
     "open",
+    "argparse",
+    "corpus",
+    "duck_streams",
+    "enums",
+    "table_streams",
+    "util",
 ]
 
 

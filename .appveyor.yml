@@ -26,7 +26,7 @@ environment:
     - job_name: manylinux-i686
       CIBW_ARCHS_LINUX: i686
       CIBW_SKIP: pp* *-musllinux*
-      CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr
+      CIBW_ENVIRONMENT_LINUX: ATLASROOT=/usr
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     # FIXME(sdrobert): These work last I checked, but time out. Numpy currently
     # isn't building musllinux wheels

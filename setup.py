@@ -204,16 +204,18 @@ def openblas_setup(roots):
     return blas_setup(
         roots,
         ("openblas",),
-        ("cblas.h", "lapacke.h",),
+        ("cblas.h", "lapacke.h"),
         {"DEFINES": [("HAVE_OPENBLAS", None)]},
     )
 
 
 def atlas_setup(roots):
+    # FIXME(sdrobert): There are a variety of ways that atlas could've been distributed.
+    # I'm assuming Fedora b/c it works with my CI.
     return blas_setup(
         roots,
-        ("atlas",),
-        ("cblas.h", "clapack.h",),
+        ("satlas", "tatlas"),
+        ("cblas.h", "clapack.h"),
         {"DEFINES": [("HAVE_ATLAS", None)]},
     )
 
