@@ -27,6 +27,6 @@ __all__ = [
 ]
 
 try:
-    from .version import version as __version__  # type: ignore
+    from ._version import version as __version__  # type: ignore
 except ImportError:
     __version__ = "inplace"
