@@ -250,67 +250,67 @@ class KaldiParser(argparse.ArgumentParser):
 
     Parameters
     ----------
-    prog : str, optional
+    prog
         Name of the program. Defaults to ``sys.argv[0]``
-    usage : str, optional
+    usage
         A usage message. Default: auto-generated from arguments
-    description : str, optional
+    description
         A description of what the program does
-    epilog : str, optional
+    epilog
         Text following the argument descriptions
-    parents : sequence, optional
+    parents
         Parsers whose arguments should be copied into this one
-    formatter_class : argparse.HelpFormatter
+    formatter_class
         Class for printing help messages
-    prefix_chars : str, optional
+    prefix_chars
         Characters that prefix optional arguments
-    fromfile_prefix_chars : str, optional
+    fromfile_prefix_chars
         Characters that prefix files containing additional arguments
-    argument_default : optional
+    argument_default
         The default value for all arguments
-    conflict_handler : {'error', 'resolve'}, optional
+    conflict_handler
         String indicating how to handle conflicts
-    add_help : bool, optional
+    add_help
         Add a ``-h/--help`` option
-    add_verbose : bool, optional
+    add_verbose
         Add a ``-v/--verbose`` option. The option requires an integer
         argument specifying a verbosiy level at the same degrees as
         Kaldi. The level will be converted to the appropriate python
         level when parsed
-    add_config : bool, optional
+    add_config
         Whether to add the standard ``--config`` option to the
         parser. If ``True``, a first-pass will extract all config file
         options and put them at the beginning of the argument string
         to be re-parsed.
-    add_print_args : bool, optional
+    add_print_args
         Whether to add the standard ``--print-args`` to the parser. If
         ``True``, a first-pass of the will search for the value of
         ``--print-args`` and, if ``True``, will print that value to
         stderr (only on `parse_args`, not `parse_known_args`)
-    update_formatters : bool, optional
+    update_formatters
         If `logger` is set, the logger's handlers' formatters will be
         set to a kaldi-style formatter
-    logger : logging.Logger, optional
+    logger
         Errors will be written to this logger when parse_args fails. If
         `add_verbose` has been set to ``True``, the logger will be set
         to the appropriate python level if verbose is set (note: the
         logger will be set to the default level - ``INFO`` - on
         initialization)
-    version : str, optional
+    version
         A version string to use for logs. If not set,
         ``pydrobert.kaldi.__version__`` will be used by default
 
     Attributes
     ----------
-    logger : logging.Logger
+    logger
         The logger this parse was printing out to
-    formatter : logging.Formatter
+    formatter
         A log formatter that formats with kaldi-style headers
-    add_config : bool
+    add_config
         Whether this parser has a ``--config`` flag
-    add_print_args : bool
+    add_print_args
         Whether this parser has a ``--print-args`` flag
-    version : str
+    version
         Version string used by this parser and `logger`
     """
 

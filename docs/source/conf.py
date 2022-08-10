@@ -23,13 +23,8 @@
 
 import os
 import sys
-import mock
 
 sys.path.insert(0, os.path.abspath("../../src"))
-
-autodoc_mock_imports = ["pydrobert.kaldi._internal", "_i", "_internal", "numpy"]
-for mname in autodoc_mock_imports:
-    sys.modules[mname] = mock.Mock()
 
 # kaldi._internal = Mock()
 
@@ -45,10 +40,10 @@ for mname in autodoc_mock_imports:
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosectionlabel",
+    "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
-    "sphinx.ext.viewcode",
-    "sphinxcontrib.programoutput",
+    "sphinx_autodoc_typehints",
 ]
 intersphinx_mapping = {
     "python": ("https://docs.python.org/", None),
@@ -59,6 +54,16 @@ naploeon_numpy_docstring = True
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
+autodoc_mock_imports = ["pydrobert.kaldi._internal", "_i", "_internal", "numpy"]
+autodoc_typehints = "none"
+autodoc_inherit_docstrings = False
+# autodoc_preserve_defaults = True
+napoleon_preprocess_types = True
+# napoleon_use_param = True
+typehints_document_rtype = False
+# typehints_defaults = "comma"  # when this works consistently, uncomment!
+napoleon_use_rtype = False
+
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
@@ -67,6 +72,8 @@ source_suffix = ".rst"
 
 # The master toctree document.
 master_doc = "index"
+
+highlight_language = "none"
 
 # General information about the project.
 project = "pydrobert-kaldi"
@@ -106,11 +113,11 @@ pygments_style = "sphinx"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-on_rtd = os.environ.get("READTHEDOCS") == "True"
-if on_rtd:
-    html_theme = "default"
-else:
-    html_theme = "sphinx_rtd_theme"
+# on_rtd = os.environ.get("READTHEDOCS") == "True"
+# if on_rtd:
+#     html_theme = "default"
+# else:
+html_theme = "sphinx_rtd_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

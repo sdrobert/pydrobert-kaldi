@@ -39,9 +39,10 @@ codes according to the following chart
 
 """
 
+from ast import Call
 import logging
 import sys
-from typing import Callable
+from typing import Callable, Union
 
 from pydrobert.kaldi._internal import SetPythonLogHandler as _set_log_handler  # type: ignore
 from pydrobert.kaldi._internal import SetVerboseLevel as _set_verbose_level  # type: ignore
@@ -65,11 +66,10 @@ class KaldiLogger(logging.getLoggerClass()):
     """Logger subclass that overwrites log info with kaldi's
 
     Setting the ``Logger`` class of the python module ``logging`` (thru
-    ``logging.setLoggerClass``) to ``KaldiLogger`` will allow new
-    loggers to intercept messages from Kaldi and inject Kaldi's trace
-    information into the record. With this injection, the logger will
-    point to the location in Kaldi's source that the message originated
-    from. Without it, the logger will point to a location within this
+    ``logging.setLoggerClass``) to ``KaldiLogger`` will allow new loggers to intercept
+    messages from Kaldi and inject Kaldi's trace information into the record. With this
+    injection, the logger will point to the location in Kaldi's source that the message
+    originated from. Without it, the logger will point to a location within this
     submodule (``pydrobert.kaldi.logging``).
     """
 
@@ -93,7 +93,7 @@ class KaldiLogger(logging.getLoggerClass()):
     makeRecord.__doc__ = logging.getLoggerClass().__doc__
 
 
-def kaldi_logger_decorator(func):
+def kaldi_logger_decorator(func: Callable) -> Callable:
     """Sets the default logger class to KaldiLogger over the func call"""
 
     def _new_func(*args, **kwargs):
@@ -109,7 +109,7 @@ def kaldi_logger_decorator(func):
     return _new_func
 
 
-def register_logger_for_kaldi(logger: logging.Logger):
+def register_logger_for_kaldi(logger: Union[str, logging.Logger]):
     """Register logger to receive Kaldi's messages
 
     See module docstring for more info

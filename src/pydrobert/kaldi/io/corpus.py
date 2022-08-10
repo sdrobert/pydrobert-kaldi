@@ -102,36 +102,33 @@ def batch_data(
 
     Parameters
     ----------
-    input_iter : iterable
+    input_iter
         An iterator over samples
-    subsamples : bool, optional
+    subsamples
         `input_iter` yields tuples to be divided into different sub-batches if
         :obj:`True`
-    batch_size : int or :obj:`None`, optional
+    batch_size
         The size of batches, except perhaps the last one. If not set or ``0``, will
         yield samples (casting and encapsulating in tuples when necessary)
-    axis : int or sequence, optional
-        Where to insert the batch index/indices into the shape/shapes of
-        the inputs. If a sequence, `subsamples` must be :obj:`True` and
-        `input_iter` should yield samples of the same length as axis. If
-        an :class:`int` and subsamples is :obj:`True`, the same axis will be
-        used for all sub-samples.
-    cast_to_array : numpy.dtype or sequence or :obj:`None`, optional
-        Dictates whether data should be cast to numpy arrays and of
-        what type. If a sequence, `subsamples` must be :obj:`True` and
-        `input_iter` should yield samples of the same length as
-        `cast_to_array`. If a single value and `subsamples` is :obj:`True`,
-        the same value will be used for all sub-samples. Value(s) of
-        :obj:`None` indicate no casting should be done for this
-        (sub-)sample. Other values will be used to cast (sub-)samples to
-        numpy arrays
-    pad_mode : str or function, optional
-        If set, inputs within a batch will be padded on the end to
-        match the largest shapes in the batch. How the inputs are
-        padded matches the argument to ``numpy.pad``. If not set, will
-        raise a ``ValueError`` if they don't all have the same shape
-    pad_kwargs : Keyword arguments, optional
-        Additional keyword arguments are passed along to ``numpy.pad``
+    axis
+        Where to insert the batch index/indices into the shape/shapes of the inputs. If
+        a sequence, `subsamples` must be :obj:`True` and `input_iter` should yield
+        samples of the same length as axis. If an :class:`int` and subsamples is
+        :obj:`True`, the same axis will be used for all sub-samples.
+    cast_to_array
+        Dictates whether data should be cast to numpy arrays and of what type. If a
+        sequence, `subsamples` must be :obj:`True` and `input_iter` should yield samples
+        of the same length as `cast_to_array`. If a single value and `subsamples` is
+        :obj:`True`, the same value will be used for all sub-samples. Value(s) of
+        :obj:`None` indicate no casting should be done for this (sub-)sample. Other
+        values will be used to cast (sub-)samples to numpy arrays
+    pad_mode
+        If set, inputs within a batch will be padded on the end to match the largest
+        shapes in the batch. How the inputs are padded matches the argument to
+        :func:`numpy.pad`. If not set, will raise a :class:`ValueError` if they don't
+        all have the same shape
+    pad_kwargs
+        Additional keyword arguments are passed along to :func:`numpy.pad`
         if padding.
 
     See Also
@@ -243,7 +240,7 @@ class Data(Iterable, Sized):
     >>> for feat_batch, label_batch in data:
     >>>     pass  # do something again
 
-    Where ``DataSubclass`` is some subclass of this virtual class. Calling ``iter()`` on
+    Where `DataSubclass` is some subclass of this virtual class. Calling :func:`iter` on
     an instance (which occurs implicitly in for-loops) will generate a new iterator over
     the entire data set.
 
@@ -253,16 +250,16 @@ class Data(Iterable, Sized):
     1. An rspecifier (ideally for a script file). Assumed to be of type
        :class:`KaldiDataType.BaseMatrix`
     2. A sequence of length 2: the first element is the rspecifier, the
-       second the rspecifier's :class`KaldiDataType`
+       second the rspecifier's :class:`KaldiDataType`
     3. A sequence of length 3: the first element is the rspecifier, the second the
-       rspecifier's :`KaldiDataType`, and the third is a dictionary to be passed as
-       keyword arguments to the ``open`` function
+       rspecifier's :class:`KaldiDataType`, and the third is a dictionary to be passed
+       as keyword arguments to the :func:`pydrobert.kaldi.io.open` function
 
     All tables are assumed to index data using the same keys.
 
     If `batch_size` is set, data are stacked in batches along a new axis. The keyword
     arguments `batch_axis`, `batch_pad_mode`, and any remaining keywords are sent to
-    this module's ``batch_data`` function. If `batch_size` is :obj:`None` or ``0``,
+    this module's :func:`batch_data` function. If `batch_size` is :obj:`None` or ``0``,
     samples are returned one-by-one. Data are always cast to numpy arrays before being
     returned. Consult that function for more information on batching.
 
@@ -300,76 +297,69 @@ class Data(Iterable, Sized):
     ----------
     table
         The first table specifier
-    additional_tables : Arguments, optional
-        Table specifiers past the first. If not empty, will iterate over
-        tuples of sub-batches
-    add_key : bool
-        If :obj:`True`, will insert sub-samples into the 0th index of
-        each sample sequence that specify the key that this sample was
-        indexed by. Defaults to :obj:`False`
-    axis_lengths : int or sequence, optional
-        If set, sub-batches of axis lengths will be appended to the end
-        of a batch tuple
-    batch_axis : int or sequence
-        The axis or axes (in the case of multiple tables) along which
-        samples are stacked in (sub-)batches. batch_axis should take
-        into account axis length and key sub-batches when applicable.
-        Defaults to ``0``
-    batch_cast_to_array : dtype or sequence, optional
-        A numpy type or sequence of types to cast each (sub-)batch to.
-        :obj:`None` values indicate no casting should occur.
-        `batch_cast_to_array` should take into acount axis length and
-        key sub-batches when applicable
-    batch_kwargs : Keyword arguments, optional
+    additional_tables
+        Table specifiers past the first. If not empty, will iterate over tuples of
+        sub-batches
+    add_key
+        If :obj:`True`, will insert sub-samples into the 0th index of each sample
+        sequence that specify the key that this sample was indexed by. Defaults to
+        :obj:`False`
+    axis_lengths
+        If set, sub-batches of axis lengths will be appended to the end of a batch tuple
+    batch_axis
+        The axis or axes (in the case of multiple tables) along which samples are
+        stacked in (sub-)batches. batch_axis should take into account axis length and
+        key sub-batches when applicable. Defaults to ``0``
+    batch_cast_to_array
+        A numpy type or sequence of types to cast each (sub-)batch to. :obj:`None`
+        values indicate no casting should occur. `batch_cast_to_array` should take into
+        acount axis length and key sub-batches when applicable
+    batch_kwargs
         Additional keyword arguments to pass to ``batch_data``
-    batch_pad_mode : str, optional
-        If set, pads samples in (sub-)batches according to this
-        ``numpy.pad`` strategy when samples do not have the same length
-    batch_size : int, optional
-        The number of samples per (sub-)batch. Defaults to :obj:`None`,
-        which means samples are served without batching
-    ignore_missing : bool, optional
-        If :obj:`True` and some provided table does not have some key, that
-        key will simply be ignored. Otherwise, a missing key raises a
-        ValueError. Default to :obj:`False`
+    batch_pad_mode
+        If set, pads samples in (sub-)batches according to this :func:`numpy.pad`
+        strategy when samples do not have the same length
+    batch_size
+        The number of samples per (sub-)batch. Defaults to :obj:`None`, which means
+        samples are served without batching
+    ignore_missing
+        If :obj:`True` and some provided table does not have some key, that key will
+        simply be ignored. Otherwise, a missing key raises a ValueError. Default to
+        :obj:`False`
     """
 
     _DATA_ATTRIBUTES_DOC = """
     Attributes
     ----------
-    table_specifiers : tuple
-        A tuple of triples indicating ``(rspecifier, kaldi_dtype,
-        open_kwargs)`` for each table
-    add_key : bool
-        Whether a sub-batch of table keys has been prepended to existing
-        sub-batches
-    axis_lengths : tuple
-        A tuple of pairs for each axis-length sub-batch requested. Each
-        pair is ``(sub_batch_idx, axis)``.
-    batch_axis : tuple
-        A tuple of length num_sub indicating which axis (sub-)samples
-        will be arrayed along in a given (sub-)batch when all
-        (sub-)samples are (or are cast to) fixed length numpy arrays of
-        the same type
-    batch_cast_to_array : tuple
-        A tuple of length `num_sub` indicating what numpy types, if any
-        (sub-)samples should be cast to. Values of :obj:`None` indicate
-        no casting should be done on that (sub-)sample
-    batch_kwargs : dict
+    table_specifiers
+        A tuple of triples indicating ``(rspecifier, kaldi_dtype, open_kwargs)`` for
+        each table
+    add_key
+        Whether a sub-batch of table keys has been prepended to existing sub-batches
+    axis_lengths
+        A tuple of pairs for each axis-length sub-batch requested. Each pair is
+        ``(sub_batch_idx, axis)``.
+    batch_axis
+        A tuple of length num_sub indicating which axis (sub-)samples will be arrayed
+        along in a given (sub-)batch when all (sub-)samples are (or are cast to) fixed
+        length numpy arrays of the same type
+    batch_cast_to_array
+        A tuple of length `num_sub` indicating what numpy types, if any (sub-)samples
+        should be cast to. Values of :obj:`None` indicate no casting should be done on
+        that (sub-)sample
+    batch_kwargs
         Additional keyword arguments to pass to ``batch_data``
-    batch_pad_mode : str or None
-        If set, pads samples in (sub-)batches according to this
-        ``numpy.pad`` strategy when samples do not have the same length
-    batch_size : int or None
+    batch_pad_mode
+        If set, pads samples in (sub-)batches according to this :func:`numpy.pad`
+        strategy when samples do not have the same length
+    batch_size
         The number of samples per (sub-)batch
-    ignore_missing : bool
-        If :obj:`True` and some provided table does not have some key, that
-        key will simply be ignored. Otherwise, a missing key raises a
-        ValueError
-    num_sub : int
-        The number of sub-batches per batch. If > 1, batches are
-        yielded as tuples of sub-batches. This number accounts for
-        key, table, and axis-length sub-batches
+    ignore_missing
+        If :obj:`True` and some provided table does not have some key, that key will
+        simply be ignored. Otherwise, a missing key raises a ValueError
+    num_sub
+        The number of sub-batches per batch. If > 1, batches are yielded as tuples of
+        sub-batches. This number accounts for key, table, and axis-length sub-batches
     """
 
     __doc__ += _DATA_PARAMS_DOC + "\n" + _DATA_ATTRIBUTES_DOC
@@ -462,13 +452,13 @@ class Data(Iterable, Sized):
     def sample_generator_for_epoch(self):
         """A generator which yields individual samples from data for an epoch
 
-        An epoch means one pass through the data from start to finish.
-        Equivalent to ``sample_generator(False)``.
+        An epoch means one pass through the data from start to finish. Equivalent to
+        ``sample_generator(False)``.
 
         Yields
         ------
-        A sample if ``self.num_sub == 1``, otherwise a tuple of
-        sub-samples
+        sample : np.array or tuple
+            A sample if ``self.num_sub == 1``, otherwise a tuple of sub-samples
         """
         pass
 
@@ -477,14 +467,15 @@ class Data(Iterable, Sized):
 
         Parameters
         ----------
-        repeat : bool
+        repeat
             Whether to stop generating after one epoch (False) or keep
             restart and continue generating indefinitely
 
         Yields
         ------
-        A sample if ``self.num_sub == 1``, otherwise a tuple of
-        sub-samples
+        sample : np.array or tuple
+            A sample if ``self.num_sub == 1``, otherwise a tuple of
+            sub-samples
         """
         while True:
             for sample in self.sample_generator_for_epoch():
@@ -497,16 +488,16 @@ class Data(Iterable, Sized):
 
         Parameters
         ----------
-        repeat : bool
+        repeat
             Whether to stop generating after one epoch (False) or keep
             restart and continue generating indefinitely
 
         Yields
         ------
-        A batch if ``self.num_sub == 1``, otherwise a tuple of
-        sub-batches. If self.batch_size does not divide an epoch's
-        worth of data evenly, the last batch of every epoch will be
-        smaller
+        batch : np.array or tuple
+            A batch if ``self.num_sub == 1``, otherwise a tuple of sub-batches. If
+            self.batch_size does not divide an epoch's worth of data evenly, the last
+            batch of every epoch will be smaller
         """
         subsamples = self.num_sub != 1
         while True:
@@ -540,21 +531,19 @@ class ShuffledData(Data):
 
     Notes
     -----
-    For efficiency, it is highly recommended to use scripts
-    to access tables rather than archives.
+    For efficiency, it is highly recommended to use scripts to access tables rather than
+    archives.
     """
 
     __doc__ += (
         Data._DATA_PARAMS_DOC
         + """
-    key_list : sequence, optional
-        A master list of keys. No other keys will be queried. If not
-        specified, the key list will be inferred by passing through the
-        first table once
-    rng : int or numpy.random.RandomState, optional
-        Either a ``RandomState`` object or a seed to create a
-        ``RandomState`` object. It will be used to shuffle the list of
-        keys
+    key_list
+        A master list of keys. No other keys will be queried. If not specified, the key
+        list will be inferred by passing through the first table once
+    rng
+        Either a :class:`numpy.random.RandomState` object or a seed to create one. It
+        will be used to shuffle the list of keys
 
     """
     )
@@ -563,11 +552,11 @@ class ShuffledData(Data):
         "\n"
         + Data._DATA_ATTRIBUTES_DOC
         + """
-    key_list : tuple
+    key_list
         The master list of keys
-    rng : numpy.random.RandomState
+    rng
         Used to shuffle the list of keys every epoch
-    table_holders : tuple
+    table_holders
         A tuple of table readers opened in random access mode
 
     """
