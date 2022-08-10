@@ -22,6 +22,7 @@ from os import walk
 from re import findall
 from setuptools import setup
 from setuptools.extension import Extension
+import numpy as np
 
 IS_64_BIT = sys.maxsize > 2 ** 32
 ON_WINDOWS = platform.system() == "Windows"
@@ -266,6 +267,26 @@ else:
     FLAGS = []
     LIBRARIES = []
     DEFINES += []
+SRC_FILES = []
+INCLUDE_DIRS = [SRC_DIR, np.get_include()]
+LIBRARY_DIRS = []
+
+if find_executable("swig"):
+    SRC_FILES.append(path.join(SWIG_DIR, "pydrobert", "kaldi.i"))
+elif path.exists(path.join(SWIG_DIR, "pydrobert", "kaldi_wrap.cpp")):
+    print(
+        "SWIG could not be found, but kaldi_wrap.cpp exists. Using that",
+        file=sys.stderr,
+    )
+    SRC_FILES.append(path.join(SWIG_DIR, "pydrobert", "kaldi_wrap.cpp"))
+else:
+    print(
+        "SWIG could not be found and kaldi_wrap.cpp does not exist. Cannot " "succeed",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+for base_dir, _, files in walk(SRC_DIR):
+    SRC_FILES += [path.join(base_dir, f) for f in files if f.endswith(".cc")]
 
 # Adds additional libraries. Primarily for alpine libc (musllinux build),
 # which doesn't package execinfo by default.
@@ -310,29 +331,12 @@ else:
 
 
 LIBRARIES += BLAS_DICT.get("BLAS_LIBRARIES", [])
-LIBRARY_DIRS = BLAS_DICT.get("BLAS_LIBRARY_DIRS", [])
-INCLUDE_DIRS = BLAS_DICT.get("BLAS_INCLUDES", []) + [SRC_DIR]
+LIBRARY_DIRS += BLAS_DICT.get("BLAS_LIBRARY_DIRS", [])
+INCLUDE_DIRS += BLAS_DICT.get("BLAS_INCLUDES", [])
 LD_FLAGS += BLAS_DICT.get("LD_FLAGS", [])
 DEFINES += BLAS_DICT.get("DEFINES", [])
 FLAGS += BLAS_DICT.get("FLAGS", [])
 
-SRC_FILES = []
-if find_executable("swig"):
-    SRC_FILES.append(path.join(SWIG_DIR, "pydrobert", "kaldi.i"))
-elif path.exists(path.join(SWIG_DIR, "pydrobert", "kaldi_wrap.cpp")):
-    print(
-        "SWIG could not be found, but kaldi_wrap.cpp exists. Using that",
-        file=sys.stderr,
-    )
-    SRC_FILES.append(path.join(SWIG_DIR, "pydrobert", "kaldi_wrap.cpp"))
-else:
-    print(
-        "SWIG could not be found and kaldi_wrap.cpp does not exist. Cannot " "succeed",
-        file=sys.stderr,
-    )
-    sys.exit(1)
-for base_dir, _, files in walk(SRC_DIR):
-    SRC_FILES += [path.join(base_dir, f) for f in files if f.endswith(".cc")]
 
 KALDI_LIBRARY = Extension(
     "pydrobert.kaldi._internal",
@@ -348,6 +352,4 @@ KALDI_LIBRARY = Extension(
 )
 
 
-setup(
-    ext_modules=[KALDI_LIBRARY],
-)
+setup(ext_modules=[KALDI_LIBRARY])
