@@ -20,6 +20,11 @@ from collections.abc import Container
 from collections.abc import Iterator
 from typing import Any
 
+try:
+    from typing_extensions import Literal
+except ImportError:
+    from typing import Literal
+
 from pydrobert.kaldi import _internal as _i
 from pydrobert.kaldi.io import KaldiIOBase
 from pydrobert.kaldi.io.enums import KaldiDataType
@@ -36,7 +41,7 @@ __all__ = [
 def open_table_stream(
     path: str,
     kaldi_dtype: KaldiDataType,
-    mode: str = "r",
+    mode: Literal["r", "r+", "w"] = "r",
     error_on_str: bool = True,
     utt2spk: str = "",
     value_style: str = "b",
@@ -62,42 +67,42 @@ def open_table_stream(
 
     Parameters
     ----------
-    path : str
+    path
         The specifier used by kaldi to open the script. Generally these will take the
         form ``'{ark|scp}:<path_to_file>'``, though they can take much more interesting
         forms (like pipes). More information can be found on the `Kaldi website
         <http://kaldi-asr.org/doc2/io.html>`_
-    kaldi_dtype : KaldiDataType
+    kaldi_dtype
         The type of data the table is expected to handle
-    mode : {'r', 'r+', 'w'}, optional
+    mode
         Specifies the type of access to be performed: read sequential, read random, or
         write. They are implemented by subclasses of :class:`KaldiSequentialReader`,
         :class:`KaldiRandomAccessReader`, or :class:`KaldiWriter`, resp.
-    error_on_str : bool, optional
+    error_on_str
         Token vectors (``'tv'``) accept sequences of whitespace-free ASCII/UTF strings.
         A :class:`str` is also a sequence of characters, which may satisfy the token
         requirements. If `error_on_str` is :obj:`True`, a :class:`ValueError` is raised
         when writing a :class:`str` as a token vector. Otherwise a :class:`str` can be
         written
-    utt2spk : str, optional
+    utt2spk
         If set, the reader uses `utt2spk` as a map from utterance ids to speaker ids.
         The data in `path`, which are assumed to be referenced by speaker ids, can then
         be refrenced by utterance. If `utt2spk` is unspecified, the keys in `path` are
         used to query for data
-    value_style : str, optional
-        ``'wm'`` readers can provide not only the audio buffer (``'b'``) of a wave file,
-        but its sampling rate (``'s'``), and/or duration (in sec, ``'d'``). Setting
+    value_style
+        Wave readers can provide not only the audio buffer (``'b'``) of a wave file, but
+        its sampling rate (``'s'``), and/or duration (in sec, ``'d'``). Setting
         `value_style` to some combination of ``'b'``, ``'s'``, and/or ``'d'`` will cause
         the reader to return a tuple of that information. If `value_style` is only one
         character, the result will not be contained in a tuple.
-    cache : bool, optional
+     cache
         Whether to cache all values in a dict as they are retrieved. Only applicable to
         random access readers. This can be very expensive for large tables and redundant
         if reading from an archive directly (as opposed to a script).
 
     Returns
     -------
-    KaldiTable
+    table : KaldiTable
         A table, opened.
 
     Raises
@@ -149,14 +154,14 @@ def open_table_stream(
 class KaldiTable(KaldiIOBase):
     """Base class for interacting with tables
 
-    All table readers and writers are subclasses of :class:`KaldiTable`.
-    Tables must specify the type of data being read ahead of time
+    All table readers and writers are subclasses of :class:`KaldiTable`. Tables must
+    specify the type of data being read ahead of time
 
     Parameters
     ----------
-    path : str
+    path
         An rspecifier or wspecifier
-    kaldi_dtype : pydrobert.kaldi.io.enums.KaldiDataType
+    kaldi_dtype
         The type of data type this table contains
 
     Attributes
@@ -181,18 +186,18 @@ class KaldiSequentialReader(KaldiTable, Iterator):
     :class:`KaldiSequentialReader` iterates over key-value pairs. The default behaviour
     (i.e. that in a for-loop) is to iterate over the values in order of access. Similar
     to :class:`dict` instances, :func:`items`, :func:`values`, and :func:`keys` return
-    iterators over their respective domains. Alternatively, the ``move()`` method moves
-    to the next pair, at which point the ``key()`` and ``value()`` methods can be
-    queried.
+    iterators over their respective domains. Alternatively, the :func:`move` method
+    moves to the next pair, at which point the :func:`key` and :func:`value` methods can
+    be queried.
 
-    Though it is possible to mix and match access patterns, all methods
-    refer to the same underlying iterator (the :class:`KaldiSequentialReader`)
+    Though it is possible to mix and match access patterns, all methods refer to the
+    same underlying iterator (the :class:`KaldiSequentialReader`)
 
     Parameters
     ----------
-    path : str
+    path
         An rspecifier to read the table from
-    kaldi_dtype : pydrobert.kaldi.io.enums.KaldiDataType
+    kaldi_dtype
         The data type to read
 
     Yields
@@ -207,7 +212,7 @@ class KaldiSequentialReader(KaldiTable, Iterator):
 
     @abc.abstractmethod
     def key(self) -> str:
-        """return current pair's key, or `None` if done
+        """return current pair's key, or :obj:`None` if done
 
         Raises
         ------
@@ -218,7 +223,7 @@ class KaldiSequentialReader(KaldiTable, Iterator):
 
     @abc.abstractmethod
     def value(self) -> Any:
-        """return current pair's value, or ``None`` if done
+        """return current pair's value, or :obj:`None` if done
 
         Raises
         ------
@@ -238,8 +243,8 @@ class KaldiSequentialReader(KaldiTable, Iterator):
 
         Returns
         -------
-        bool
-            :obj:`True` if moved to new pair. ``False`` if done
+        moved : bool
+            :obj:`True` if moved to new pair. :obj:`False` if done
 
         Raises
         ------
@@ -303,11 +308,11 @@ class KaldiRandomAccessReader(KaldiTable, Container):
 
     Parameters
     ----------
-    path : str
+    path
         An rspecifier to read tables from
-    kaldi_dtype : pydrobert.kaldi.io.enums.KaldiDataType
+    kaldi_dtype
         The data type to read
-    utt2spk : str, optional
+    utt2spk
         If set, the reader uses `utt2spk` as a map from utterance ids to speaker ids.
         The data in `path`, which are assumed to be referenced by speaker ids, can then
         be refrenced by utterance. If `utt2spk` is unspecified, the keys in `path` are
@@ -393,12 +398,12 @@ class KaldiWriter(KaldiTable):
         super(KaldiWriter, self).__init__(path, kaldi_dtype)
 
     @abc.abstractmethod
-    def write(self, key, value):
+    def write(self, key: str, value: Any):
         """Write key value pair
 
         Parameters
         ----------
-        key: str
+        key
         value
 
         Notes
@@ -408,12 +413,12 @@ class KaldiWriter(KaldiTable):
         """
         pass
 
-    def readable(self):
+    def readable(self) -> bool:
         return False
 
     readable.__doc__ = KaldiTable.readable.__doc__
 
-    def writable(self):
+    def writable(self) -> bool:
         return True
 
     writable.__doc__ = KaldiTable.writable.__doc__

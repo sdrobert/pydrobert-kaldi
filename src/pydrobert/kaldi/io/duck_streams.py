@@ -22,6 +22,11 @@ from pydrobert.kaldi.io import KaldiIOBase
 from pydrobert.kaldi.io.enums import KaldiDataType
 from pydrobert.kaldi.io.util import infer_kaldi_data_type
 
+try:
+    from typing_extensions import Literal
+except ImportError:
+    from typing import Literal
+
 __all__ = [
     "open_duck_stream",
     "KaldiInput",
@@ -29,7 +34,9 @@ __all__ = [
 ]
 
 
-def open_duck_stream(path: str, mode: str = "r", header: bool = True) -> KaldiIOBase:
+def open_duck_stream(
+    path: str, mode: Literal["r", "r+", "w"] = "r", header: bool = True
+) -> KaldiIOBase:
     """Open a "duck" stream
 
     "Duck" streams provide an interface for reading or writing kaldi objects, one at a
@@ -49,13 +56,13 @@ def open_duck_stream(path: str, mode: str = "r", header: bool = True) -> KaldiIO
 
     Parameters
     ----------
-    path : str
+    path
         The extended file name to be opened. This can be quite exotic. More details can
         be found on the `Kaldi website <http://kaldi-asr.org/doc/io.html>`_.
-    mode : {'r', 'r+', 'w'}
+    mode
         Whether to open the stream for input (``'r'``) or output (``'w'``). ``'r+'`` is
         equivalent to ``'r'``
-    header : bool
+    header
         Setting this to :obj:`True` will either check for a 'binary header' in
         an input stream, or write a binary header for an output stream.
         If False, no check/write is performed
@@ -76,9 +83,9 @@ class KaldiInput(KaldiIOBase):
 
     Parameters
     ----------
-    path : str
+    path
         An extended readable file path
-    header : bool
+    header
         If False, no attempt will be made to look for the "binary"
         header in the stream; it will be assumed binary
     """
@@ -108,28 +115,26 @@ class KaldiInput(KaldiIOBase):
     def read(
         self,
         kaldi_dtype: KaldiDataType,
-        value_style: str = "b",
+        value_style: Literal["b", "s", "d"] = "b",
         read_binary: Optional[bool] = None,
     ) -> Any:
         """Read in one object from the stream
 
         Parameters
         ----------
-        kaldi_dtype : pydrobert.kaldi.enums.KaldiDataType
+        kaldi_dtype
             The type of object to read
-        value_style : str of {'b', 's', 'd'}, optional
-            ``'wm'`` readers can provide not only the audio buffer
-            (``'b'``) of a wave file, but its sampling rate (``'s'``),
-            and/or duration (in sec, ``'d'``). Setting `value_style` to
-            some combination of ``'b'``, ``'s'``, and/or ``'d'`` will
-            cause the reader to return a tuple of that information. If
-            `value_style` is only one character, the result will not be
-            contained in a tuple
+        value_style
+            ``'wm'`` readers can provide not only the audio buffer (``'b'``) of a wave
+            file, but its sampling rate (``'s'``), and/or duration (in sec, ``'d'``).
+            Setting `value_style` to some combination of ``'b'``, ``'s'``, and/or
+            ``'d'`` will cause the reader to return a tuple of that information. If
+            `value_style` is only one character, the result will not be contained in a
+            tuple
         read_binary : bool, optional
-            If set, the object will be read as either binary (``True``)
-            or text (``False``). The default behaviour is to read
-            according to the `binary` attribute. Ignored if there's only
-            one way to read the data
+            If set, the object will be read as either binary (:obj:`True`) or text
+            (:obj:`False`). The default behaviour is to read according to the `binary`
+            attribute. Ignored if there's only one way to read the data
         """
         if self.closed:
             raise IOError("I/O operation on closed file.")
@@ -203,11 +208,10 @@ class KaldiOutput(KaldiIOBase):
 
     Parameters
     ----------
-    path : str
+    path
         An extended writable file path
-    header : bool
-        Whether to write a header when opening the binary stream (True)
-        or not.
+    header
+        Whether to write a header when opening the binary stream (:obj:`True`) or not.
     """
 
     def __init__(self, path: str, header: bool = True):
@@ -228,7 +232,7 @@ class KaldiOutput(KaldiIOBase):
 
     def write(
         self,
-        obj,
+        obj: Any,
         kaldi_dtype: Optional[KaldiDataType] = None,
         error_on_str: bool = True,
         write_binary: bool = True,
@@ -239,18 +243,16 @@ class KaldiOutput(KaldiIOBase):
         ----------
         obj
             The object to write
-        kaldi_dtype : pydrobert.kaldi.enums.KaldiDataType
+        kaldi_dtype
             The type of object to write
-        error_on_str : bool, optional
-            Token vectors (``'tv'``) accept sequences of whitespace-free
-            ASCII/UTF strings. A ``str`` is also a sequence of
-            characters, which may satisfy the token requirements. If
-            `error_on_str` is ``True``, a ``ValueError`` is raised when
-            writing a ``str`` as a token vector. Otherwise a ``str``
-            can be written
-        write_binary : bool, optional
-            The object will be written as binary (``True``) or text
-            (``False``)
+        error_on_str
+            Token vectors (``'tv'``) accept sequences of whitespace-free ASCII/UTF
+            strings. A ``str`` is also a sequence of characters, which may satisfy the
+            token requirements. If `error_on_str` is :obj:`True`, a :class:`ValueError`
+            is raised when writing a ``str`` as a token vector. Otherwise a ``str`` can
+            be written
+        write_binary
+            The object will be written as binary (:obj:`True`) or text (:obj:`False`)
 
         Raises
         ------

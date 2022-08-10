@@ -52,7 +52,7 @@ def parse_kaldi_input_path(path: str) -> Tuple[TableType, str, RxfilenameType, d
 
     Parameters
     ----------
-    path : str
+    path
         A string that would be passed to ``pydrobert.kaldi.io.open``
     """
     cpp_ret = _i.ParseInputPath(path)
@@ -104,7 +104,7 @@ def parse_kaldi_output_path(path: str) -> Tuple[TableType, str, WxfilenameType, 
 
     Parameters
     ----------
-    path : str
+    path
         A string that would be passed to :func:`pydrobert.kaldi.io.open`
     """
     cpp_ret = _i.ParseOutputPath(path)

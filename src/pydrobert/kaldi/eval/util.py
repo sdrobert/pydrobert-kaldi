@@ -32,22 +32,22 @@ def edit_distance(
 
     Parameters
     ----------
-    ref : sequence
+    ref
         Sequence of tokens of reference text (source)
-    hyp : sequence
+    hyp
         Sequence of tokens of hypothesis text (target)
-    insertion_cost : int
+    insertion_cost
         Penalty for `hyp` inserting a token to ref
-    deletion_cost : int
+    deletion_cost
         Penalty for `hyp` deleting a token from ref
-    substitution_cost : int
+    substitution_cost
         Penalty for `hyp` swapping tokens in ref
-    return_tables : bool
+    return_tables
         See below
 
     Returns
     -------
-    int or (int, dict, dict, dict, dict)
+    distances: int or (int, dict, dict, dict, dict)
         Returns the edit distance of `hyp` from `ref`. If `return_tables`
         is `True`, this returns a tuple of the edit distance, a dict of
         insertion counts, a dict of deletion , a dict of substitution
