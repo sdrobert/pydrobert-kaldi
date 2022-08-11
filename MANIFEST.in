@@ -1,3 +1,0 @@
-include swig/pydrobert/kaldi_wrap.cpp
-exclude .gitignore appveyor.yml
-prune recipe

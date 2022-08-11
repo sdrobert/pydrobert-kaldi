@@ -73,4 +73,4 @@ venv/
 .ftpconfig
 .python-version
 .vscode/
-version.py
+_version.py

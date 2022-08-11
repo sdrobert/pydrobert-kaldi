@@ -1,19 +1,16 @@
 HEAD
 ----
 
-- manylinux i686 wheel now links to
-  `ATLAS <http://math-atlas.sourceforge.net/>`__ instead of OpenBLAS because
-  the latter can no longer be installed with ``yum install openblas-devel`` on
-  CentOS 7 i686.
+- Cut Python less than 3.7, added up to 3.10
+- "No BLAS" is now the default build. None of the currently wrapped
+  functionality actually uses BLAS right now. 
 - Removed `KaldiLocaleWarning` and added a documentation page addressing
   locales.
 - Updated documentation, including a special page for the CLI.
-- Updated CI to only use
-  `cibuildwheel <https://github.com/pypa/cibuildwheel/>`__. Able to compile
-  Win-64 wheels. Link to `OpenBLAS <https://www.openblas.net/>`__ and
-  `Flang <https://github.com/flang-compiler/flang>`__.
+- Updated CI to only use `cibuildwheel
+  <https://github.com/pypa/cibuildwheel/>`__. Able to compile Win-64 wheels.
 - Updated Kaldi source.
-- Fixed ``setup.py``.
+- All but extension is now in ``setup.cfg`` and ``pyproject.toml``.
 - Got rid of Conda recipe. Will switch to
   `conda-forge <https://conda-forge.org/>`__.
 
@@ -39,7 +36,7 @@ Miscellaneous other changes include:
 - Updated numpy swig bindings for numpy 1.11.3
 - Black-formatted remaining source
 - Removed ``future`` and `six`, `configparser`
-- Shifted a lot of the configuration to `setup.cfg`. There is still
+- Shifted a lot of the configuration to ``setup.cfg``. There is still
   considerable work in ``setup.py`` due to the C extension
 - Shifted documentation source from ``doc/`` to ``docs/``
 - Shuffled around the indexing of documentation

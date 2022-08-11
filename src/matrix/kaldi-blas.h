@@ -2,7 +2,7 @@
 
 // Copyright 2009-2011  Ondrej Glembek;  Microsoft Corporation
 
-// Modified 2021 by Sean Robertson, listed.
+// Modified 2022 by Sean Robertson, listed.
 
 // See ../../COPYING for clarification regarding multiple authors
 //
@@ -44,11 +44,12 @@
 // supply its own "by hand" implementation which is based on TNT code.
 
 
-
-
-#if (defined(HAVE_CLAPACK) && (defined(HAVE_ATLAS) || defined(HAVE_MKL))) \
-    || (defined(HAVE_ATLAS) && defined(HAVE_MKL))
-#error "Do not define more than one of HAVE_CLAPACK, HAVE_ATLAS and HAVE_MKL"
+// sdrobert: updated
+#if (defined(HAVE_CLAPACK) && (defined(HAVE_ATLAS) || defined(HAVE_MKL) || defined(HAVE_OPENBLAS) || defined(HAVE_NOBLAS))) \
+    || (defined(HAVE_ATLAS) && (defined(HAVE_MKL) || defined(HAVE_OPENBLAS) || defined(HAVE_NOBLAS))) \
+    || (defined(HAVE_MKL) && (defined(HAVE_OPENBLAS) || defined(HAVE_NOBLAS))) \
+    || (defined(HAVE_OPENBLAS) && defined(HAVE_NOBLAS))
+#error "Do not define more than one of HAVE_CLAPACK, HAVE_ATLAS, HAVE_MKL, HAVE_OPENBLAS, and HAVE_NOBLAS"
 #endif
 
 #ifdef HAVE_ATLAS
@@ -122,8 +123,19 @@
   #undef bit_test
   #undef bit_clear
   #undef bit_set
+// sdrobert
+#elif defined(HAVE_NOBLAS)
+  #pragma message "Compiling without BLAS! Will throw if you try to use it"
+
+  // from netlib reference cblas.h https://netlib.org/blas/cblas.h
+  enum CBLAS_ORDER {CblasRowMajor=101, CblasColMajor=102};
+  enum CBLAS_TRANSPOSE {CblasNoTrans=111, CblasTrans=112, CblasConjTrans=113};
+  enum CBLAS_UPLO {CblasUpper=121, CblasLower=122};
+  enum CBLAS_DIAG {CblasNonUnit=131, CblasUnit=132};
+  enum CBLAS_SIDE {CblasLeft=141, CblasRight=142};
 #else
-  #error "You need to define (using the preprocessor) either HAVE_CLAPACK or HAVE_ATLAS or HAVE_MKL (but not more than one)"
+  // sdrobert: updated text
+  #error "You need to define (using the preprocessor) either HAVE_CLAPACK, HAVE_ATLAS, HAVE_MKL, HAVE_OPENBLAS, or HAVE_NOBLAS (but not more than one)"
 #endif
 
 #ifdef HAVE_OPENBLAS
@@ -135,7 +147,10 @@ typedef integer KaldiBlasInt;
 #ifdef HAVE_MKL
 typedef MKL_INT KaldiBlasInt;
 #endif
-
+// sdrobert
+#ifdef HAVE_NOBLAS
+typedef int KaldiBlasInt;
+#endif
 #ifdef HAVE_ATLAS
 // in this case there is no need for KaldiBlasInt-- this typedef is only needed
 // for Svd code which is not included in ATLAS (we re-implement it).

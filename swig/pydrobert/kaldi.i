@@ -19,7 +19,6 @@
 
 %{
   #define SWIG_FILE_WITH_INIT
-  #define SWIG_PYTHON_2_UNICODE
 %}
 
 #include "base/version.h"

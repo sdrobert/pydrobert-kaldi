@@ -126,19 +126,13 @@ To install via ``pip``::
 
    pip install pydrobert-kaldi
 
-You can also try building from source, but you'll have to specify where your
-BLAS install is somehow::
+You can also try building from source. To do so, you'll need to first install
+`SWIG 4.0 <https://www.swig.org/>`__ and an appropriate C++ compiler, then
 
-   # for OpenBLAS
-   OPENBLASROOT=/path/to/openblas/install pip install \
-     git+https://github.com/sdrobert/pydrobert-kaldi.git
-   # for MKL
-   MKLROOT=/path/to/mkl/install pip install \
-     git+https://github.com/sdrobert/pydrobert-kaldi.git
-   # for Accelerate (OSX only)
-   ACCELERATE=1 pip install \
-     git+https://github.com/sdrobert/pydrobert-kaldi.git
-   # see setup.py for more options
+   pip install git+https://github.com/sdrobert/pydrobert-kaldi.git
+
+The current version does not require a BLAS install, though it likely will
+in the future as more is wrapped.
 
 License
 -------

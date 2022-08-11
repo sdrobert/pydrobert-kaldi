@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import platform
-from posixpath import basename
 import sys
 
 from distutils.spawn import find_executable
@@ -22,8 +21,8 @@ from os import path
 from os import walk
 from re import findall
 from setuptools import setup
-from setuptools.command.build_ext import build_ext
 from setuptools.extension import Extension
+import numpy as np
 
 IS_64_BIT = sys.maxsize > 2 ** 32
 ON_WINDOWS = platform.system() == "Windows"
@@ -221,9 +220,10 @@ def atlas_setup(roots):
 
 
 def lapacke_setup(roots):
+    # only relies on the routines from lapack, so don't link to lapacke
     return blas_setup(
         roots,
-        ("blas", "cblas", "lapack", "lapacke"),
+        ("blas", "cblas", "lapack"),
         ("cblas.h", "lapacke.h"),
         {"DEFINES": [("HAVE_OPENBLAS", None)]},
     )
@@ -245,65 +245,8 @@ def accelerate_setup():
     }
 
 
-def custom_blas_setup(blas_includes, blas_libraries):
-    # blas includes must be a directory/directories. Blas libraries
-    # could be the library names or paths to the libraries themselves.
-    blas_includes = set(blas_includes)
-    for include_dir in blas_includes:
-        if not path.isdir(include_dir):
-            raise Exception(
-                'path "{}" in BLAS_INCLUDES is not a directory'.format(include_dir)
-            )
-    library_names = set()
-    library_dirs = set()
-    ldflags = set()
-    candidate_blas_types = set()
-    for blas_library in blas_libraries:
-        if path.isfile(blas_library):
-            library_name = path.basename(blas_library)
-            if ON_WINDOWS:
-                library_names.add(library_name.split(".")[0])
-            elif platform.system() == "Linux":
-                ldflags.add("-l:{}".format(library_name))
-            else:
-                library_names.add(library_name[3:].split("."))
-            library_dirs.add(path.abspath(path.dirname(blas_library)))
-        else:
-            library_name = blas_library
-            library_names.add(library_name)
-        for blas_type in ("atlas", "mkl", "openblas", "lapacke", "clapack"):
-            if blas_type in library_name:
-                candidate_blas_types.add(blas_type)
-    if not len(candidate_blas_types):
-        raise Exception(
-            "Could not determine appropriate BLAS type for libraries listed "
-            "in BLAS_LIBRARIES"
-        )
-    elif len(candidate_blas_types) != 1:
-        raise Exception(
-            "BLAS_LIBRARIES contains libraries that could refer to any "
-            "of {}".format(candidate_blas_types)
-        )
-    blas_type = candidate_blas_types.pop()
-    # we need to check if the requisite libraries are present in the
-    # inferred directories & get the appropriate defines. We then force
-    # *our* directories and libraries. Any problems with this should be
-    # caught at compile/link time
-    if blas_type == "atlas":
-        ret = atlas_setup(library_dirs | blas_includes)
-    elif blas_type == "mkl":
-        ret = mkl_setup(library_dirs | blas_includes)
-    elif blas_type == "openblas":
-        ret = openblas_setup(library_dirs | blas_includes)
-    elif blas_type == "lapacke":
-        ret = lapacke_setup(library_dirs | blas_includes)
-    else:
-        ret = clapack_setup(library_dirs | blas_includes)
-    ret["BLAS_LIBRARIES"] = list(library_names)
-    ret["BLAS_LIBRARY_DIRS"] = list(library_dirs)
-    ret["BLAS_INCLUDES"] = list(blas_includes)
-    ret["LD_FLAGS"] = ret.get("LD_FLAGS", []) + list(ldflags)
-    return ret
+def noblas_setup():
+    return {"DEFINES": [("HAVE_NOBLAS", None)]}
 
 
 PWD = path.abspath(path.dirname(__file__))
@@ -313,9 +256,12 @@ SWIG_DIR = path.join(PWD, "swig")
 DEFINES = [
     ("KALDI_DOUBLEPRECISION", environ.get("KALDI_DOUBLEPRECISION", "0")),
 ]
+LD_FLAGS = []
 if platform.system() != "Windows":
-    FLAGS = ["-std=c++11", "-m64" if IS_64_BIT else "-m32", "-msse", "-msse2"]
-    FLAGS += ["-fPIC"]
+    FLAGS = ["-std=c++11", "-m64" if IS_64_BIT else "-m32", "-msse", "-msse2", "-FPIC"]
+    if platform.system() == "Darwin":
+        FLAGS += ["-flax-vector-conversions", "-stdlib=libc++"]
+        LD_FLAGS += ["-stdlib=libc++"]
     DEFINES += [
         ("_GLIBCXX_USE_CXX11_ABI", "0"),
         ("HAVE_EXECINFO_H", "1"),
@@ -326,75 +272,10 @@ else:
     FLAGS = []
     LIBRARIES = []
     DEFINES += []
-LD_FLAGS = []
-
-# Adds additional libraries. Primarily for alpine libc (musllinux build),
-# which doesn't package execinfo by default.
-LIBRARIES += cmdline_split(environ.get("ADDITIONAL_LIBS", ""))
-
-MKL_ROOT = cmdline_split(environ.get("MKLROOT", ""))
-OPENBLAS_ROOT = cmdline_split(environ.get("OPENBLASROOT", ""))
-ATLAS_ROOT = cmdline_split(environ.get("ATLASROOT", ""))
-CLAPACK_ROOT = cmdline_split(environ.get("CLAPACKROOT", ""))
-LAPACKE_ROOT = cmdline_split(environ.get("LAPACKEROOT", ""))
-USE_ACCELERATE = environ.get("ACCELERATE", None)
-BLAS_INCLUDES = cmdline_split(environ.get("BLAS_INCLUDES", ""))
-BLAS_LIBRARIES = cmdline_split(environ.get("BLAS_LIBRARIES", ""))
-NUM_BLAS_OPTS = sum(
-    bool(x)
-    for x in (
-        MKL_ROOT,
-        OPENBLAS_ROOT,
-        ATLAS_ROOT,
-        USE_ACCELERATE,
-        CLAPACK_ROOT,
-        LAPACKE_ROOT,
-        BLAS_LIBRARIES,
-    )
-)
-if NUM_BLAS_OPTS > 1:
-    raise Exception("Only one BLAS type should be specified")
-elif NUM_BLAS_OPTS:
-    if MKL_ROOT:
-        BLAS_DICT = mkl_setup(MKL_ROOT, environ.get("MKL_THREADING_TYPE", None))
-    elif OPENBLAS_ROOT:
-        BLAS_DICT = openblas_setup(OPENBLAS_ROOT)
-    elif ATLAS_ROOT:
-        BLAS_DICT = atlas_setup(ATLAS_ROOT)
-    elif BLAS_INCLUDES or BLAS_LIBRARIES:
-        if bool(BLAS_INCLUDES) != bool(BLAS_LIBRARIES):
-            raise Exception(
-                "Both BLAS_LIBRARIES and BLAS_INCLUDES must be set if one " "is set"
-            )
-        BLAS_DICT = custom_blas_setup(BLAS_INCLUDES, BLAS_LIBRARIES)
-    elif CLAPACK_ROOT:
-        BLAS_DICT = clapack_setup(CLAPACK_ROOT)
-    elif LAPACKE_ROOT:
-        BLAS_DICT = lapacke_setup(LAPACKE_ROOT)
-    elif platform.system() == "Darwin":
-        BLAS_DICT = accelerate_setup()
-    else:
-        raise Exception("Accelerate is only available on OSX")
-else:
-    print(
-        "No BLAS library specified at command line. Will look via numpy. If "
-        "you have problems with linking, please specify BLAS via command line."
-    )
-    BLAS_DICT = dict()
-
-
-LIBRARIES += BLAS_DICT.get("BLAS_LIBRARIES", [])
-LIBRARY_DIRS = BLAS_DICT.get("BLAS_LIBRARY_DIRS", [])
-INCLUDE_DIRS = BLAS_DICT.get("BLAS_INCLUDES", []) + [SRC_DIR]
-LD_FLAGS += BLAS_DICT.get("LD_FLAGS", [])
-DEFINES += BLAS_DICT.get("DEFINES", [])
-FLAGS += BLAS_DICT.get("FLAGS", [])
-
-if platform.system() == "Darwin":
-    FLAGS += ["-flax-vector-conversions", "-stdlib=libc++"]
-    LD_FLAGS += ["-stdlib=libc++"]
-
 SRC_FILES = []
+INCLUDE_DIRS = [SRC_DIR, np.get_include()]
+LIBRARY_DIRS = []
+
 if find_executable("swig"):
     SRC_FILES.append(path.join(SWIG_DIR, "pydrobert", "kaldi.i"))
 elif path.exists(path.join(SWIG_DIR, "pydrobert", "kaldi_wrap.cpp")):
@@ -412,11 +293,55 @@ else:
 for base_dir, _, files in walk(SRC_DIR):
     SRC_FILES += [path.join(base_dir, f) for f in files if f.endswith(".cc")]
 
-SETUP_REQUIRES = ["setuptools_scm"]
-try:
-    import numpy  # type: ignore
-except ImportError:
-    SETUP_REQUIRES.append("oldest-supported-numpy")
+# Adds additional libraries. Primarily for alpine libc (musllinux build),
+# which doesn't package execinfo by default.
+LIBRARIES += cmdline_split(environ.get("ADDITIONAL_LIBS", ""))
+
+MKL_ROOT = cmdline_split(environ.get("MKLROOT", ""))
+OPENBLAS_ROOT = cmdline_split(environ.get("OPENBLASROOT", ""))
+ATLAS_ROOT = cmdline_split(environ.get("ATLASROOT", ""))
+CLAPACK_ROOT = cmdline_split(environ.get("CLAPACKROOT", ""))
+LAPACKE_ROOT = cmdline_split(environ.get("LAPACKEROOT", ""))
+USE_ACCELERATE = environ.get("ACCELERATE", None)
+NUM_BLAS_OPTS = sum(
+    bool(x)
+    for x in (
+        MKL_ROOT,
+        OPENBLAS_ROOT,
+        ATLAS_ROOT,
+        USE_ACCELERATE,
+        CLAPACK_ROOT,
+        LAPACKE_ROOT,
+    )
+)
+if NUM_BLAS_OPTS > 1:
+    raise Exception("Only one BLAS type should be specified")
+elif NUM_BLAS_OPTS:
+    if MKL_ROOT:
+        BLAS_DICT = mkl_setup(MKL_ROOT, environ.get("MKL_THREADING_TYPE", None))
+    elif OPENBLAS_ROOT:
+        BLAS_DICT = openblas_setup(OPENBLAS_ROOT)
+    elif ATLAS_ROOT:
+        BLAS_DICT = atlas_setup(ATLAS_ROOT)
+    elif CLAPACK_ROOT:
+        BLAS_DICT = clapack_setup(CLAPACK_ROOT)
+    elif LAPACKE_ROOT:
+        BLAS_DICT = lapacke_setup(LAPACKE_ROOT)
+    elif platform.system() == "Darwin":
+        BLAS_DICT = accelerate_setup()
+    else:
+        raise Exception("Accelerate is only available on OSX")
+else:
+    BLAS_DICT = noblas_setup()
+
+
+LIBRARIES += BLAS_DICT.get("BLAS_LIBRARIES", [])
+LIBRARY_DIRS += BLAS_DICT.get("BLAS_LIBRARY_DIRS", [])
+INCLUDE_DIRS += BLAS_DICT.get("BLAS_INCLUDES", [])
+LD_FLAGS += BLAS_DICT.get("LD_FLAGS", [])
+DEFINES += BLAS_DICT.get("DEFINES", [])
+FLAGS += BLAS_DICT.get("FLAGS", [])
+
 
 KALDI_LIBRARY = Extension(
     "pydrobert.kaldi._internal",
@@ -432,97 +357,4 @@ KALDI_LIBRARY = Extension(
 )
 
 
-# https://stackoverflow.com/questions/2379898/
-# make-distutils-look-for-numpy-header-files-in-the-correct-place
-class CustomBuildExtCommand(build_ext):
-    def look_for_blas(self):
-        """Look for blas libraries through numpy"""
-        injection_lookup = {
-            "BLAS_LIBRARIES": (KALDI_LIBRARY, "libraries"),
-            "BLAS_LIBRARY_DIRS": (KALDI_LIBRARY, "library_dirs"),
-            "BLAS_INCLUDES": (KALDI_LIBRARY, "include_dirs"),
-            "LD_FLAGS": (KALDI_LIBRARY, "extra_link_args"),
-            "DEFINES": (KALDI_LIBRARY, "define_macros"),
-            "libraries": (KALDI_LIBRARY, "libraries"),
-            "library_dirs": (KALDI_LIBRARY, "library_dirs"),
-            "include_dirs": (self, "include_dirs"),
-            "define_macros": (KALDI_LIBRARY, "define_macros"),
-            "extra_compile_args": (KALDI_LIBRARY, "extra_compile_args"),
-            "extra_link_args": (KALDI_LIBRARY, "extra_link_args"),
-        }
-        from numpy.distutils import system_info
-
-        found_blas = False
-        blas_to_check = [
-            ("mkl", "HAVE_MKL", mkl_setup),
-            ("openblas_lapack", "HAVE_OPENBLAS", openblas_setup),
-            ("atlas", "HAVE_ATLAS", atlas_setup),
-            # numpy only cares about lapack, not c wrappers. It uses
-            # f77blas, after all
-            ("blas_opt", "HAVE_LAPACKE", lapacke_setup),
-            ("blas_opt", "HAVE_CLAPACK", clapack_setup),
-        ]
-        if platform.system() == "Darwin":
-            blas_to_check.append(("accelerate", "HAVE_CLAPACK", accelerate_setup))
-        for info_name, define, setup_func in blas_to_check:
-            info = system_info.get_info(info_name)
-            if not info:
-                continue
-            if info_name == "accelerate":
-                # should be sufficient
-                for key, value in info.items():
-                    if key in injection_lookup:
-                        obj, attribute = injection_lookup[key]
-                        past_attr = getattr(obj, attribute)
-                        if past_attr is None:
-                            setattr(obj, attribute, value)
-                        else:
-                            setattr(obj, attribute, past_attr + value)
-                KALDI_LIBRARY.define_macros.append((define, None))
-                print("Using {}".format(info_name))
-                found_blas = True
-                break
-            elif "library_dirs" not in info:
-                continue
-            # otherwise we try setting up in the library dirs, then in the
-            # directories above them.
-            check_dirs = list(info["library_dirs"])
-            check_dirs += [path.abspath(path.join(x, "..")) for x in check_dirs]
-            check_dirs = list(info.get("include_dirs", [])) + check_dirs
-            try:
-                blas_dict = setup_func(check_dirs)
-            except Exception:
-                continue
-            for key, value in blas_dict.items():
-                obj, attribute = injection_lookup[key]
-                past_attr = getattr(obj, attribute)
-                if past_attr is None:
-                    setattr(obj, attribute, value)
-                else:
-                    setattr(obj, attribute, past_attr + value)
-            print("Using {}".format(info_name))
-            found_blas = True
-        if not found_blas:
-            if {"bdist_wheel", "build", "develop", "install"}.intersection(sys.argv):
-                raise Exception("Unable to find BLAS library via numpy")
-            else:
-                print(
-                    "Unable to find BLAS library, but we might not be building "
-                    "anything. Might run into an exception later"
-                )
-
-    def finalize_options(self):
-        build_ext.finalize_options(self)
-        import numpy
-
-        if not len(BLAS_DICT):
-            self.look_for_blas()
-        self.include_dirs.append(numpy.get_include())
-
-
-setup(
-    use_scm_version={"write_to": "src/pydrobert/kaldi/version.py"},
-    cmdclass={"build_ext": CustomBuildExtCommand},
-    setup_requires=SETUP_REQUIRES,
-    ext_modules=[KALDI_LIBRARY],
-)
+setup(ext_modules=[KALDI_LIBRARY])
