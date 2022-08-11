@@ -245,6 +245,10 @@ def accelerate_setup():
     }
 
 
+def noblas_setup():
+    return {"DEFINES": [("HAVE_NOBLAS", None)]}
+
+
 PWD = path.abspath(path.dirname(__file__))
 PYTHON_DIR = path.join(PWD, "python")
 SRC_DIR = path.join(PWD, "src")
@@ -328,7 +332,7 @@ elif NUM_BLAS_OPTS:
     else:
         raise Exception("Accelerate is only available on OSX")
 else:
-    raise ValueError("No BLAS root specified!")
+    BLAS_DICT = noblas_setup()
 
 
 LIBRARIES += BLAS_DICT.get("BLAS_LIBRARIES", [])

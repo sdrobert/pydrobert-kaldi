@@ -2,6 +2,7 @@
 
 set -e -x
 
+if false; then
 if command -v yum &> /dev/null; then
   install_command="yum install -y"
   openblas_pkg=openblas-devel
