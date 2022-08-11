@@ -220,9 +220,10 @@ def atlas_setup(roots):
 
 
 def lapacke_setup(roots):
+    # only relies on the routines from lapack, so don't link to lapacke
     return blas_setup(
         roots,
-        ("blas", "cblas", "lapack", "lapacke"),
+        ("blas", "cblas", "lapack"),
         ("cblas.h", "lapacke.h"),
         {"DEFINES": [("HAVE_OPENBLAS", None)]},
     )
