@@ -125,7 +125,14 @@
   #undef bit_set
 // sdrobert
 #elif defined(HAVE_NOBLAS)
-  #warning "Compiling without BLAS! Will throw if you try to use it"
+  #pragma message "Compiling without BLAS! Will throw if you try to use it"
+
+  // from netlib reference cblas.h https://netlib.org/blas/cblas.h
+  enum CBLAS_ORDER {CblasRowMajor=101, CblasColMajor=102};
+  enum CBLAS_TRANSPOSE {CblasNoTrans=111, CblasTrans=112, CblasConjTrans=113};
+  enum CBLAS_UPLO {CblasUpper=121, CblasLower=122};
+  enum CBLAS_DIAG {CblasNonUnit=131, CblasUnit=132};
+  enum CBLAS_SIDE {CblasLeft=141, CblasRight=142};
 #else
   // sdrobert: updated text
   #error "You need to define (using the preprocessor) either HAVE_CLAPACK, HAVE_ATLAS, HAVE_MKL, HAVE_OPENBLAS, or HAVE_NOBLAS (but not more than one)"
@@ -143,13 +150,6 @@ typedef MKL_INT KaldiBlasInt;
 // sdrobert
 #ifdef HAVE_NOBLAS
 typedef int KaldiBlasInt;
-
-// from netlib reference cblas.h https://netlib.org/blas/cblas.h
-enum CBLAS_ORDER {CblasRowMajor=101, CblasColMajor=102};
-enum CBLAS_TRANSPOSE {CblasNoTrans=111, CblasTrans=112, CblasConjTrans=113};
-enum CBLAS_UPLO {CblasUpper=121, CblasLower=122};
-enum CBLAS_DIAG {CblasNonUnit=131, CblasUnit=132};
-enum CBLAS_SIDE {CblasLeft=141, CblasRight=142};
 #endif
 #ifdef HAVE_ATLAS
 // in this case there is no need for KaldiBlasInt-- this typedef is only needed
