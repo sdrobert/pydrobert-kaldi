@@ -203,7 +203,7 @@ def openblas_setup(roots):
     return blas_setup(
         roots,
         ("openblas",),
-        ("cblas.h", "lapack.h"),
+        ("cblas.h", "lapacke.h"),
         {"DEFINES": [("HAVE_OPENBLAS", None)]},
     )
 
@@ -220,12 +220,10 @@ def atlas_setup(roots):
 
 
 def lapacke_setup(roots):
-    # XXX(sdrobert): kaldi only uses routines defined in lapack.h, so there's no need
-    # to link against lapacke
     return blas_setup(
         roots,
-        ("blas", "cblas", "lapack"),
-        ("cblas.h", "lapack.h"),
+        ("blas", "cblas", "lapack", "lapacke"),
+        ("cblas.h", "lapacke.h"),
         {"DEFINES": [("HAVE_OPENBLAS", None)]},
     )
 

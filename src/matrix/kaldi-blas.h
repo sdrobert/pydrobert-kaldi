@@ -2,7 +2,7 @@
 
 // Copyright 2009-2011  Ondrej Glembek;  Microsoft Corporation
 
-// Modified 2022 by Sean Robertson, listed.
+// Modified 2021 by Sean Robertson, listed.
 
 // See ../../COPYING for clarification regarding multiple authors
 //
@@ -109,8 +109,7 @@
 #endif
 
   #include "cblas.h"
-  // sdrobert: don't need the high-level lapacke routines, just lapack
-  #include "lapack.h"
+  #include "lapacke.h"
   #undef I
   #undef complex
   // get rid of macros from f2c.h -- these are dangerous.

@@ -39,7 +39,7 @@ fi
 if [ ! -z "${OPENBLASROOT}" ]; then
   if [ ! -f "${OPENBLASROOT}/include/cblas.h" ] ; then
     $install_command $openblas_pkg
-    find "${OPENBLASROOT}" \( -name 'cblas.h' -o -name 'lapack.h' -o -name 'libopenblas.so' \)
+    find "${OPENBLASROOT}" \( -name 'cblas.h' -o -name 'lapacke.h' -o -name 'libopenblas.so' \)
   fi
 fi
 if [ ! -z "${ATLASROOT}" ]; then
