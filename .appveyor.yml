@@ -67,15 +67,15 @@ for:
     matrix:
       only:
         - job_name: sdist
-      install:
-        - ./recipe/sdist.sh
-      build_script:
-        - sh: swig -python -py3 -c++ -builtin -castmode -O -Iswig -o swig/pydrobert/kaldi_wrap.cpp swig/pydrobert/kaldi.i
-        - sh: python -m build -s -o ${DIST}
-      test_script:
-        - sh: python -m pip install ${DIST}/*.tar.gz
-        - sh: python -m pip install pytest
-        - sh: pytest
+    install:
+      - ./recipe/sdist.sh
+    build_script:
+      - sh: swig -python -py3 -c++ -builtin -castmode -O -Iswig -o swig/pydrobert/kaldi_wrap.cpp swig/pydrobert/kaldi.i
+      - sh: python -m build -s -o ${DIST}
+    test_script:
+      - sh: python -m pip install ${DIST}/*.tar.gz
+      - sh: python -m pip install pytest
+      - sh: pytest
 
 init:
   - ps: >-
