@@ -1,7 +1,7 @@
 Locale and Kaldi
 ================
 
-As of ``v0.7.0``, ``pydrobert.kaldi.io`` no longer issues a
+After ``v0.6.0``, ``pydrobert.kaldi.io`` no longer issues a
 ``KaldiLocaleWarning`` when the system locale doesn't match the POSIX standard.
 *The long story short is that locale shouldn't matter much to what
 pydrobert-kaldi does,* so I no longer bug you about it. If you're hunting an
