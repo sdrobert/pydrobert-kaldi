@@ -17,6 +17,8 @@ environment:
     # - job_name: win64
     #   CIBW_SKIP: pp* *-win32 cp311*
     #   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    - job_name: sdist
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     # - job_name: osx
     #   CIBW_SKIP: pp* cp311*
     #   APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
@@ -25,11 +27,11 @@ environment:
     #   CIBW_SKIP: pp* *-musllinux* cp311*
     #   # CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr
     #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-    - job_name: manylinux-i686
-      CIBW_ARCHS_LINUX: i686
-      CIBW_SKIP: pp* *-musllinux* cp311*
-      # CIBW_ENVIRONMENT_LINUX: ATLASROOT=/usr
-      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+    # - job_name: manylinux-i686
+    #   CIBW_ARCHS_LINUX: i686
+    #   CIBW_SKIP: pp* *-musllinux* cp311*
+    #   # CIBW_ENVIRONMENT_LINUX: ATLASROOT=/usr
+    #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     # FIXME(sdrobert): These work last I checked, but time out. Numpy currently
     # isn't building musllinux wheels
     # (https://github.com/numpy/numpy/issues/20089). Building its wheels each
@@ -45,7 +47,6 @@ environment:
     #   CIBW_SKIP: pp* *-manylinux*
     #   CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr ADDITIONAL_LIBS="execinfo"
     #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-    - job_name: 
 
 stack: python 3.7
 
@@ -58,10 +59,23 @@ for:
     # skip 32-bit and musl linux unless we're a tag
     matrix:
       only:
-        # - CIBW_ARCHS_LINUX: i686
+        - CIBW_ARCHS_LINUX: i686
         - CIBW_SKIP: /-manylinux/
     skip_non_tags: true
   
+  -
+    matrix:
+      only:
+        - job_name: sdist
+      install:
+        - ./recipe/sdist.sh
+      build_script:
+        - sh: swig -python -py3 -c++ -builtin -castmode -O -Iswig -o swig/pydrobert/kaldi_wrap.cpp swig/pydrobert/kaldi.i
+        - sh: python -m build -s -o ${DIST}
+      test_script:
+        - sh: python -m pip install ${DIST}/*.tar.gz
+        - sh: python -m pip install pytest
+        - sh: pytest
 
 init:
   - ps: >-

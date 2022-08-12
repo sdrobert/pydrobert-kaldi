@@ -1,7 +1,7 @@
-HEAD
-----
+v0.6.1
+------
 
-- Cut Python less than 3.7, added up to 3.10
+- Cut Python less than 3.7, added up to 3.10.
 - "No BLAS" is now the default build. None of the currently wrapped
   functionality actually uses BLAS right now. 
 - Removed `KaldiLocaleWarning` and added a documentation page addressing
