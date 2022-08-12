@@ -14,35 +14,35 @@ environment:
   # FIXME(sdrobert): include python 3.11 when Numpy has a wheel for it
   # https://github.com/numpy/numpy/issues/21970
   matrix:
-    # - job_name: win64
-    #   CIBW_SKIP: pp* *-win32 cp311*
-    #   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-    # - job_name: osx
-    #   CIBW_SKIP: pp* cp311*
-    #   APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
-    # - job_name: manylinux-x86_64
-    #   CIBW_ARCHS_LINUX: x86_64
-    #   CIBW_SKIP: pp* *-musllinux* cp311*
-    #   # CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr
-    #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-    # - job_name: manylinux-i686
-    #   CIBW_ARCHS_LINUX: i686
-    #   CIBW_SKIP: pp* *-musllinux* cp311*
-    #   # CIBW_ENVIRONMENT_LINUX: ATLASROOT=/usr
-    #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+    - job_name: win64
+      CIBW_SKIP: pp* *-win32 cp311*
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    - job_name: osx
+      CIBW_SKIP: pp* cp311*
+      APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
+    - job_name: manylinux-x86_64
+      CIBW_ARCHS_LINUX: x86_64
+      CIBW_SKIP: pp* *-musllinux* cp311*
+      # CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+    - job_name: manylinux-i686
+      CIBW_ARCHS_LINUX: i686
+      CIBW_SKIP: pp* *-musllinux* cp311*
+      # CIBW_ENVIRONMENT_LINUX: ATLASROOT=/usr
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     # FIXME(sdrobert): These work last I checked, but time out. Numpy currently
     # isn't building musllinux wheels
     # (https://github.com/numpy/numpy/issues/20089). Building its wheels each
     # time before building mine (and after, on install) is hideously slow.
     # Uncomment when numpy builds its own musllinux wheels.
-    - job_name: musllinux-x86_64
-      CIBW_ARCHS_LINUX: x86_64
-      CIBW_SKIP: pp* *-manylinux* cp311*
-      CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr ADDITIONAL_LIBS="execinfo"
-      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+    # - job_name: musllinux-x86_64
+    #   CIBW_ARCHS_LINUX: x86_64
+    #   CIBW_SKIP: pp* *-manylinux*
+    #   CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr ADDITIONAL_LIBS="execinfo"
+    #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     # - job_name: musllinux-i686
     #   CIBW_ARCHS_LINUX: i686
-    #   CIBW_SKIP: pp* *-manylinux* cp311*
+    #   CIBW_SKIP: pp* *-manylinux*
     #   CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr ADDITIONAL_LIBS="execinfo"
     #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
 
@@ -58,7 +58,7 @@ for:
     matrix:
       only:
         - CIBW_ARCHS_LINUX: i686
-        # - CIBW_SKIP: /-manylinux/
+        - CIBW_SKIP: /-manylinux/
     skip_non_tags: true
   
 
