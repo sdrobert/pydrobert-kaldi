@@ -12,7 +12,7 @@ cd swig-rel-4.0.2
 ./autogen.sh --without-alllang --with-python
 ./configure --without-pcre
 make
-make install
+sudo make install
 popd
 command -v swig
 
