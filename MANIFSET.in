@@ -1,0 +1,6 @@
+include CHANGELOG.rst LICENSE src/COPYING_Kaldi_Project pyproject.toml setup.cfg docs/make.bat docs/Makefile docs/requirements.txt
+recursive-include src *.cc *.h
+recursive-include swig *.i *.swg *.cpp
+global-include *.py
+global-exclude *.so *.pyc
+global-include *.rst
