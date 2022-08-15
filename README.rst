@@ -73,26 +73,22 @@ package. See the `Command-Line Interface
 
 Installation
 ------------
+Prepackaged binaries of tagged versions of `pydrobert-kaldi` are available for
+most platforms (64-bit Windows, 32/64-bit Glibc Linux, OSX) and most active
+Python versions (3.7-3.10).
 
-Installations for the following platforms are available on both PyPI_ and
-Conda_
-
-- Windows (64-bit)
-- OSX (64-bit)
-- Linux (glibc) 32-bit (i686) and 64-bit (x86_64)
-
-for python versions 3.7-3.10.
-
-To install via ``conda``::
+To install via Conda_::
 
    conda install -c sdrobert pydrobert-kaldi
 
-To install via ``pip``::
+A [conda-forge](https://conda-forge.org/) version is TBD.
+
+To install via PyPI_::
 
    pip install pydrobert-kaldi
 
-You can also try building from source. To do so, you'll need to first install
-`SWIG 4.0 <https://www.swig.org/>`__ and an appropriate C++ compiler, then
+You can also try building the cutting-edge version. To do so, you'll need to
+first install `SWIG 4.0`_ and an appropriate C++ compiler, then
 
    pip install git+https://github.com/sdrobert/pydrobert-kaldi.git
 
@@ -118,7 +114,7 @@ more details.
 
 .. _Kaldi: http://kaldi-asr.org/
 .. _`Kaldi I/O`: http://kaldi-asr.org/doc/io.html
-.. _Swig: http://www.swig.org/
+.. _`Swig 4.0`: http://www.swig.org/
 .. _Numpy: http://www.numpy.org/
 .. _Conda: http://conda.pydata.org/docs/
 .. _PyPI: https://pypi.org/
