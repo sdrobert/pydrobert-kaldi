@@ -70,7 +70,7 @@ for:
     install:
       - ./recipe/sdist.sh
     build_script:
-      - sh: swig -python -py3 -c++ -builtin -castmode -O -Iswig -o swig/pydrobert/kaldi_wrap.cpp swig/pydrobert/kaldi.i
+      - sh: install/bin/swig -python -py3 -c++ -builtin -castmode -O -Iswig -o swig/pydrobert/kaldi_wrap.cpp swig/pydrobert/kaldi.i
       - sh: python -m build -s -o ${DIST}
     test_script:
       - sh: python -m pip install ${DIST}/*.tar.gz

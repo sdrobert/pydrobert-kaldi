@@ -2,6 +2,8 @@
 
 set -e
 
+cdir="$PWD"
+
 # build swig 4.0.2
 tmpdir=$(mktemp -d)
 pushd $tmpdir
@@ -10,10 +12,9 @@ curl -L https://github.com/swig/swig/archive/rel-4.0.2.tar.gz > rel-4.0.2
 tar -xf rel-4.0.2
 cd swig-rel-4.0.2
 ./autogen.sh --without-alllang --with-python
-./configure --without-pcre
+./configure --without-pcre --prefix="$PWD/install"
 make
-sudo make install
+make install
 popd
-command -v swig
 
 python -m pip install build
