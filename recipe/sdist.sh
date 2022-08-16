@@ -19,4 +19,4 @@ make
 make install
 popd
 
-python -m pip install build
+python -m pip install build twine
