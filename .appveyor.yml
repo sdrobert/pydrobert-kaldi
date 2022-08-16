@@ -17,6 +17,8 @@ environment:
     - job_name: win64
       CIBW_SKIP: pp* *-win32 cp311*
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    - job_name: sdist
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     - job_name: osx
       CIBW_SKIP: pp* cp311*
       APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
@@ -60,7 +62,21 @@ for:
         - CIBW_ARCHS_LINUX: i686
         - CIBW_SKIP: /-manylinux/
     skip_non_tags: true
-  
+
+  -
+    matrix:
+      only:
+        - job_name: sdist
+    skip_non_tags: true
+    install:
+      - ./recipe/sdist.sh
+    build_script:
+      - sh: install/bin/swig -python -py3 -c++ -builtin -castmode -O -Iswig -o swig/pydrobert/kaldi_wrap.cpp swig/pydrobert/kaldi.i
+      - sh: python -m build -s -o ${DIST}
+    test_script:
+      - sh: python -m pip install ${DIST}/*.tar.gz
+      - sh: python -m pip install pytest
+      - sh: pytest
 
 init:
   - ps: >-
