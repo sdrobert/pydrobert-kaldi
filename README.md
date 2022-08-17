@@ -77,8 +77,9 @@ details.
 ## Installation
 
 Prepackaged binaries of tagged versions of `pydrobert-kaldi` are available for
-most platforms (64-bit Windows, 32/64-bit Glibc Linux, OSX) and most active
-Python versions (3.7-3.10).
+most 64-bit platforms (Windows, Glibc Linux, OSX) and most active Python
+versions (3.7-3.11) on both [conda](https://docs.conda.io/en/latest/) and
+[PyPI](https://pypi.org/).
 
 To install via [conda](https://docs.conda.io/en/latest/)
 
