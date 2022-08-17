@@ -48,7 +48,7 @@ environment:
     #   CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr ADDITIONAL_LIBS="execinfo"
     #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
 
-stack: python 3.7
+stack: python 3.8
 
 branches:
   except:
