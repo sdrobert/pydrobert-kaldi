@@ -12,11 +12,11 @@ environment:
   CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel} --add-path "C:\Libraries\openblas\bin"
   CIBW_SKIP: pp* *-win32 *-manylinux*
   matrix:
+    - job_name: sdist
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     - job_name: win64
       CIBW_SKIP: pp* *-win32
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-    - job_name: sdist
-      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     - job_name: osx
       CIBW_SKIP: pp*
       APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
@@ -99,7 +99,7 @@ init:
 build: script
 
 cache:
-    - install/bin -> recipe/sdist.sh
+    - install -> recipe/sdist.sh
 #   - C:\Libraries\openblas -> recipe\cibw_before_build_win.ps1
 
 install:
