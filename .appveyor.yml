@@ -10,28 +10,26 @@ environment:
   CIBW_BEFORE_ALL_WINDOWS: powershell.exe {project}/recipe/cibw_before_all_win.ps1
   CIBW_BEFORE_BUILD: python -m pip install -r {project}/recipe/cibw_before_requirements.txt
   CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel} --add-path "C:\Libraries\openblas\bin"
-  CIBW_SKIP: pp* *-win32 *-manylinux* cp311*
-  # FIXME(sdrobert): include python 3.11 when Numpy has a wheel for it
-  # https://github.com/numpy/numpy/issues/21970
+  CIBW_SKIP: pp* *-win32 *-manylinux*
   matrix:
-    - job_name: win64
-      CIBW_SKIP: pp* *-win32 cp311*
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     - job_name: sdist
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+    - job_name: win64
+      CIBW_SKIP: pp* *-win32
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
     - job_name: osx
-      CIBW_SKIP: pp* cp311*
+      CIBW_SKIP: pp*
       APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
     - job_name: manylinux-x86_64
       CIBW_ARCHS_LINUX: x86_64
-      CIBW_SKIP: pp* *-musllinux* cp311*
+      CIBW_SKIP: pp* *-musllinux*
       # CIBW_ENVIRONMENT_LINUX: OPENBLASROOT=/usr
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
-    - job_name: manylinux-i686
-      CIBW_ARCHS_LINUX: i686
-      CIBW_SKIP: pp* *-musllinux* cp311*
-      # CIBW_ENVIRONMENT_LINUX: ATLASROOT=/usr
-      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+    # - job_name: manylinux-i686
+    #   CIBW_ARCHS_LINUX: i686
+    #   CIBW_SKIP: pp* *-musllinux*
+    #   # CIBW_ENVIRONMENT_LINUX: ATLASROOT=/usr
+    #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     # FIXME(sdrobert): These work last I checked, but time out. Numpy currently
     # isn't building musllinux wheels
     # (https://github.com/numpy/numpy/issues/20089). Building its wheels each
@@ -70,13 +68,22 @@ for:
     install:
       - ./recipe/sdist.sh
     build_script:
-      - sh: install/bin/swig -python -py3 -c++ -builtin -castmode -O -Iswig -o swig/pydrobert/kaldi_wrap.cpp swig/pydrobert/kaldi.i
-      - sh: python -m build -s -o ${DIST}
+      - install/bin/swig -python -py3 -c++ -builtin -castmode -O -Iswig -o swig/pydrobert/kaldi_wrap.cpp swig/pydrobert/kaldi.i
+      - python -m build -s -o ${DIST}
     test_script:
-      - sh: python -m twine check ${DIST}/*.tar.gz --strict
-      - sh: python -m pip install ${DIST}/*.tar.gz
-      - sh: python -m pip install pytest
-      - sh: pytest
+      - python -m twine check ${DIST}/*.tar.gz --strict
+      # ensure we can install/run it
+      - python -m pip install ${DIST}/*.tar.gz
+      - python -m pip install pytest
+      - pytest
+      # Ensure paths in sdist are relative
+      - tar xzf ${DIST}/*.tar.gz
+      - |
+        if find pydrobert-kaldi-* -name 'SOURCES.txt' -exec cat {} \; | grep -q '^/'; then
+          echo "Found absolute path in sdist!";
+          exit 1;
+        fi
+
 
 init:
   - ps: >-
@@ -91,7 +98,8 @@ init:
 
 build: script
 
-# cache:
+cache:
+    - install -> recipe/sdist.sh
 #   - C:\Libraries\openblas -> recipe\cibw_before_build_win.ps1
 
 install:

@@ -2,9 +2,11 @@
 
 set -e
 
+python -m pip install build twine
+
 cdir="$PWD"
 
-echo "$cdir"
+[ -f "$cdir/install/bin/swig" ] && exit 0
 
 # build swig 4.0.2
 tmpdir=$(mktemp -d)
@@ -19,4 +21,3 @@ make
 make install
 popd
 
-python -m pip install build twine

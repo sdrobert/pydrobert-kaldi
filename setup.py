@@ -249,10 +249,9 @@ def noblas_setup():
     return {"DEFINES": [("HAVE_NOBLAS", None)]}
 
 
-PWD = path.abspath(path.dirname(__file__))
-PYTHON_DIR = path.join(PWD, "python")
-SRC_DIR = path.join(PWD, "src")
-SWIG_DIR = path.join(PWD, "swig")
+PYTHON_DIR = "python"
+SRC_DIR = "src"
+SWIG_DIR = "swig"
 DEFINES = [
     ("KALDI_DOUBLEPRECISION", environ.get("KALDI_DOUBLEPRECISION", "0")),
 ]
