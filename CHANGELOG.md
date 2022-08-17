@@ -1,3 +1,8 @@
+v0.6.2
+------
+- Fixed absolute paths in source distribution.
+- Cleaned up some of the package metadata.
+
 v0.6.1
 ------
 

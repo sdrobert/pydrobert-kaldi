@@ -74,6 +74,10 @@ for:
       - python -m build -s -o ${DIST}
     test_script:
       - python -m twine check ${DIST}/*.tar.gz --strict
+      # ensure we can install/run it
+      - python -m pip install ${DIST}/*.tar.gz
+      - python -m pip install pytest
+      - pytest
       # Ensure paths in sdist are relative
       - tar xzf ${DIST}/*.tar.gz
       - |
@@ -81,10 +85,6 @@ for:
           echo "Found absolute path in sdist!";
           exit 1;
         fi
-      # ensure we can install/run it
-      - python -m pip install ${DIST}/*.tar.gz
-      - python -m pip install pytest
-      - pytest
 
 
 init:
