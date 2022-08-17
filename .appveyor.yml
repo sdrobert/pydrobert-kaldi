@@ -17,8 +17,8 @@ environment:
     # - job_name: win64
     #   CIBW_SKIP: pp* *-win32 cp311*
     #   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-    # - job_name: sdist
-    #   APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+    - job_name: sdist
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
     # - job_name: osx
     #   CIBW_SKIP: pp* cp311*
     #   APPVEYOR_BUILD_WORKER_IMAGE: macos-mojave
