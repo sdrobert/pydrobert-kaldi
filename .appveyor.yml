@@ -70,8 +70,7 @@ for:
     install:
       - ./recipe/sdist.sh
     build_script:
-      - install/bin/swig -python -py3 -c++ -builtin -castmode -O -Iswig -o swig/pydrobert/kaldi_wrap.cpp swig/pydrobert/kaldi.i
-      - python -m build -s -o ${DIST}
+      - PATH="install/bin:${PATH}" python -m build -s -o ${DIST}
     test_script:
       - python -m twine check ${DIST}/*.tar.gz --strict
       # Ensure paths in sdist are relative
@@ -100,7 +99,8 @@ init:
 
 build: script
 
-# cache:
+cache:
+    - install/bin -> recipe/sdist.sh
 #   - C:\Libraries\openblas -> recipe\cibw_before_build_win.ps1
 
 install:
