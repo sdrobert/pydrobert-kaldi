@@ -70,7 +70,8 @@ for:
     install:
       - ./recipe/sdist.sh
     build_script:
-      - PATH="install/bin:${PATH}" python -m build -s -o ${DIST}
+      - install/bin/swig -python -py3 -c++ -builtin -castmode -O -Iswig -o swig/pydrobert/kaldi_wrap.cpp swig/pydrobert/kaldi.i
+      - python -m build -s -o ${DIST}
     test_script:
       - python -m twine check ${DIST}/*.tar.gz --strict
       # Ensure paths in sdist are relative
