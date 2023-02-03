@@ -113,18 +113,25 @@ def test_write_table_to_torch_dir(temp_dir):
 
     out_dir = os.path.join(temp_dir, "test_write_table_to_torch_dir")
     os.makedirs(out_dir)
-    rwspecifier = "ark:" + os.path.join(out_dir, "table.ark")
+    fname = os.path.join(out_dir, "table.ark")
     a = torch.rand(10, 4)
     b = torch.rand(5, 2)
     c = torch.rand(5, 100)
-    with kaldi_open(rwspecifier, "bm", mode="w") as table:
+    with kaldi_open(f"ark:{fname}", "bm", mode="w") as table:
         table.write("a", a.numpy())
         table.write("b", b.numpy())
         table.write("c", c.numpy())
-    assert not command_line.write_table_to_torch_dir([rwspecifier, out_dir])
+    assert not command_line.write_table_to_torch_dir([f"ark:{fname}", out_dir])
     assert torch.allclose(c, torch.load(os.path.join(out_dir, "c.pt")))
     assert torch.allclose(b, torch.load(os.path.join(out_dir, "b.pt")))
     assert torch.allclose(a, torch.load(os.path.join(out_dir, "a.pt")))
+
+    with open(fname, "w") as table:
+        table.write("a T\n")
+    assert not command_line.write_table_to_torch_dir(
+        [f"ark,t:{fname}", "-i", "B", out_dir]
+    )
+    assert torch.load(os.path.join(out_dir, "a.pt"))
 
 
 @pytest.mark.pytorch

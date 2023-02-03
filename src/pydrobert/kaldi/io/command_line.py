@@ -495,7 +495,7 @@ def write_table_to_torch_dir(args: Optional[Sequence[str]] = None) -> None:
             enums.KaldiDataType.Int32VectorVector,
         }:
             out_type = "int"
-        elif options.in_type == enums.KaldiDataType.Boolean:
+        elif options.in_type == enums.KaldiDataType.Bool:
             out_type = "byte"
         else:
             print(
@@ -624,7 +624,7 @@ def write_torch_dir_to_table(args: Optional[Sequence[str]] = None) -> None:
         enums.KaldiDataType.Int32VectorVector,
     }:
         torch_type = torch.int
-    elif options.out_type == enums.KaldiDataType.Boolean:
+    elif options.out_type == enums.KaldiDataType.Bool:
         torch_type = torch.uint8
         is_bool = True
     else:
