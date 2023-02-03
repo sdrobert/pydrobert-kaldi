@@ -128,7 +128,7 @@ def write_table_to_pickle(args: Optional[Sequence[str]] = None) -> None:
         return 1
     num_entries = 0
     try:
-        for key, value in list(reader.items()):
+        for key, value in reader.items():
             num_entries += 1
             if not np.issubdtype(out_type, np.dtype(str).type):
                 value = value.astype(out_type)
@@ -526,7 +526,7 @@ def write_table_to_torch_dir(args: Optional[Sequence[str]] = None) -> None:
     except FileExistsError:
         pass
     with kaldi_open(options.rspecifier, options.in_type) as table:
-        for key, value in list(table.items()):
+        for key, value in table.items():
             value = torch.tensor(value).type(out_type)
             torch.save(
                 value,
