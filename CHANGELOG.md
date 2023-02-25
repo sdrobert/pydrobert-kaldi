@@ -1,3 +1,7 @@
+v0.6.3
+------
+- Fixed an annoying bug causing memory bloat.
+
 v0.6.2
 ------
 - Added 3.11. Removed 32-bit wheels.
