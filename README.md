@@ -22,6 +22,7 @@ forking.**
 ## Documentation
 
 - [Latest](https://pydrobert-kaldi.readthedocs.io/en/latest/)
+- [v0.6.3](https://pydrobert-kaldi.readthedocs.io/en/v0.6.3/)
 
 ## Input/Output
 
@@ -81,13 +82,14 @@ most 64-bit platforms (Windows, Glibc Linux, OSX) and most active Python
 versions (3.7-3.11) on both [conda](https://docs.conda.io/en/latest/) and
 [PyPI](https://pypi.org/).
 
-To install via [conda](https://docs.conda.io/en/latest/)
+To install via [conda-forge](https://conda-forge.org/)
 
 ``` sh
-   conda install -c sdrobert pydrobert-kaldi
+   conda install -c conda-forge pydrobert-kaldi
 ```
 
-A [conda-forge](https://conda-forge.org/) version is TBD.
+If you only want to rely on Anaconda depenedencies, you can install from the
+`sdrobert` channel instead. There is not yet a 3.11 build there.
 
 To install via [PyPI](https://pypi.org/)
 
