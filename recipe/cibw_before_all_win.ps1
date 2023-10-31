@@ -1,12 +1,12 @@
 $ErrorActionPreference = 'Stop'
 
 # swig
-$swigexe = Get-Command swig -ErrorAction "ignore"
-if ($null -eq $swigexe) {
-  & choco install swig --version 4.0.1 -y
-  if (-not $?) { Write-Error -Message "swig installation failed" }
-  $swigexe = Get-Command swig
-}
+# $swigexe = Get-Command swig -ErrorAction "ignore"
+# if ($null -eq $swigexe) {
+#   & choco install swig --version 4.0.1 -y
+#   if (-not $?) { Write-Error -Message "swig installation failed" }
+#   $swigexe = Get-Command swig
+# }
 
 # openblas
 if (-not ([string]::IsNullOrEmpty($env:OPENBLASROOT))) {
