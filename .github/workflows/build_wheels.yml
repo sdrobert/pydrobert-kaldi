@@ -21,7 +21,8 @@ jobs:
           CIBW_BEFORE_ALL_WINDOWS: powershell.exe {project}/recipe/cibw_before_all_win.ps1
           CIBW_BEFORE_BUILD: python -m pip install -r {project}/recipe/cibw_before_requirements.txt
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel} --add-path "C:\Libraries\openblas\bin"
-          CIBW_SKIP: pp* *-win32 *-musllinux*
+          CIBW_ARCHS_LINUX: x86_64
+          CIBW_SKIP: pp* *-win32
         #   CIBW_SOME_OPTION: value
         #    ...
         # with:
