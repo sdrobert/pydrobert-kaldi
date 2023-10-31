@@ -1,6 +1,6 @@
-name: Build
+name: Build wheels
 
-on: [push, pull_request]
+on: [push, pull_request, release]
 
 jobs:
   build_wheels:
@@ -8,7 +8,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-11]
+        os: [ubuntu-20.04]
 
     steps:
       - uses: actions/checkout@v4
@@ -21,7 +21,7 @@ jobs:
           CIBW_BEFORE_ALL_WINDOWS: powershell.exe {project}/recipe/cibw_before_all_win.ps1
           CIBW_BEFORE_BUILD: python -m pip install -r {project}/recipe/cibw_before_requirements.txt
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel} --add-path "C:\Libraries\openblas\bin"
-          CIBW_SKIP: pp* *-win32
+          CIBW_SKIP: pp* *-win32 *-musllinux*
         #   CIBW_SOME_OPTION: value
         #    ...
         # with:
