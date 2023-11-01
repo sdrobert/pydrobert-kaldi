@@ -22,7 +22,7 @@ jobs:
           CIBW_BEFORE_BUILD: python -m pip install -r {project}/recipe/cibw_before_requirements.txt
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel}
           CIBW_ARCHS_LINUX: x86_64
-          CIBW_SKIP: pp* *-win32 *manylinux* py37* py38*
+          CIBW_SKIP: pp* *-win32 *manylinux* cp37* cp38*
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: "pytest {project}/tests/python"
         #   CIBW_SOME_OPTION: value
@@ -35,3 +35,13 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           path: ./wheelhouse/*.whl
+  
+  # build_sdist:
+  #   name: Build sdist
+  #   runs-on: ubuntu-20.04
+
+  #   steps:
+  #     - uses: actions/checkout@v4
+
+  #     - name: Build sdist
+  #       uses: 
