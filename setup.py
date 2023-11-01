@@ -266,9 +266,8 @@ if platform.system() != "Windows":
     DEFINES += [
         ("_GLIBCXX_USE_CXX11_ABI", "0"),
         ("HAVE_CXXABI_H", None),
+        ("HAVE_EXECINFO_H", "1"),
     ]
-    # if platform.libc_ver()[0] != "muslc":
-    #     DEFINES.append(("HAVE_EXECINFO_H", "1"))
     LIBRARIES = ["m", "dl"]
 else:
     FLAGS = []

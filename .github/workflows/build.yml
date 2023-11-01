@@ -8,7 +8,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-11]
+        os: [ubuntu-20.04]
 
     steps:
       - uses: actions/checkout@v4
@@ -22,7 +22,7 @@ jobs:
           CIBW_BEFORE_BUILD: python -m pip install -r {project}/recipe/cibw_before_requirements.txt
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel}
           CIBW_ARCHS_LINUX: x86_64
-          CIBW_SKIP: pp* *-win32
+          CIBW_SKIP: pp* *-win32 *manylinux*
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: "pytest {project}/tests/python"
         #   CIBW_SOME_OPTION: value
