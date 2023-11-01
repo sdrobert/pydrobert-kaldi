@@ -267,7 +267,7 @@ if platform.system() != "Windows":
         ("_GLIBCXX_USE_CXX11_ABI", "0"),
         ("HAVE_CXXABI_H", None),
     ]
-    if not environ.get("NO_EXECINFO"):
+    if not environ.get("NO_EXECINFO", ""):
         DEFINES.append(("HAVE_EXECINFO_H", "1"))
     LIBRARIES = ["m", "dl"]
 else:
