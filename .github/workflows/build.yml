@@ -25,7 +25,7 @@ jobs:
           CIBW_SKIP: pp* *-win32 *manylinux* cp37* cp38*
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: "pytest {project}/tests/python"
-          CIBW_ENVIRONMENT_PASS_LINUX: NO_EXECINFO
+          CIBW_ENVIRONMENT_PASS_LINUX: ADDITIONAL_LIBS
         #   CIBW_SOME_OPTION: value
         #    ...
         # with:
