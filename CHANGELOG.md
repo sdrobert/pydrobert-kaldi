@@ -1,3 +1,8 @@
+v0.6.4
+------
+- GitHub actions.
+- Python 3.12
+
 v0.6.3
 ------
 - Fixed an annoying bug causing memory bloat.
