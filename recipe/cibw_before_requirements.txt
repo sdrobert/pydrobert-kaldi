@@ -1,4 +1,3 @@
-oldest-supported-numpy
 delvewheel; platform_system == 'Windows'
 auditwheel; platform_system == 'Linux'
 delocate; platform_system == 'Darwin'
