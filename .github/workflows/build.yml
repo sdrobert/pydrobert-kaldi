@@ -25,7 +25,7 @@ jobs:
           CIBW_SKIP: pp* *-win32 *manylinux* cp37* cp38*
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: "pytest {project}/tests/python"
-          CIBW_ENVIRONMENT_PASS_LINUX: NO_EXECINFO
+          CIBW_ENVIRONMENT: export NO_EXECINFO=1
         #   CIBW_SOME_OPTION: value
         #    ...
         # with:
@@ -37,12 +37,16 @@ jobs:
         with:
           path: ./wheelhouse/*.whl
   
-  # build_sdist:
-  #   name: Build sdist
-  #   runs-on: ubuntu-20.04
+  build_sdist:
+    name: Build source distribution
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
 
-  #   steps:
-  #     - uses: actions/checkout@v4
+      - name: Build sdist
+        run: pipx run build --sdist
 
-  #     - name: Build sdist
-  #       uses: 
+      - uses: actions/upload-artifact@v3
+        with:
+          path: dist/*.tar.gz
+
