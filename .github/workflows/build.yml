@@ -1,6 +1,9 @@
 name: Build PyPI
 
-on: [push, pull_request, release]
+# Build wheels and source distribution for Python
+# We only run a single command as a test to check for linker errors
+
+on: [pull_request, release]
 
 jobs:
   build_wheels:
@@ -19,7 +22,7 @@ jobs:
           CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel}
           CIBW_ARCHS_LINUX: x86_64
-          CIBW_SKIP: pp* *-win32 py37* py38* py39* py310* py311*
+          CIBW_SKIP: pp* *-win32
           CIBW_TEST_COMMAND: write-table-to-pickle --help
 
       - uses: actions/upload-artifact@v3

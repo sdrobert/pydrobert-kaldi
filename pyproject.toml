@@ -4,7 +4,7 @@ requires = [
   "wheel",
   "setuptools_scm>=6.2",
   "oldest-supported-numpy; python_version<'3.9'",
-  "numpy>=1.25<2; python_version>='3.9'", # https://numpy.org/devdocs/dev/depending_on_numpy.html#build-time-dependency
+  "numpy>=1.25; python_version>='3.9'", # https://numpy.org/devdocs/dev/depending_on_numpy.html#build-time-dependency
   "swig"
 ]
 build-backend = "setuptools.build_meta"

@@ -6,7 +6,6 @@ on:
     branches-ignore:
       - docs
   pull_request:
-  release:
   schedule:
     # run every monday @ 8am
     - cron: "0 8 * * 1"
