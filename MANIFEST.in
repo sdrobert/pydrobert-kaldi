@@ -1,4 +1,4 @@
-exclude .appveyor.yml
+recursive-exclude .github *
 exclude .gitignore
-exclude-recursive recipe *
-include swig/pydrobert/kaldi_wrap.cpp
+recursive-exclude recipe *
+recursive-include swig *

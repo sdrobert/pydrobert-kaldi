@@ -1,3 +1,8 @@
+v0.6.4
+------
+- Replace AppVeyor CI with GitHub Actions.
+- Python 3.12 and musslinux builds.
+
 v0.6.3
 ------
 - Fixed an annoying bug causing memory bloat.

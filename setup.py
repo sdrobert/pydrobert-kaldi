@@ -23,8 +23,9 @@ from re import findall
 from setuptools import setup
 from setuptools.extension import Extension
 import numpy as np
+import platform
 
-IS_64_BIT = sys.maxsize > 2 ** 32
+IS_64_BIT = sys.maxsize > 2**32
 ON_WINDOWS = platform.system() == "Windows"
 
 if ON_WINDOWS:
@@ -33,6 +34,7 @@ elif platform.system() == "Darwin":
     LIBRARY_SUFFIXES = {"a", "dylib"}
 else:
     LIBRARY_SUFFIXES = {"a", "so"}
+
 
 # modified this bad boy from
 # https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex
@@ -263,9 +265,10 @@ if platform.system() != "Windows":
         LD_FLAGS += ["-stdlib=libc++"]
     DEFINES += [
         ("_GLIBCXX_USE_CXX11_ABI", "0"),
-        ("HAVE_EXECINFO_H", "1"),
         ("HAVE_CXXABI_H", None),
     ]
+    if not environ.get("AUDITWHEEL_PLAT", "").startswith("musl"):
+        DEFINES.append(("HAVE_EXECINFO_H", "1"))
     LIBRARIES = ["m", "dl"]
 else:
     FLAGS = []
