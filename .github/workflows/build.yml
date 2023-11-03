@@ -1,4 +1,4 @@
-name: Build
+name: Build PyPI
 
 on: [push, pull_request, release]
 
@@ -19,24 +19,29 @@ jobs:
           CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel}
           CIBW_ARCHS_LINUX: x86_64
-          CIBW_SKIP: pp* *-win32
-          CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: "pytest {project}/tests/python"
+          CIBW_SKIP: pp* *-win32 py37* py38* py39* py310* py311*
+          CIBW_TEST_COMMAND: write-table-to-pickle --help
 
       - uses: actions/upload-artifact@v3
         with:
           path: ./wheelhouse/*.whl
   
-  # build_sdist:
-  #   name: Build source distribution
-  #   runs-on: ubuntu-20.04
-  #   steps:
-  #     - uses: actions/checkout@v4
+  build_sdist:
+    name: Build source distribution
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
 
-  #     - name: Build sdist
-  #       run: pipx run build --sdist
+      - name: Build sdist
+        run: pipx run build --sdist
+      
+      - name: Install sdist
+        run: pip install dist/*.tar.gz
+      
+      - name: Test sdist
+        run: write-table-to-pickle --help
 
-  #     - uses: actions/upload-artifact@v3
-  #       with:
-  #         path: dist/*.tar.gz
+      - uses: actions/upload-artifact@v3
+        with:
+          path: dist/*.tar.gz
 
