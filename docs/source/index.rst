@@ -2,12 +2,16 @@
    :parser: myst_parser.sphinx_
 
 .. toctree::
+   :caption: API
    :maxdepth: 3
-   :caption: Contents:
+
+   api/pydrobert/kaldi
+
+.. toctree::
+   :caption: Other
 
    cli
    locale
-   modules
 
 Indices and tables
 ==================
