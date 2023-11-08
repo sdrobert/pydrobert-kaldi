@@ -118,11 +118,11 @@ def numpy_dtype_arg_type(string: str) -> np.dtype:
     try:
         ret = np.dtype(string)
     except TypeError as error:
-        raise argparse.ArgumentTypeError(error.message)
+        raise argparse.ArgumentTypeError(error.args)
     return ret
 
 
-def kaldi_config_arg_type(string: str) -> np.dtype:
+def kaldi_config_arg_type(string: str) -> List[str]:
     """Encapsulate parse_kaldi_config_file as an argument type"""
     try:
         return parse_kaldi_config_file(string)
@@ -205,14 +205,16 @@ class KaldiVerbosityAction(argparse.Action):
             metavar=metavar,
         )
 
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(
+        self, parser: "KaldiParser", namespace, values: int, option_string=None
+    ):
         if values < -3 or values > 9:
             raise argparse.ArgumentTypeError(
                 "Verbosity must be between -3 and 9 inclusive"
             )
         logging_lvl = kaldi_lvl_to_logging_lvl(values)
         setattr(namespace, self.dest, logging_lvl)
-        if hasattr(parser, "logger"):
+        if hasattr(parser, "logger") and parser.logger is not None:
             parser.logger.setLevel(logging_lvl)
 
 
@@ -331,8 +333,8 @@ class KaldiParser(argparse.ArgumentParser):
         add_config: bool = True,
         update_formatters: bool = True,
         add_print_args: bool = True,
-        logger: logging.Logger = None,
-        version: str = None,
+        logger: Optional[logging.Logger] = None,
+        version: Optional[str] = None,
     ):
         super(KaldiParser, self).__init__(
             prog=prog,
@@ -398,8 +400,6 @@ class KaldiParser(argparse.ArgumentParser):
             file = sys.stderr
         super(KaldiParser, self).print_usage(file=file)
 
-    print_usage.__doc__ = argparse.ArgumentParser.print_usage.__doc__
-
     def error(self, message: str):
         if self.logger:
             self.logger.error(message)
@@ -407,8 +407,6 @@ class KaldiParser(argparse.ArgumentParser):
             self.exit(2)
         else:
             super(KaldiParser, self).error(message)
-
-    error.__doc__ = argparse.ArgumentParser.error.__doc__
 
     @kaldi_vlog_level_cmd_decorator
     def parse_known_args(
@@ -464,8 +462,7 @@ class KaldiParser(argparse.ArgumentParser):
         ns, remainder = super(KaldiParser, self).parse_known_args(
             args=args, namespace=namespace
         )
-        add_config = self.add_config and ns.config
-        if add_config:
+        if self.add_config and ns is not None and ns.config:
             args = ns.config + args
             # ignoring the possibility that they nested print-args in
             # the config

@@ -1,5 +1,7 @@
 v0.6.4
 ------
+- Better type hints.
+- Added `KaldiReader` as an ABC between random access and sequential readers.
 - Replace AppVeyor CI with GitHub Actions.
 - Python 3.12 and musslinux builds.
 

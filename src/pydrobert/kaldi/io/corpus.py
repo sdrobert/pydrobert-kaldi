@@ -640,8 +640,6 @@ class ShuffledData(Data):
         elif self._num_samples != num_samples:
             raise IOError("Different number of samples from last time!")
 
-    sample_generator_for_epoch.__doc__ = Data.num_samples.__doc__
-
 
 class SequentialData(Data):
     """Provides iterators to read data sequentially
@@ -802,9 +800,3 @@ class SequentialData(Data):
 
     def sample_generator_for_epoch(self):
         return self._sample_generator_for_epoch()
-
-    sample_generator_for_epoch.__doc__ = Data.sample_generator_for_epoch.__doc__
-
-
-SequentialData.num_samples.__doc__ = Data.num_samples.__doc__
-ShuffledData.num_samples.__doc__ = Data.num_samples.__doc__

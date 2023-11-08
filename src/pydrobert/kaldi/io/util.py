@@ -14,7 +14,7 @@
 
 """Kaldi I/O utilities"""
 
-from typing import Any, Tuple
+from typing import Any, Dict, Optional, Tuple, Union
 import numpy as np
 
 from pydrobert.kaldi.io.enums import KaldiDataType
@@ -31,7 +31,9 @@ __all__ = [
 ]
 
 
-def parse_kaldi_input_path(path: str) -> Tuple[TableType, str, RxfilenameType, dict]:
+def parse_kaldi_input_path(
+    path: str,
+) -> Tuple[TableType, str, RxfilenameType, Dict[str, Any]]:
     """Determine the characteristics of an input stream by its path
 
     Returns a 4-tuple of the following information:
@@ -72,7 +74,14 @@ def parse_kaldi_input_path(path: str) -> Tuple[TableType, str, RxfilenameType, d
     return (table_type, rxfilename, rx_type, options)
 
 
-def parse_kaldi_output_path(path: str) -> Tuple[TableType, str, WxfilenameType, dict]:
+def parse_kaldi_output_path(
+    path: str,
+) -> Tuple[
+    TableType,
+    str,
+    Union[WxfilenameType, Tuple[WxfilenameType, WxfilenameType]],
+    Dict[str, Any],
+]:
     """Determine the charactersistics of an output stram by its path
 
     Returns a 4-tuple of the following information
@@ -111,7 +120,7 @@ def parse_kaldi_output_path(path: str) -> Tuple[TableType, str, WxfilenameType, 
     table_type = TableType(cpp_ret[0])
     if table_type == TableType.BothTables:
         wxfilenames = cpp_ret[1:3]
-        wx_types = tuple(WxfilenameType(wx) for wx in cpp_ret[3:5])
+        wx_types = (WxfilenameType(cpp_ret[3]), WxfilenameType(cpp_ret[4]))
     else:
         wxfilenames = cpp_ret[1]
         wx_types = WxfilenameType(cpp_ret[2])
@@ -126,7 +135,7 @@ def parse_kaldi_output_path(path: str) -> Tuple[TableType, str, WxfilenameType, 
     return (table_type, wxfilenames, wx_types, options)
 
 
-def infer_kaldi_data_type(obj: Any) -> KaldiDataType:
+def infer_kaldi_data_type(obj: Any) -> Optional[KaldiDataType]:
     """Infer the appropriate kaldi data type for this object
 
     The following map is used (in order):

@@ -15,9 +15,9 @@
 """Submodule for reading and writing one-by-one, like (un)packing c structs"""
 
 from builtins import str as text
-from typing import Any, Optional
+from typing import Any, Optional, overload
 
-from pydrobert.kaldi import _internal as _i
+from pydrobert.kaldi import _internal as _i  # type: ignore
 from pydrobert.kaldi.io import KaldiIOBase
 from pydrobert.kaldi.io.enums import KaldiDataType
 from pydrobert.kaldi.io.util import infer_kaldi_data_type
@@ -32,6 +32,20 @@ __all__ = [
     "KaldiInput",
     "KaldiOutput",
 ]
+
+
+@overload
+def open_duck_stream(
+    path: str, mode: Literal["r", "r+"] = "r", header: bool = True
+) -> "KaldiInput":
+    ...
+
+
+@overload
+def open_duck_stream(
+    path: str, mode: Literal["w"], header: bool = True
+) -> "KaldiOutput":
+    ...
 
 
 def open_duck_stream(
@@ -102,20 +116,16 @@ class KaldiInput(KaldiIOBase):
         super(KaldiInput, self).__init__(path)
         self.binary = binary
 
-    def readable(self) -> bool:
+    def readable(self) -> Literal[True]:
         return True
 
-    readable.__doc__ = KaldiIOBase.readable.__doc__
-
-    def writable(self) -> bool:
+    def writable(self) -> Literal[False]:
         return False
-
-    writable.__doc__ = KaldiIOBase.writable.__doc__
 
     def read(
         self,
         kaldi_dtype: KaldiDataType,
-        value_style: Literal["b", "s", "d"] = "b",
+        value_style: str = "b",
         read_binary: Optional[bool] = None,
     ) -> Any:
         """Read in one object from the stream
@@ -200,8 +210,6 @@ class KaldiInput(KaldiIOBase):
             self._internal.Close()
         self.closed = True
 
-    close.__doc__ = KaldiIOBase.close.__doc__
-
 
 class KaldiOutput(KaldiIOBase):
     """A kaldi output stream from which objects can be written one at a time
@@ -220,15 +228,11 @@ class KaldiOutput(KaldiIOBase):
         if not self._internal.Open(path, self.binary, header):
             raise IOError("Unable to open {} for writing".format(path))
 
-    def readable(self) -> bool:
+    def readable(self) -> Literal[False]:
         return False
 
-    readable.__doc__ = KaldiIOBase.readable.__doc__
-
-    def writable(self) -> bool:
+    def writable(self) -> Literal[True]:
         return True
-
-    writable.__doc__ = KaldiIOBase.writable.__doc__
 
     def write(
         self,

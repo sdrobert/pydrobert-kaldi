@@ -45,21 +45,21 @@ pydrobert.kaldi.io.enums.KaldiDataType
 
 import abc
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Tuple, Union
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 
 
 if TYPE_CHECKING:
-    from pydrobert.kaldi.io.enums import KaldiDataType
+    from pydrobert.kaldi.io.util import WxfilenameType, RxfilenameType
+    from pydrobert.kaldi.io.enums import KaldiDataType, TableType
 
 __all__ = [
     "KaldiIOBase",
     "open",
-    "argparse",
-    "corpus",
-    "duck_streams",
-    "enums",
-    "table_streams",
-    "util",
 ]
 
 
@@ -73,41 +73,35 @@ class KaldiIOBase(object, metaclass=abc.ABCMeta):
     path
         The path passed to "func:`pydrobert.kaldi.io.open`. One of an rspecifier,
         wspecifier, rxfilename, or wxfilename
-
-    Attributes
-    ----------
-    path
-        The opened path
-    table_type
-        The type of table that's being read/written (or ``NotATable``)
-    xfilenames
-        The extended file names being read/written. For tables, this
-        excludes the ``'ark:'`` and ``'scp:'`` prefixes from path.
-        Usually there will be only one extended file name, unless the
-        path uses the special ``'ark,scp:'`` format to write both an
-        archive and script at the same time
-    xtypes
-        The type of extended file name opened. Usually there will be
-        only one extended file name, unless the path uses the special
-        ``'ark,scp:'`` format to write both an archive and script at
-        the same time
-    binary
-        Whether this stream encodes binary data (or text)
-    closed
-        Whether this stream is closed
-    permissive
-        Whether invalid values will be treated as non-existent (tables only)
-    once
-        Whether each entry will only be read once (readable tables only)
-    sorted
-        Whether keys are sorted (readable tables only)
-    called_sorted
-        Whether entries will be read in sorted order (readable tables only)
-    background
-        Whether reading is not being performed on the main thread (readable tables only)
-    flush
-        Whether the stream is flushed after each write operation (writable tables only)
     """
+
+    path: str
+    """The opened path"""
+
+    table_type: "TableType"
+    """The type of table that's being read/written (or :obj:`TableType.NotATable`)"""
+
+    xfilenames: str
+    """The extended file names being read/written
+    
+    For tables, this excludes the ``'ark:'`` and ``'scp:'`` prefixes from path. Usually
+    there will be only one extended file name, unless the path uses the special
+    ``'ark,scp:'`` format to write both an archive and script at the same time
+    """
+
+    xtypes: Union[
+        "WxfilenameType",
+        "RxfilenameType",
+        Tuple["WxfilenameType", "WxfilenameType"],
+    ]
+    """The type of extended file name opened
+    
+    Usually there will be only one extended file name, unless the path uses the special
+    ``'ark,scp:'`` format to write both an archive and script at the same time
+    """
+
+    binary: bool
+    """Whether this stream encodes binary data (or text)"""
 
     def __init__(self, path: str):
         from pydrobert.kaldi.io.util import parse_kaldi_input_path
@@ -117,16 +111,16 @@ class KaldiIOBase(object, metaclass=abc.ABCMeta):
         self.closed = False
         if self.readable():
             (
-                self._table_type,
-                self._xfilenames,
-                self._xtypes,
+                self.table_type,
+                self.xfilenames,
+                self.xtypes,
                 options,
             ) = parse_kaldi_input_path(path)
         else:
             (
-                self._table_type,
-                self._xfilenames,
-                self._xtypes,
+                self.table_type,
+                self.xfilename,
+                self.xtypes,
                 options,
             ) = parse_kaldi_output_path(path)
         self.binary = True
@@ -152,7 +146,7 @@ class KaldiIOBase(object, metaclass=abc.ABCMeta):
         """Return whether this object was opened for writing"""
         pass
 
-    def __enter__(self) -> "KaldiIOBase":
+    def __enter__(self):
         return self
 
     def __exit__(self, exception_type, exception_val, trace) -> None:
@@ -161,13 +155,13 @@ class KaldiIOBase(object, metaclass=abc.ABCMeta):
 
 def open(
     path: str,
-    kaldi_dtype: "KaldiDataType" = None,
-    mode: str = "r",
+    kaldi_dtype: Optional[Union["KaldiDataType", str]] = None,
+    mode: Literal["r", "r+", "w"] = "r",
     error_on_str: bool = True,
     utt2spk: str = "",
     value_style: str = "b",
     header: bool = True,
-    cache: str = False,
+    cache: bool = False,
 ) -> KaldiIOBase:
     """Factory function for initializing and opening kaldi streams
 
@@ -198,6 +192,8 @@ def open(
     if table_type == TableType.NotATable:
         return open_duck_stream(path, mode=mode, header=header)
     else:
+        if kaldi_dtype is None:
+            raise ValueError("path is rspecifier; kaldi_dtype must be specified")
         return open_table_stream(
             path,
             kaldi_dtype,

@@ -49,15 +49,6 @@ sequential reading (`mode='r'`), dict-like random access reading (`mode='r+'`),
 or writing (`mode='w'`). For more information on the open function, consult the
 docstring.
 
-The submodule `pydrobert.kaldi.io.corpus` contains useful wrappers around Kaldi
-I/O to serve up batches of data to, say, a neural network:
-
-``` python
-train = ShuffledData('scp:feats.scp', 'scp:labels.scp', batch_size=10)
-for feat_batch, label_batch in train:
-    ...
-```
-
 ## Logging and CLI
 
 By default, Kaldi error, warning, and critical messages are piped to standard
