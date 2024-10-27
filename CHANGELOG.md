@@ -1,3 +1,7 @@
+v0.6.5
+------
+- Python 3.13 builds
+
 v0.6.4
 ------
 - Replace AppVeyor CI with GitHub Actions.
