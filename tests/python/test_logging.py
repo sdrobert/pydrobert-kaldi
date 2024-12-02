@@ -97,7 +97,7 @@ def test_do_not_callback_unregistered(kaldi_logger):
 def elicit_warning(filename, threaded=False):
     # helper to elicit a natural warning from kaldi
     writer = io.open("ark,t:{}".format(filename), "bv", "w")
-    writer.write("zz", [np.infty])
+    writer.write("zz", [float("inf")])
     writer.close()
     reader = io.open("ark,t{}:{}".format(",bg" if threaded else "", filename), "bv")
     next(reader)

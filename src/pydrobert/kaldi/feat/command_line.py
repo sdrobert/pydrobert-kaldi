@@ -50,7 +50,9 @@ def _normalize_feat_lens_parse_args(args, logger):
         help="The reference lengths (int32 table)",
     )
     parser.add_argument(
-        "feats_out_wspecifier", type="kaldi_wspecifier", help="The output features",
+        "feats_out_wspecifier",
+        type="kaldi_wspecifier",
+        help="The output features",
     )
     parser.add_argument(
         "--type",
@@ -149,7 +151,7 @@ def normalize_feat_lens(args: Optional[Sequence[str]] = None) -> None:
             # for matrices or vectors, this cast shouldn't be necessary.
             # If the user tries some special type like token vectors,
             # however, this *might* work as intended
-            feats = np.array(feats, copy=False)
+            feats = np.asarray(feats)
             pad_list = [(0, 0)] * len(feats.shape)
             if options.side == "right":
                 pad_list[0] = (0, exp_feat_len - act_feat_len)

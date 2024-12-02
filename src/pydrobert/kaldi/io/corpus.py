@@ -172,13 +172,13 @@ def batch_data(
                     )
                 if cast_to_array[0] is not None:
                     yield tuple(
-                        np.array(sub_sample, dtype=cast_to_array[0], copy=False)
+                        np.asarray(sub_sample, dtype=cast_to_array[0])
                         for sub_sample in sample
                     )
                 else:
                     yield sample
             elif cast_to_array is not None:
-                yield np.array(sample, dtype=cast_to_array[0], copy=False)
+                yield np.asarray(sample, dtype=cast_to_array[0])
             else:
                 yield sample
         return
@@ -190,7 +190,7 @@ def batch_data(
                 zip(sample, cycle(cast_to_array))
             ):
                 if sub_cast is not None:
-                    sub_sample = np.array(sub_sample, dtype=sub_cast, copy=False)
+                    sub_sample = np.asarray(sub_sample, dtype=sub_cast)
                 if len(cur_batch) == sub_batch_idx:
                     cur_batch.append([sub_sample])
                 else:
@@ -205,7 +205,7 @@ def batch_data(
                 )
         else:
             if cast_to_array is not None:
-                sample = np.array(sample, dtype=cast_to_array, copy=False)
+                sample = np.asarray(sample, dtype=cast_to_array)
             cur_batch.append(sample)
         cur_batch_size += 1
         if cur_batch_size == batch_size:
@@ -626,9 +626,7 @@ class ShuffledData(Data):
                 continue
             num_samples += 1
             for sub_batch_idx, axis_idx in self.axis_lengths:
-                samp_tup.append(
-                    np.array(samp_tup[sub_batch_idx], copy=False).shape[axis_idx]
-                )
+                samp_tup.append(np.asarray(samp_tup[sub_batch_idx]).shape[axis_idx])
             if self.add_key:
                 samp_tup.insert(0, key)
             if self.num_sub != 1:
@@ -714,9 +712,7 @@ class SequentialData(Data):
                     tab_idx += 1
                 num_samples += 1
                 for sub_batch_idx, axis_idx in self.axis_lengths:
-                    samp_tup.append(
-                        np.array(samp_tup[sub_batch_idx], copy=False).shape[axis_idx]
-                    )
+                    samp_tup.append(np.asarray(samp_tup[sub_batch_idx]).shape[axis_idx])
                 if self.add_key:
                     samp_tup.insert(0, key)
                 if self.num_sub != 1:
@@ -763,9 +759,7 @@ class SequentialData(Data):
                 samp_tup.append(sample)
             num_samples += 1
             for sub_batch_idx, axis_idx in self.axis_lengths:
-                samp_tup.append(
-                    np.array(samp_tup[sub_batch_idx], copy=False).shape[axis_idx]
-                )
+                samp_tup.append(np.asarray(samp_tup[sub_batch_idx]).shape[axis_idx])
             if self.add_key:
                 samp_tup.insert(0, key)
             if self.num_sub != 1:

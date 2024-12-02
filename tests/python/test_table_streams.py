@@ -29,7 +29,7 @@ from pydrobert.kaldi.io.enums import KaldiDataType
     [
         ("bv", []),
         ("bm", [[]]),
-        ("bv", [np.infty]),
+        ("bv", [float("inf")]),
         ("bv", [1] * 100),
         ("bm", [[1, 2], [3, 4]]),
         ("fv", [-1, -1, 0, 0.1]),
