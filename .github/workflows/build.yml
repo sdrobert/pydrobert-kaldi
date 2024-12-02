@@ -6,36 +6,36 @@ name: Build PyPI
 on: [pull_request, release]
 
 jobs:
-  build_wheels:
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-lastest, windows-2019, macos-11]
+  # build_wheels:
+  #   name: Build wheels on ${{ matrix.os }}
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     matrix:
+  #       os: [ubuntu-latest, windows-2019, macos-11]
 
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-python@v5
 
-      - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel
+  #     - name: Install cibuildwheel
+  #       run: python -m pip install cibuildwheel
 
-      - name: Build wheels
-        run: python -m cibuildwheel --output-dir wheelhouse
-        env:
-          CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel}
-          CIBW_ARCHS_LINUX: x86_64
-          CIBW_SKIP: pp* *-win32
-          CIBW_TEST_COMMAND: write-table-to-pickle --help
+  #     - name: Build wheels
+  #       run: python -m cibuildwheel --output-dir wheelhouse
+  #       env:
+  #         CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
+  #         CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel}
+  #         CIBW_ARCHS_LINUX: x86_64
+  #         CIBW_SKIP: pp* *-win32
+  #         CIBW_TEST_COMMAND: write-table-to-pickle --help
 
-      - uses: actions/upload-artifact@v3
-        with:
-          path: ./wheelhouse/*.whl
+  #     - uses: actions/upload-artifact@v3
+  #       with:
+  #         path: ./wheelhouse/*.whl
   
   build_sdist:
     name: Build source distribution
-    runs-on: ubuntu-lastest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
