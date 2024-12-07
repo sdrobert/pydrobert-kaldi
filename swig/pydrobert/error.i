@@ -34,9 +34,7 @@ namespace kaldi {
         (const LogMessageEnvelope &envelope, const char * message)
         {
           PyGILState_STATE gstate;
-          int acquire_gil = PyEval_ThreadsInitialized();
-          if (acquire_gil)
-            gstate = PyGILState_Ensure();
+          gstate = PyGILState_Ensure();
           PyObject *envelope_obj = Py_BuildValue(
             "(issi)",
             envelope.severity,
@@ -50,8 +48,7 @@ namespace kaldi {
           Py_DECREF(arg_list);
           Py_DECREF(envelope_obj);
           Py_XDECREF(result);
-          if (acquire_gil)
-            PyGILState_Release(gstate);
+          PyGILState_Release(gstate);
         }
       );
     } else {

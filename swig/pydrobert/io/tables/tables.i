@@ -43,7 +43,6 @@ namespace kaldi {
           // If we're trying to open a "background" sequential table reader, we
           // have to initialize python threads. We do this lazily since there's
           // a performance penalty.
-          PyEval_InitThreads();
           bool ret;
           Py_BEGIN_ALLOW_THREADS;
           ret = $self->Open(rspecifier);

@@ -356,7 +356,7 @@ def test_shuffled_data_tups(temp_file_1_name, temp_file_2_name):
         for feat_batch, _, len_batch in data:
             for act_feat, act_len in zip(feat_batch, len_batch):
                 ex_samp_idx -= 1
-                ex_feat = np.array(feats[ex_samp_idx], copy=False)
+                ex_feat = np.asarray(feats[ex_samp_idx])
                 ex_len = ex_feat.shape[1]
                 assert ex_len == act_len
                 assert np.allclose(ex_feat, act_feat[:, :ex_len])
@@ -378,7 +378,7 @@ def test_shuffled_data_tups(temp_file_1_name, temp_file_2_name):
                 feat_batch, label_batch, lablen_batch, featlen_batch
             ):
                 ex_samp_idx -= 1
-                ex_feat = np.array(feats[ex_samp_idx], copy=False)
+                ex_feat = np.asarray(feats[ex_samp_idx])
                 ex_label = labels[ex_samp_idx]
                 ex_featlen = ex_feat.shape[1]
                 ex_lablen = ex_label.shape[1]
@@ -442,7 +442,10 @@ def test_sequential_data_tups(temp_file_1_name, temp_file_2_name):
     feats = np.random.random((4, 10, 100)).astype(np.float64)
     labels = [
         ("foo",),
-        ("bar", "baz",),
+        (
+            "bar",
+            "baz",
+        ),
         ("bingo",),
         ("bango", "bongo", "eugene"),
     ]

@@ -50,7 +50,7 @@ def test_chained(temp_file_1_name):
     [
         ("bv", []),
         ("bm", [[]]),
-        ("bv", [np.infty]),
+        ("bv", [float("inf")]),
         ("bv", [1] * 100),
         ("bm", [[1, 2], [3, 4]]),
         ("fv", [-1, -1, 0, 0.1]),

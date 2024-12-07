@@ -1,5 +1,6 @@
 # adapted from https://github.com/tox-dev/tox-gh
 
+
 name: Run tox tests
 on:
   push:
@@ -16,29 +17,30 @@ concurrency:
 
 jobs:
   test:
-    name: Tox @ Python=${{ matrix.py }}
+    name: test with ${{ matrix.env }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        py:
-          - "3.11"
+        env:
+          - "3.13"
+          - "3.12"
           - "3.10"
           - "3.9"
-          - "3.8"
-          - "3.7"
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Setup python ${{ matrix.py }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.py }}
+      - uses: actions/checkout@v4
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v3
       - name: Install tox
-        run: python -m pip install tox-gh>=1.2
+        run: uv tool install --python-preference only-managed --python 3.13 tox --with tox-uv --with tox-gh
+      - name: Install Python
+        if: matrix.env != '3.13'
+        run: uv python install --python-preference only-managed ${{ matrix.env }}
       - name: Setup test suite
-        run: tox -vv --notest
+        run: tox run -vv --notest --skip-missing-interpreters false
+        env:
+          TOX_GH_MAJOR_MINOR: ${{ matrix.env }}
       - name: Run test suite
-        run: tox --skip-pkg-install
+        run: tox run --skip-pkg-install
+        env:
+          TOX_GH_MAJOR_MINOR: ${{ matrix.env }}
