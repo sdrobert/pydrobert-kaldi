@@ -1,4 +1,4 @@
-[![Build status](https://github.com/sdrobert/pydrobert-kaldi/actions/workflows/build.yml/badge.svg)](https://github.com/sdrobert/pydrobert-kaldi/actions/workflows/build.yml)
+[![Build status](https://github.com/sdrobert/pydrobert-kaldi/actions/workflows/tox.yml/badge.svg)](https://github.com/sdrobert/pydrobert-kaldi/actions/workflows/tox.yml)
 [![Documentation Status](https://readthedocs.org/projects/pydrobert-kaldi/badge/?version=latest)](https://pydrobert-kaldi.readthedocs.io/en/latest/?badge=latest)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
