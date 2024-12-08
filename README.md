@@ -1,6 +1,7 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/lvjhj9pgju90wn8j?svg=true)](https://ci.appveyor.com/project/sdrobert/pydrobert-kaldi)
+[![Build status](https://github.com/sdrobert/pydrobert-kaldi/actions/workflows/build.yml/badge.svg)](https://github.com/sdrobert/pydrobert-kaldi/actions/workflows/build.yml)
 [![Documentation Status](https://readthedocs.org/projects/pydrobert-kaldi/badge/?version=latest)](https://pydrobert-kaldi.readthedocs.io/en/latest/?badge=latest)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 
 # pydrobert-kaldi
 
