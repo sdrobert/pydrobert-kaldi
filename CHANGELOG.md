@@ -1,9 +1,6 @@
-v0.6.5
-------
-- Python 3.13 builds
-
 v0.6.4
 ------
+- Python 3.13 builds
 - Replace AppVeyor CI with GitHub Actions.
 - Python 3.12 and musslinux builds.
 
